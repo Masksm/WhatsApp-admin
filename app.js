@@ -762,9 +762,33 @@ publicMessagePanel.hidden = false;
 
         if (error) throw error;
 
-        publicMessageForm.reset();
-        publicMessageStatus.textContent =
-          "Your anonymous message has been sent successfully! 💗";
+        
+publicMessageForm.reset();
+
+publicMessageStatus.innerHTML = `
+  <div class="anonymous-success">
+    <h3>Message sent successfully! 💗</h3>
+    <p>Your little note has been delivered anonymously.</p>
+
+    <div class="anonymous-signup-prompt">
+      <h4>Enjoying Amora? 💌</h4>
+      <p>
+        Create your own account to get your personal anonymous
+        message link, or log in if you already have an account.
+      </p>
+
+      <a class="primary-btn" href="${window.location.origin}/">
+        Create an account 💗
+      </a>
+
+      <p>
+        Already have an account?
+        <a href="${window.location.origin}/">Log in</a>
+      </p>
+    </div>
+  </div>
+`;
+
       } catch (error) {
         console.error("Anonymous message submission failed:", error);
 
