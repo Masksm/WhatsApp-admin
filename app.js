@@ -386,6 +386,64 @@
 
   setAuthMode("signup");
 
+  // ============================================================
+  // AMORA DASHBOARD AND SESSION MANAGEMENT
+  // ============================================================
+
+  const dashboardPanel = $("#dashboard-panel");
+  const dashboardEmail = $("#dashboard-email");
+  const dashboardStatus = $("#dashboard-status");
+  const logoutButton = $("#logout-button");
+  const authPanel = $("#auth-panel");
+
+  function showDashboard(user) {
+    if (user) {
+      dashboardEmail.textContent = user.email || "Email unavailable";
+      dashboardStatus.textContent =
+        "You're signed in. Your Amora space is ready. 💗";
+
+      dashboardPanel.hidden = false;
+      authPanel.hidden = true;
+    } else {
+      dashboardPanel.hidden = true;
+      authPanel.hidden = false;
+    }
+  }
+
+  // Restore the dashboard when an existing session is found.
+  window.amoraSupabase.auth.getSession().then(({ data, error }) => {
+    if (error) {
+      console.error("Could not restore session:", error.message);
+      return;
+    }
+
+    showDashboard(data.session?.user || null);
+  });
+
+  // Keep the page in sync when the user signs in or out.
+  window.amoraSupabase.auth.onAuthStateChange((event, session) => {
+    showDashboard(session?.user || null);
+  });
+
+  // Log out securely through Supabase.
+  logoutButton.addEventListener("click", async () => {
+    logoutButton.disabled = true;
+    dashboardStatus.textContent = "Logging out...";
+
+    const { error } = await window.amoraSupabase.auth.signOut();
+
+    if (error) {
+      dashboardStatus.textContent =
+        "Logout failed: " + error.message;
+      logoutButton.disabled = false;
+      return;
+    }
+
+    showDashboard(null);
+    setAuthStatus("You've logged out successfully.");
+    logoutButton.disabled = false;
+  });
+
   $("#surprise-form").addEventListener("submit", event => {
     event.preventDefault();
     const number = $("#number").value.trim();
