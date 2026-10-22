@@ -73,6 +73,46 @@
       Create account 💗
     </button>
 
+<div id="anonymous-link-area">
+  <hr>
+
+  <h3>Your anonymous message link 💌</h3>
+
+  <p class="muted">
+    Share your personal link so people can send you messages
+    anonymously.
+  </p>
+
+  <button
+    class="primary-btn"
+    id="create-anonymous-link"
+    type="button"
+  >
+    Create my personal link
+  </button>
+
+  <div id="anonymous-link-result" hidden>
+    <label for="anonymous-link-url">Your shareable link</label>
+
+    <input
+      id="anonymous-link-url"
+      type="url"
+      readonly
+      placeholder="Your link will appear here"
+    >
+
+    <button
+      class="secondary-btn"
+      id="copy-anonymous-link"
+      type="button"
+    >
+      Copy my link
+    </button>
+  </div>
+
+  <p id="anonymous-link-status" role="status"></p>
+</div>
+
     <button
       class="secondary-btn"
       id="login-button"
