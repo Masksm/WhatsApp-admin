@@ -259,6 +259,133 @@
     typeLetter();
   }
 
+  // ============================================================
+  // AMORA ACCOUNT SIGNUP AND LOGIN
+  // ============================================================
+
+  const authForm = $("#auth-form");
+  const authName = $("#auth-name");
+  const authEmail = $("#auth-email");
+  const authPassword = $("#auth-password");
+  const authStatus = $("#auth-status");
+  const authSubmit = authForm.querySelector('button[type="submit"]');
+  const loginButton = $("#login-button");
+
+  let authMode = "signup";
+
+  function setAuthStatus(message, isError = false) {
+    authStatus.textContent = message;
+    authStatus.style.color = isError ? "#dc2626" : "#15803d";
+  }
+
+  function setAuthMode(mode) {
+    authMode = mode;
+
+    const isSignup = mode === "signup";
+
+    authName.required = isSignup;
+    authName.closest("label")?.setAttribute("aria-hidden", "false");
+
+    authName.style.display = isSignup ? "" : "none";
+    authName.previousElementSibling.style.display = isSignup ? "" : "none";
+
+    authName.placeholder = "What should we call you?";
+    authPassword.autocomplete = isSignup
+      ? "new-password"
+      : "current-password";
+
+    authSubmit.textContent = isSignup
+      ? "Create account 💗"
+      : "Log in 💗";
+
+    loginButton.textContent = isSignup
+      ? "I already have an account"
+      : "Create a new account";
+
+    setAuthStatus("");
+  }
+
+  loginButton.addEventListener("click", () => {
+    setAuthMode(authMode === "signup" ? "login" : "signup");
+  });
+
+  authForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const supabase = window.amoraSupabase;
+
+    if (!supabase) {
+      setAuthStatus(
+        "Connection unavailable. Please refresh and try again.",
+        true
+      );
+      return;
+    }
+
+    const email = authEmail.value.trim();
+    const password = authPassword.value;
+    const name = authName.value.trim();
+
+    authSubmit.disabled = true;
+    loginButton.disabled = true;
+    setAuthStatus(
+      authMode === "signup"
+        ? "Creating your account..."
+        : "Signing you in..."
+    );
+
+    try {
+      let result;
+
+      if (authMode === "signup") {
+        result = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name: name
+            }
+          }
+        });
+      } else {
+        result = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (authMode === "signup") {
+        if (result.data.session) {
+          setAuthStatus(
+            "Account created successfully. Welcome to Amora! 💗"
+          );
+        } else {
+          setAuthStatus(
+            "Account created. Check your email for the confirmation link."
+          );
+        }
+      } else {
+        setAuthStatus(
+          "Login successful. Welcome back to Amora! 💗"
+        );
+      }
+    } catch (error) {
+      setAuthStatus(
+        error.message || "Something went wrong. Please try again.",
+        true
+      );
+    } finally {
+      authSubmit.disabled = false;
+      loginButton.disabled = false;
+    }
+  });
+
+  setAuthMode("signup");
+
   $("#surprise-form").addEventListener("submit", event => {
     event.preventDefault();
     const number = $("#number").value.trim();
