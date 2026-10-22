@@ -516,3 +516,162 @@
     renderActivity();
   }, 5000);
 })();
+
+  // ============================================================
+  // AMORA PERSONAL ANONYMOUS LINKS
+  // ============================================================
+
+  const createLinkButton = document.getElementById(
+    "create-anonymous-link"
+  );
+  const copyLinkButton = document.getElementById(
+    "copy-anonymous-link"
+  );
+  const linkResult = document.getElementById(
+    "anonymous-link-result"
+  );
+  const linkUrlInput = document.getElementById(
+    "anonymous-link-url"
+  );
+  const linkStatus = document.getElementById(
+    "anonymous-link-status"
+  );
+
+  function displayAnonymousLink(slug) {
+    const link = new URL(window.location.href);
+    link.search = "";
+    link.hash = "";
+    link.searchParams.set("anon", slug);
+
+    linkUrlInput.value = link.toString();
+    linkResult.hidden = false;
+  }
+
+  async function loadAnonymousLink(user) {
+    if (!user || !createLinkButton) return;
+
+    linkStatus.textContent = "Checking your personal link...";
+    createLinkButton.disabled = true;
+
+    try {
+      const { data, error } = await window.amoraSupabase
+        .from("anonymous_links")
+        .select("slug, is_active")
+        .eq("owner_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data && data.is_active) {
+        displayAnonymousLink(data.slug);
+        linkStatus.textContent = "Your personal link is ready.";
+      } else {
+        linkResult.hidden = true;
+        linkStatus.textContent =
+          "You haven't created an active link yet.";
+      }
+    } catch (error) {
+      console.error("Could not load anonymous link:", error);
+      linkStatus.textContent =
+        "Could not load your link. Please refresh and try again.";
+    } finally {
+      createLinkButton.disabled = false;
+    }
+  }
+
+  createLinkButton.addEventListener("click", async () => {
+    createLinkButton.disabled = true;
+    linkStatus.textContent = "Creating your personal link...";
+
+    try {
+      const { data: sessionData, error: sessionError } =
+        await window.amoraSupabase.auth.getSession();
+
+      if (sessionError) throw sessionError;
+
+      const user = sessionData.session?.user;
+
+      if (!user) {
+        throw new Error("Please log in before creating a link.");
+      }
+
+      // Reuse an existing active link instead of creating duplicates.
+      const { data: existing, error: lookupError } =
+        await window.amoraSupabase
+          .from("anonymous_links")
+          .select("slug, is_active")
+          .eq("owner_id", user.id)
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+      if (lookupError) throw lookupError;
+
+      if (existing) {
+        displayAnonymousLink(existing.slug);
+        linkStatus.textContent = "Your existing link is ready.";
+        return;
+      }
+
+      const slug =
+        "m-" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+
+      const { data, error } = await window.amoraSupabase
+        .from("anonymous_links")
+        .insert({
+          owner_id: user.id,
+          slug: slug,
+          is_active: true
+        })
+        .select("slug")
+        .single();
+
+      if (error) throw error;
+
+      displayAnonymousLink(data.slug);
+      linkStatus.textContent =
+        "Your personal link has been created successfully! 💗";
+    } catch (error) {
+      console.error("Could not create anonymous link:", error);
+      linkStatus.textContent =
+        error.message || "Could not create your link.";
+    } finally {
+      createLinkButton.disabled = false;
+    }
+  });
+
+  copyLinkButton.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(linkUrlInput.value);
+      linkStatus.textContent = "Link copied! Share it with your friends.";
+    } catch (error) {
+      linkUrlInput.focus();
+      linkUrlInput.select();
+      linkStatus.textContent =
+        "Automatic copying failed. Copy the selected link manually.";
+    }
+  });
+
+  // Load the user's link whenever a valid session is found.
+  window.amoraSupabase.auth.getSession().then(({ data, error }) => {
+    if (error) {
+      console.error("Session lookup failed:", error.message);
+      return;
+    }
+
+    if (data.session?.user) {
+      loadAnonymousLink(data.session.user);
+    }
+  });
+
+  window.amoraSupabase.auth.onAuthStateChange((event, session) => {
+    if (session?.user) {
+      loadAnonymousLink(session.user);
+    } else if (linkResult) {
+      linkResult.hidden = true;
+      linkStatus.textContent = "";
+    }
+  });
