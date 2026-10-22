@@ -242,6 +242,36 @@
   </footer>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   
+<!-- PUBLIC ANONYMOUS MESSAGE PAGE -->
+<section class="panel form-panel" id="anonymous-message-panel" hidden>
+  <div class="section-kicker">A LITTLE NOTE FOR YOU</div>
+  <h2>Send an anonymous message 💌</h2>
+
+  <p class="muted">
+    Share what's on your mind. You don't need an account.
+  </p>
+
+  <form id="anonymous-message-form">
+    <label for="anonymous-message-text">Your message</label>
+
+    <textarea
+      id="anonymous-message-text"
+      rows="5"
+      maxlength="2000"
+      placeholder="Write your anonymous message here..."
+      required
+    ></textarea>
+
+    <p class="muted">Maximum 2,000 characters.</p>
+
+    <button class="primary-btn" id="send-anonymous-message" type="submit">
+      Send message 💗
+    </button>
+
+    <p id="anonymous-message-status" role="status"></p>
+  </form>
+</section>
+
 <script src="config.js"></script>
 
 <!-- Load the Supabase JavaScript library first -->
