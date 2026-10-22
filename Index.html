@@ -1,1 +1,183 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Admin</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      color: #222;
+    }
+
+    header {
+      background: #075e54;
+      color: white;
+      padding: 22px 16px;
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    main {
+      max-width: 600px;
+      margin: 28px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: white;
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px #00000010;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #ccc;
+      border-radius: 7px;
+      font: inherit;
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 18px;
+      padding: 14px;
+      border: none;
+      border-radius: 7px;
+      background: #128c7e;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:active {
+      background: #075e54;
+    }
+
+    .note {
+      margin-top: 18px;
+      color: #666;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    #status {
+      margin-top: 14px;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>WhatsApp Admin</h1>
+    <p>Message Management Dashboard</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Send a Message</h2>
+
+      <form id="messageForm">
+        <label for="phone">Recipient's WhatsApp Number</label>
+        <input
+          id="phone"
+          type="tel"
+          placeholder="e.g. 2348012345678"
+          required
+        >
+
+        <label for="message">Your Message</label>
+        <textarea
+          id="message"
+          placeholder="Type your message here..."
+          required
+        ></textarea>
+
+        <button type="submit">Open WhatsApp</button>
+      </form>
+
+      <p id="status" role="status"></p>
+
+      <p class="note">
+        This is the first version of the dashboard.
+        It opens WhatsApp with your recipient and message.
+        Automatic sending through a connected number
+        will require a backend and an approved WhatsApp
+        integration.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById("messageForm").addEventListener(
+      "submit",
+      function (event) {
+        event.preventDefault();
+
+        const phone = document.getElementById("phone")
+          .value.trim().replace(/[\s()+-]/g, "");
+
+        const message = document.getElementById("message")
+          .value.trim();
+
+        const status = document.getElementById("status");
+
+        if (!/^\d{7,15}$/.test(phone)) {
+          status.textContent =
+            "Enter a valid phone number with its country code.";
+          return;
+        }
+
+        if (!message) {
+          status.textContent = "Enter a message first.";
+          return;
+        }
+
+        const url =
+          "https://wa.me/" + phone +
+          "?text=" + encodeURIComponent(message);
+
+        window.open(url, "_blank");
+      }
+    );
+  </script>
+
+</body>
+</html>
