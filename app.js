@@ -675,3 +675,86 @@
       linkStatus.textContent = "";
     }
   });
+
+  // ============================================================
+  // AMORA PUBLIC ANONYMOUS MESSAGE SUBMISSION
+  // ============================================================
+
+  const publicMessagePanel = document.getElementById(
+    "anonymous-message-panel"
+  );
+  const publicMessageForm = document.getElementById(
+    "anonymous-message-form"
+  );
+  const publicMessageText = document.getElementById(
+    "anonymous-message-text"
+  );
+  const publicMessageStatus = document.getElementById(
+    "anonymous-message-status"
+  );
+  const publicMessageButton = document.getElementById(
+    "send-anonymous-message"
+  );
+
+  const anonymousPageUrl = new URL(window.location.href);
+  const publicAnonymousSlug = anonymousPageUrl.searchParams.get("anon");
+
+  if (publicAnonymousSlug && publicMessagePanel) {
+    // Show the public message page instead of the owner's dashboard.
+    publicMessagePanel.hidden = false;
+
+    const panelsToHide = [
+      "auth-panel",
+      "dashboard-panel",
+      "form-panel"
+    ];
+
+    panelsToHide.forEach((id) => {
+      const panel = document.getElementById(id);
+      if (panel) panel.hidden = true;
+    });
+
+    publicMessageForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const message = publicMessageText.value.trim();
+
+      if (!message) {
+        publicMessageStatus.textContent =
+          "Please write a message before sending.";
+        return;
+      }
+
+      if (message.length > 2000) {
+        publicMessageStatus.textContent =
+          "Your message cannot exceed 2,000 characters.";
+        return;
+      }
+
+      publicMessageButton.disabled = true;
+      publicMessageStatus.textContent = "Sending your message...";
+
+      try {
+        const { error } = await window.amoraSupabase.rpc(
+          "submit_anonymous_message",
+          {
+            p_slug: publicAnonymousSlug,
+            p_message: message
+          }
+        );
+
+        if (error) throw error;
+
+        publicMessageForm.reset();
+        publicMessageStatus.textContent =
+          "Your anonymous message has been sent successfully! 💗";
+      } catch (error) {
+        console.error("Anonymous message submission failed:", error);
+
+        publicMessageStatus.textContent =
+          "We couldn't send your message. The link may be invalid or temporarily unavailable.";
+      } finally {
+        publicMessageButton.disabled = false;
+      }
+    });
+  }
