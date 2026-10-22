@@ -386,6 +386,24 @@
 
   setAuthMode("signup");
 
+const requestedAuthMode = new URLSearchParams(
+  window.location.search
+).get("auth");
+
+if (
+  requestedAuthMode === "signup" ||
+  requestedAuthMode === "login"
+) {
+  setAuthMode(requestedAuthMode);
+
+  const authPanel = document.getElementById("auth-panel");
+
+  if (authPanel) {
+    authPanel.hidden = false;
+    authPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
   // ============================================================
   // AMORA DASHBOARD AND SESSION MANAGEMENT
   // ============================================================
