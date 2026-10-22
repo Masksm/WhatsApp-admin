@@ -703,16 +703,33 @@
     // Show the public message page instead of the owner's dashboard.
     publicMessagePanel.hidden = false;
 
-    const panelsToHide = [
-      "auth-panel",
-      "dashboard-panel",
-      "form-panel"
-    ];
+    
+const elementsToHide = [
+  "auth-panel",
+  "dashboard-panel",
+  "form-panel"
+];
 
-    panelsToHide.forEach((id) => {
-      const panel = document.getElementById(id);
-      if (panel) panel.hidden = true;
-    });
+elementsToHide.forEach((id) => {
+  const element = document.getElementById(id);
+  if (element) element.hidden = true;
+});
+
+// Hide the rest of the homepage for anonymous message links.
+document.body.classList.add("anonymous-message-page");
+
+document.querySelectorAll("body > *").forEach((element) => {
+  if (
+    element.id !== "anonymous-message-panel" &&
+    element.tagName !== "SCRIPT"
+  ) {
+    element.hidden = true;
+  }
+});
+
+// Keep the anonymous message panel visible.
+publicMessagePanel.hidden = false;
+
 
     publicMessageForm.addEventListener("submit", async (event) => {
       event.preventDefault();
