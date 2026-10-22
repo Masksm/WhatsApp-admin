@@ -34,6 +34,57 @@
     </section>
     <p class="demo-note">Preview figures and activity below are illustrative demo content.</p>
 
+<section class="panel form-panel" id="auth-panel">
+  <div class="section-kicker">YOUR LITTLE CORNER OF AMORA</div>
+  <h2>Create your account</h2>
+  <p class="muted">
+    Sign up to manage your profile and your anonymous message link.
+  </p>
+
+  <form id="auth-form">
+    <label for="auth-name">Display name</label>
+    <input
+      id="auth-name"
+      type="text"
+      autocomplete="name"
+      placeholder="What should we call you?"
+    >
+
+    <label for="auth-email">Email address</label>
+    <input
+      id="auth-email"
+      type="email"
+      autocomplete="email"
+      placeholder="you@example.com"
+      required
+    >
+
+    <label for="auth-password">Password</label>
+    <input
+      id="auth-password"
+      type="password"
+      autocomplete="new-password"
+      minlength="8"
+      placeholder="At least 8 characters"
+      required
+    >
+
+    <button class="primary-btn" type="submit">
+      Create account 💗
+    </button>
+
+    <button
+      class="secondary-btn"
+      id="login-button"
+      type="button"
+    >
+      I already have an account
+    </button>
+
+    <p class="error-message" id="auth-status" role="status"></p>
+  </form>
+</section>
+
     <section class="panel form-panel" id="form-panel">
       <div class="section-kicker">A LITTLE SOMETHING, JUST FOR THEM</div>
       <h2>Deliver my surprise</h2>
