@@ -169,6 +169,22 @@ document.addEventListener("DOMContentLoaded", () => {
     return currentUser;
   }
 
+  async function loadInteractionCounts() {
+    interactionCounts.clear();
+    if (!supabase || !posts.length) return;
+    const ids = posts.map((post) => post.id).slice(0, 50);
+    const { data, error } = await supabase.rpc("get_post_interaction_counts", { p_post_ids: ids });
+    if (error) {
+      await logClientError("load_interaction_counts", error);
+      return;
+    }
+    (data || []).forEach((row) => interactionCounts.set(row.post_id, {
+      likes: Number(row.likes_count || 0),
+      reposts: Number(row.reposts_count || 0),
+      comments: Number(row.comments_count || 0)
+    }));
+  }
+
   async function loadMyInteractions() {
     likeCache.clear();
     bookmarkCache.clear();
@@ -317,6 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (error) throw error;
       cache.add(postId);
     }
+    await loadInteractionCounts();
     await renderFeed();
   }
 
@@ -406,21 +423,29 @@ document.addEventListener("DOMContentLoaded", () => {
       unavailable.textContent = "Conversation temporarily unavailable.";
       article.append(unavailable);
     }
+    const counts = interactionCounts.get(post.id) || { likes: 0, reposts: 0, comments: comments.length };
     const stats = document.createElement("div");
     stats.className = "post-stats";
     const likesText = document.createElement("span");
-    likesText.textContent = "Likes are private to each account";
+    likesText.textContent = counts.likes + (counts.likes === 1 ? " like" : " likes");
+    const repostsText = document.createElement("span");
+    repostsText.textContent = counts.reposts + (counts.reposts === 1 ? " repost" : " reposts");
     const repliesText = document.createElement("span");
-    repliesText.textContent = comments.length + (comments.length === 1 ? " reply" : " replies");
-    stats.append(likesText, repliesText);
+    repliesText.textContent = counts.comments + (counts.comments === 1 ? " comment" : " comments");
+    stats.append(likesText, repostsText, repliesText);
 
     const actions = document.createElement("div");
     actions.className = "post-actions";
     actions.append(
       makeButton(likeCache.has(post.id) ? "♥ Liked" : "♡ Like", "post-action", async () => {
-        try { await toggleRow("post_likes", post.id, likeCache); }
-        catch (error) { await logClientError("toggle_post_like", error); setStatus("Couldn't update your like. Please try again.", true); }
-      }, likeCache.has(post.id)),
+        try {
+          await toggleRow("post_likes", post.id, likeCache);
+          setStatus(likeCache.has(post.id) ? "You liked this post." : "Like removed.");
+        } catch (error) {
+          await logClientError("toggle_post_like", error);
+          setStatus("Couldn't update your like. Please try again.", true);
+        }
+      }),
       makeButton("▢ Reply", "post-action", () => {
         const old = article.querySelector(":scope > .post-reply-composer");
         if (old) { old.remove(); return; }
@@ -442,9 +467,14 @@ document.addEventListener("DOMContentLoaded", () => {
         input.focus();
       }),
       makeButton(repostCache.has(post.id) ? "↻ Reposted" : "⟳ Repost", "post-action", async () => {
-        try { await toggleRow("post_reposts", post.id, repostCache); }
-        catch (error) { await logClientError("toggle_post_repost", error); setStatus("Couldn't repost this. Please try again.", true); }
-      }, repostCache.has(post.id)),
+        try {
+          await toggleRow("post_reposts", post.id, repostCache);
+          setStatus(repostCache.has(post.id) ? "Post reposted to your activity." : "Repost removed.");
+        } catch (error) {
+          await logClientError("toggle_post_repost", error);
+          setStatus("Couldn't repost this. Please try again.", true);
+        }
+      }),
       makeButton(bookmarkCache.has(post.id) ? "▣ Saved" : "▢ Save", "post-action", async () => {
         try { await toggleRow("post_bookmarks", post.id, bookmarkCache); }
         catch (error) { await logClientError("toggle_post_bookmark", error); setStatus("Couldn't save this post. Please try again.", true); }
@@ -568,7 +598,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       commentCache.clear();
       await loadPublicProfiles(posts.filter((post) => !post.is_anonymous && post.author_id).map((post) => post.author_id));
-      await loadMyInteractions();
+      await Promise.all([loadMyInteractions(), loadInteractionCounts()]);
       loading = false;
       await renderFeed();
     } catch (error) {
