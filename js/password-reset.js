@@ -1,1 +1,127 @@
 
+(function () {
+  "use strict";
+
+  const supabase = window.amoraSupabase;
+
+  const authForm = document.getElementById("auth-form");
+  const forgotLink = document.getElementById("forgot-password-link");
+
+  const resetSection = document.getElementById("password-reset-section");
+  const resetForm = document.getElementById("password-reset-form");
+  const resetEmail = document.getElementById("reset-email");
+  const resetStatus = document.getElementById("password-reset-status");
+  const backToLogin = document.getElementById("back-to-login");
+
+  const newPasswordSection = document.getElementById("new-password-section");
+  const newPasswordForm = document.getElementById("new-password-form");
+  const newPassword = document.getElementById("new-password");
+  const confirmPassword = document.getElementById("confirm-new-password");
+  const newPasswordStatus = document.getElementById("new-password-status");
+
+  if (!supabase) {
+    console.error("Amora Supabase client was not found.");
+    return;
+  }
+
+  function showSection(sectionToShow) {
+    if (authForm) authForm.hidden = sectionToShow !== "login";
+    if (resetSection) resetSection.hidden = sectionToShow !== "reset";
+    if (newPasswordSection) {
+      newPasswordSection.hidden = sectionToShow !== "new-password";
+    }
+  }
+
+  if (forgotLink) {
+    forgotLink.addEventListener("click", function (event) {
+      event.preventDefault();
+
+      if (resetStatus) resetStatus.textContent = "";
+      showSection("reset");
+    });
+  }
+
+  if (backToLogin) {
+    backToLogin.addEventListener("click", function () {
+      if (resetStatus) resetStatus.textContent = "";
+      showSection("login");
+    });
+  }
+
+  if (resetForm) {
+    resetForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      resetStatus.textContent = "Sending recovery email...";
+
+      const email = resetEmail.value.trim();
+
+      try {
+        const redirectTo =
+          window.location.origin + window.location.pathname;
+
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: redirectTo
+        });
+
+        if (error) throw error;
+
+        resetStatus.textContent =
+          "If an account exists for that email, a recovery link will be sent. Check your inbox and spam folder.";
+      } catch (error) {
+        console.error("Password recovery error:", error);
+        resetStatus.textContent =
+          error.message || "Could not send the recovery email. Please try again.";
+      }
+    });
+  }
+
+  if (newPasswordForm) {
+    newPasswordForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const password = newPassword.value;
+      const confirmation = confirmPassword.value;
+
+      if (password.length < 8) {
+        newPasswordStatus.textContent =
+          "Your password must contain at least 8 characters.";
+        return;
+      }
+
+      if (password !== confirmation) {
+        newPasswordStatus.textContent =
+          "The passwords do not match.";
+        return;
+      }
+
+      newPasswordStatus.textContent = "Updating your password...";
+
+      try {
+        const { error } = await supabase.auth.updateUser({
+          password: password
+        });
+
+        if (error) throw error;
+
+        newPasswordStatus.textContent =
+          "Your password has been updated successfully. You can now log in with your new password.";
+
+        newPasswordForm.reset();
+      } catch (error) {
+        console.error("Password update error:", error);
+        newPasswordStatus.textContent =
+          error.message ||
+          "Could not update your password. Please open a fresh recovery link and try again.";
+      }
+    });
+  }
+
+  supabase.auth.onAuthStateChange(function (event) {
+    if (event === "PASSWORD_RECOVERY") {
+      showSection("new-password");
+      if (newPasswordStatus) newPasswordStatus.textContent = "";
+    }
+  }) ;
+})();
+
