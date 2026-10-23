@@ -5,172 +5,180 @@ import {
   params,
   supabase,
   setStatus,
-  getErrorMessage,
-  showToast
+  getErrorMessage
 } from "./core.js";
-
-// ============================================================
-// AMORA AUTHENTICATION
-// Signup, login, logout, session restoration and message claims
-// ============================================================
-
-let authMode = params.get("auth") === "signup" ? "signup" : "login";
-let claimProcessing = false;
 
 const CLAIM_STORAGE_KEY = "amora_pending_claim_tokens";
 
-function setAuthStatus(message, isError = false) {
-  setStatus(byId("auth-status"), message, isError);
-}
-
-function setAuthMode(mode) {
-  authMode = mode === "signup" ? "signup" : "login";
-
-  const nameField = byId("auth-name");
-  const passwordField = byId("auth-password");
-  const loginButton = byId("login-button");
-
-  if (nameField) {
-    nameField.closest(".form-group, .field, label")?.classList.toggle(
-      "hidden",
-      authMode !== "signup"
-    );
-
-    nameField.required = authMode === "signup";
-  }
-
-  if (loginButton) {
-    loginButton.textContent =
-      authMode === "signup" ? "Create account" : "Log in";
-  }
-
-  if (passwordField) {
-    passwordField.autocomplete =
-      authMode === "signup" ? "new-password" : "current-password";
-  }
-
-  setAuthStatus("");
-
-  const heading = byId("auth-heading");
-  if (heading) {
-    heading.textContent =
-      authMode === "signup" ? "Create your Amora account" : "Welcome back";
-  }
-
-  document.querySelectorAll("[data-auth-mode]").forEach((button) => {
-    const active = button.dataset.authMode === authMode;
-    button.setAttribute("aria-pressed", String(active));
-  });
-}
+let authMode = "signup";
+let initialized = false;
 
 function getPendingClaimTokens() {
   try {
     const stored = sessionStorage.getItem(CLAIM_STORAGE_KEY);
     const tokens = stored ? JSON.parse(stored) : [];
 
-    if (!Array.isArray(tokens)) return [];
-
-    return [...new Set(
-      tokens.filter((token) =>
-        typeof token === "string" &&
-        /^[a-f0-9]{64}$/i.test(token)
-      )
-    )];
-  } catch (_) {
+    return Array.isArray(tokens)
+      ? tokens.filter(
+          (token) =>
+            typeof token === "string" &&
+            /^[a-f0-9]{64}$/.test(token)
+        )
+      : [];
+  } catch {
     return [];
   }
 }
 
 function savePendingClaimTokens(tokens) {
-  const validTokens = [...new Set(
-    tokens.filter((token) =>
-      typeof token === "string" &&
-      /^[a-f0-9]{64}$/i.test(token)
-    )
-  )];
-
   try {
-    if (validTokens.length) {
-      sessionStorage.setItem(
-        CLAIM_STORAGE_KEY,
-        JSON.stringify(validTokens)
-      );
-    } else {
-      sessionStorage.removeItem(CLAIM_STORAGE_KEY);
-    }
-  } catch (_) {
-    // Session storage may be unavailable in some browser contexts.
+    const validTokens = Array.isArray(tokens)
+      ? tokens.filter(
+          (token) =>
+            typeof token === "string" &&
+            /^[a-f0-9]{64}$/.test(token)
+        )
+      : [];
+
+    sessionStorage.setItem(
+      CLAIM_STORAGE_KEY,
+      JSON.stringify([...new Set(validTokens)])
+    );
+  } catch {
+    // Storage may be unavailable in private browsing.
   }
 }
 
-async function processPendingClaims() {
-  if (!supabase || claimProcessing) return;
+function setAuthMode(mode) {
+  authMode = mode === "login" ? "login" : "signup";
 
-  const tokens = getPendingClaimTokens();
-  if (!tokens.length) return;
+  const nameInput = byId("auth-name");
+  const emailInput = byId("auth-email");
+  const passwordInput = byId("auth-password");
+  const loginButton = byId("login-button");
+  const heading = $("#auth-panel > h2");
+  const submitButton = byId("auth-form")?.querySelector(
+    'button[type="submit"]'
+  );
 
-  claimProcessing = true;
+  if (nameInput) {
+    nameInput.style.display =
+      authMode === "signup" ? "" : "none";
+    nameInput.required = authMode === "signup";
 
-  const remaining = [];
+    const label = document.querySelector(
+      'label[for="auth-name"]'
+    );
 
-  try {
-    for (const token of tokens) {
-      const { data, error } = await supabase.rpc(
-        "claim_anonymous_message",
-        { p_token: token }
-      );
-
-      if (error) {
-        const message = error.message || "";
-
-        // Keep tokens that may succeed later.
-        if (
-          /network|timeout|temporar|rate limit|fetch/i.test(message)
-        ) {
-          remaining.push(token);
-        }
-
-        console.warn("Unable to claim an anonymous message:", message);
-        continue;
-      }
-
-      const conversationId = Array.isArray(data) ? data[0] : data;
-
-      if (
-        typeof conversationId !== "string" ||
-        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          conversationId
-        )
-      ) {
-        console.warn("The claim RPC returned an unexpected result.");
-      }
+    if (label) {
+      label.style.display =
+        authMode === "signup" ? "" : "none";
     }
-  } finally {
-    savePendingClaimTokens(remaining);
-    claimProcessing = false;
   }
+
+  if (passwordInput) {
+    passwordInput.autocomplete =
+      authMode === "signup" ? "new-password" : "current-password";
+  }
+
+  if (heading) {
+    heading.textContent =
+      authMode === "signup"
+        ? "Create your account"
+        : "Welcome back";
+  }
+
+  if (submitButton) {
+    submitButton.textContent =
+      authMode === "signup"
+        ? "Create account 💗"
+        : "Log in 💗";
+  }
+
+  if (loginButton) {
+    loginButton.textContent =
+      authMode === "signup"
+        ? "I already have an account"
+        : "Create a new account";
+  }
+
+  const status = byId("auth-status");
+  if (status) status.textContent = "";
+
+  if (emailInput) emailInput.autocomplete = "email";
 }
 
 function showDashboard(user) {
   const authPanel = byId("auth-panel");
   const dashboardPanel = byId("dashboard-panel");
-  const dashboardEmail = byId("dashboard-email");
-  const dashboardStatus = byId("dashboard-status");
+  const email = byId("dashboard-email");
 
-  // Public anonymous-message pages must remain accessible.
-  if (!params.has("anon") && authPanel && dashboardPanel) {
-    authPanel.hidden = true;
-    dashboardPanel.hidden = false;
+  if (user) {
+    if (authPanel) authPanel.hidden = true;
+    if (dashboardPanel) dashboardPanel.hidden = false;
+    if (email) email.textContent = user.email || "";
+    return;
   }
 
-  if (dashboardEmail) {
-    dashboardEmail.textContent = user?.email || "";
+  if (dashboardPanel) dashboardPanel.hidden = true;
+
+  if (authPanel) {
+    authPanel.hidden = params.has("anon");
+  }
+}
+
+async function processPendingClaims() {
+  if (!supabase) return;
+
+  const tokens = getPendingClaimTokens();
+  if (!tokens.length) return;
+
+  const status = byId("dashboard-status");
+  const remaining = [];
+  let claimedCount = 0;
+  let failureMessage = "";
+
+  for (const token of tokens) {
+    try {
+      const { data, error } = await supabase.rpc(
+        "claim_anonymous_message",
+        { p_token: token }
+      );
+
+      if (error) throw error;
+
+      if (
+        typeof data !== "string" ||
+        !/^[0-9a-f-]{36}$/i.test(data)
+      ) {
+        throw new Error("The claim response was not valid.");
+      }
+
+      claimedCount++;
+    } catch (error) {
+      remaining.push(token);
+      failureMessage =
+        getErrorMessage(error, "Could not claim a message.");
+    }
   }
 
-  if (dashboardStatus) {
-    dashboardStatus.textContent = user
-      ? "You're signed in to Amora."
-      : "";
+  savePendingClaimTokens(remaining);
+
+  if (claimedCount > 0) {
+    setStatus(
+      status,
+      `${claimedCount} anonymous message${claimedCount === 1 ? "" : "s"} claimed successfully.` +
+        (remaining.length
+          ? ` ${remaining.length} will be retried later.`
+          : "")
+    );
+  } else if (remaining.length) {
+    setStatus(
+      status,
+      failureMessage ||
+        "Your messages could not be claimed yet. They have been kept for retry.",
+      true
+    );
   }
 }
 
@@ -180,168 +188,158 @@ async function refreshAuthenticatedUser() {
   const { data, error } = await supabase.auth.getSession();
 
   if (error) {
-    console.error("Unable to restore the Amora session:", error.message);
+    setStatus(byId("auth-status"), error.message, true);
     return;
   }
 
-  const user = data.session?.user;
+  const user = data.session?.user || null;
+  showDashboard(user);
 
   if (user) {
-    showDashboard(user);
     await processPendingClaims();
-  } else {
-    const authPanel = byId("auth-panel");
-    const dashboardPanel = byId("dashboard-panel");
-
-    if (authPanel) authPanel.hidden = false;
-    if (dashboardPanel) dashboardPanel.hidden = true;
   }
 }
 
-function initAuth() {
+async function handleAuthSubmit(event) {
+  event.preventDefault();
+
   if (!supabase) {
-    console.error("Amora Supabase client is unavailable.");
-    setAuthStatus("Unable to connect. Please try again later.", true);
+    setStatus(
+      byId("auth-status"),
+      "Authentication is currently unavailable.",
+      true
+    );
     return;
   }
 
-  const authForm = byId("auth-form");
-  const emailField = byId("auth-email");
-  const passwordField = byId("auth-password");
-  const nameField = byId("auth-name");
-  const loginButton = byId("login-button");
-  const logoutButton = byId("logout-button");
+  const name = byId("auth-name")?.value.trim() || "";
+  const email = byId("auth-email")?.value.trim() || "";
+  const password = byId("auth-password")?.value || "";
+  const status = byId("auth-status");
+  const submitButton = byId("auth-form")?.querySelector(
+    'button[type="submit"]'
+  );
 
-  setAuthMode(authMode);
+  if (!email || !password) {
+    setStatus(status, "Enter your email and password.", true);
+    return;
+  }
 
-  // Support explicit mode-switch controls without requiring them.
-  document.querySelectorAll("[data-auth-mode]").forEach((button) => {
-    button.addEventListener("click", () => {
-      setAuthMode(button.dataset.authMode);
+  if (authMode === "signup" && !name) {
+    setStatus(status, "Enter a display name.", true);
+    return;
+  }
+
+  if (submitButton) submitButton.disabled = true;
+  setStatus(
+    status,
+    authMode === "signup"
+      ? "Creating your account..."
+      : "Signing you in..."
+  );
+
+  try {
+    let result;
+
+    if (authMode === "signup") {
+      result = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name }
+        }
+      });
+    } else {
+      result = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+    }
+
+    if (result.error) throw result.error;
+
+    if (result.data.session?.user) {
+      showDashboard(result.data.session.user);
+      await processPendingClaims();
+    } else if (authMode === "signup") {
+      setStatus(
+        status,
+        "Account created. Check your email if confirmation is required."
+      );
+    } else {
+      setStatus(
+        status,
+        "Login completed, but no active session was returned.",
+        true
+      );
+    }
+  } catch (error) {
+    setStatus(
+      status,
+      getErrorMessage(error, "Authentication failed."),
+      true
+    );
+  } finally {
+    if (submitButton) submitButton.disabled = false;
+  }
+}
+
+async function handleLogout() {
+  if (!supabase) return;
+
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    setStatus(byId("dashboard-status"), error.message, true);
+    return;
+  }
+
+  showDashboard(null);
+  setAuthMode("login");
+  setStatus(byId("auth-status"), "You have signed out.");
+}
+
+function initAuth() {
+  if (initialized) return;
+  initialized = true;
+
+  const requestedMode = params.get("auth");
+
+  setAuthMode(
+    requestedMode === "login" ? "login" : "signup"
+  );
+
+  if (requestedMode && byId("auth-panel")) {
+    byId("auth-panel").scrollIntoView({
+      behavior: "smooth",
+      block: "center"
     });
+  }
+
+  byId("auth-form")?.addEventListener(
+    "submit",
+    handleAuthSubmit
+  );
+
+  byId("login-button")?.addEventListener("click", () => {
+    setAuthMode(authMode === "signup" ? "login" : "signup");
   });
 
-  authForm?.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  byId("logout-button")?.addEventListener(
+    "click",
+    handleLogout
+  );
 
-    const email = emailField?.value.trim() || "";
-    const password = passwordField?.value || "";
-    const name = nameField?.value.trim() || "";
+  if (!supabase) return;
 
-    if (!email || !password) {
-      setAuthStatus("Enter your email and password.", true);
-      return;
-    }
+  supabase.auth.onAuthStateChange((_event, session) => {
+    showDashboard(session?.user || null);
 
-    if (authMode === "signup" && !name) {
-      setAuthStatus("Enter your name to create an account.", true);
-      nameField?.focus();
-      return;
-    }
-
-    if (loginButton) {
-      loginButton.disabled = true;
-      loginButton.textContent =
-        authMode === "signup" ? "Creating account…" : "Logging in…";
-    }
-
-    setAuthStatus("");
-
-    try {
-      if (authMode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name }
-          }
-        });
-
-        if (error) throw error;
-
-        if (data.session && data.user) {
-          showDashboard(data.user);
-          await processPendingClaims();
-          setAuthStatus("Your account has been created.");
-        } else {
-          setAuthStatus(
-            "Account created. Check your email to confirm your account."
-          );
-        }
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-
-        if (error) throw error;
-
-        if (data.user) {
-          showDashboard(data.user);
-          await processPendingClaims();
-          setAuthStatus("Login successful.");
-        }
-      }
-    } catch (error) {
-      setAuthStatus(
-        getErrorMessage(error, "Authentication failed. Please try again."),
-        true
-      );
-    } finally {
-      if (loginButton) {
-        loginButton.disabled = false;
-        loginButton.textContent =
-          authMode === "signup" ? "Create account" : "Log in";
-      }
-    }
-  });
-
-  logoutButton?.addEventListener("click", async () => {
-    logoutButton.disabled = true;
-
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      showToast("You've logged out.");
-
-      const authPanel = byId("auth-panel");
-      const dashboardPanel = byId("dashboard-panel");
-
-      if (authPanel) authPanel.hidden = false;
-      if (dashboardPanel) dashboardPanel.hidden = true;
-
-      setAuthStatus("");
-    } catch (error) {
-      setAuthStatus(
-        getErrorMessage(error, "Unable to log out. Please try again."),
-        true
-      );
-    } finally {
-      logoutButton.disabled = false;
-    }
-  });
-
-  // Restore the current session and react to future auth changes.
-  supabase.auth.onAuthStateChange((event, session) => {
     if (session?.user) {
-      showDashboard(session.user);
-
-      // Defer the RPC work so it does not run inside the auth callback.
-      if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
-        setTimeout(() => {
-          processPendingClaims();
-        }, 0);
-      }
-    } else if (
-      event === "SIGNED_OUT" ||
-      event === "INITIAL_SESSION"
-    ) {
-      const authPanel = byId("auth-panel");
-      const dashboardPanel = byId("dashboard-panel");
-
-      if (authPanel) authPanel.hidden = false;
-      if (dashboardPanel) dashboardPanel.hidden = true;
+      // Defer Supabase calls to avoid blocking the auth callback.
+      setTimeout(() => {
+        processPendingClaims();
+      }, 0);
     }
   });
 
@@ -350,9 +348,8 @@ function initAuth() {
 
 export {
   initAuth,
-  setAuthMode,
-  processPendingClaims,
   getPendingClaimTokens,
   savePendingClaimTokens,
-  refreshAuthenticatedUser
+  processPendingClaims,
+  showDashboard
 };
