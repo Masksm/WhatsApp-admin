@@ -85,6 +85,64 @@
 </p>
     <p class="error-message" id="auth-status" role="status"></p>
   </form>
+  
+<!-- Password reset: request a recovery email -->
+<section id="password-reset-section" class="password-reset-section" hidden>
+  <h2>Reset your password</h2>
+  <p>Enter the email address linked to your Amora account.</p>
+
+  <form id="password-reset-form">
+    <label for="reset-email">Email address</label>
+    <input
+      type="email"
+      id="reset-email"
+      placeholder="Enter your registered email"
+      required
+    />
+
+    <button type="submit" id="send-reset-link">
+      Send reset link
+    </button>
+
+    <p id="password-reset-status" role="status"></p>
+    <button type="button" id="back-to-login">Back to login</button>
+  </form>
+</section>
+
+<!-- Set a new password after opening the email link -->
+<section id="new-password-section" class="password-reset-section" hidden>
+  <h2>Choose a new password</h2>
+  <p>Enter and confirm your new password.</p>
+
+  <form id="new-password-form">
+    <label for="new-password">New password</label>
+    <input
+      type="password"
+      id="new-password"
+      minlength="8"
+      autocomplete="new-password"
+      placeholder="At least 8 characters"
+      required
+    />
+
+    <label for="confirm-new-password">Confirm new password</label>
+    <input
+      type="password"
+      id="confirm-new-password"
+      minlength="8"
+      autocomplete="new-password"
+      placeholder="Enter the password again"
+      required
+    />
+
+    <button type="submit" id="save-new-password">
+      Update password
+    </button>
+
+    <p id="new-password-status" role="status"></p>
+  </form>
+</section>
+
 </section>
 
 <section class="panel form-panel" id="dashboard-panel" hidden>
