@@ -1,0 +1,60 @@
+
+.profile-page{--profile-line:rgba(255,255,255,.09)}
+.profile-main{padding-top:35px}
+.profile-heading{align-items:end}
+.profile-back-link,.text-link{color:#f6a1d0;font-size:.8rem;font-weight:700}
+.profile-hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:22px;padding:27px;margin-bottom:16px}
+.profile-hero-glow{position:absolute;width:260px;height:200px;right:-65px;top:-90px;background:radial-gradient(ellipse,#a779ff30,transparent 70%);pointer-events:none}
+.profile-avatar{position:relative;flex:0 0 92px;width:92px;height:92px;display:grid;place-items:center;border-radius:30px;background:linear-gradient(135deg,#ff79b9,#a779ff);box-shadow:0 12px 35px #b35ca82b;font:800 2.4rem 'Manrope',sans-serif;color:white}
+.profile-hero-copy{position:relative;min-width:0}
+.profile-kicker{font-size:.62rem;letter-spacing:.15em;font-weight:800;color:#c2a9ff}
+.profile-hero h2{margin:7px 0 3px;font:800 1.6rem 'Manrope',sans-serif;letter-spacing:-.05em;overflow-wrap:anywhere}
+.profile-handle{margin:0;color:#f6a1d0;font-size:.87rem}
+.profile-private-note{margin:12px 0 0;color:#b7a7bf;font-size:.72rem;line-height:1.6}
+.profile-private-note span{margin-right:5px}
+.profile-heart-decoration{position:absolute;right:23px;bottom:10px;color:#ff72b722;font-size:5rem;pointer-events:none}
+.profile-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.profile-stat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 8px;text-align:center}
+.profile-stat strong{font:800 1.5rem 'Manrope',sans-serif}
+.profile-stat>span:last-child{color:#ad9eb4;font-size:.72rem}
+.stat-icon{color:#ff72b7;font-size:1.1rem}
+.profile-section{padding:22px;margin-bottom:16px}
+.section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.section-heading .eyebrow{margin-bottom:5px}
+.section-heading h2{margin:0;font:800 1.25rem 'Manrope',sans-serif;letter-spacing:-.04em}
+.section-symbol{font-size:1.8rem;color:#bb9aff}
+.section-description{max-width:560px;color:#ad9eb4;font-size:.8rem;line-height:1.7;margin:13px 0 19px}
+.profile-form{max-width:480px}
+.profile-form label{display:block;margin-bottom:8px;color:#eaddea;font-size:.78rem;font-weight:700}
+.username-field{display:flex;align-items:center;gap:8px;padding:0 13px;border:1px solid #ffffff1b;border-radius:12px;background:#100b14}
+.username-field>span{color:#ff85bd;font-weight:800}
+.username-field input{width:100%;min-width:0;height:46px;border:0;outline:0;background:transparent;color:#fff7fc;font-size:.9rem}
+.username-field:focus-within{border-color:#ff72b7a0;box-shadow:0 0 0 3px #ff72b715}
+.field-hint{margin:7px 0 15px;color:#928099;font-size:.7rem}
+.profile-status{min-height:1em;margin:10px 0 0;color:#f6a1d0;font-size:.78rem;line-height:1.5}
+.profile-status:empty{display:none}
+.profile-status.is-error{color:#ff9aaa}
+.profile-posts{display:grid;gap:10px}
+.profile-post{padding:15px 0;border-top:1px solid var(--profile-line)}
+.profile-post:first-child{border-top:0;padding-top:0}
+.profile-post-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;color:#a996b1;font-size:.7rem}
+.profile-post-visibility{color:#d9b6ff}
+.profile-post-content{margin:0;color:#f8eff8;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.88rem;line-height:1.7}
+.profile-post img{display:block;max-width:100%;max-height:340px;margin-top:12px;border:1px solid var(--profile-line);border-radius:13px}
+.profile-empty,.profile-loading{padding:20px 8px;color:#ad9eb4;text-align:center;font-size:.82rem;line-height:1.7}
+.profile-empty strong{display:block;margin-bottom:6px;color:#fff;font:700 1rem 'Manrope',sans-serif}
+.profile-empty a{display:inline-block;margin-top:8px;color:#f6a1d0;font-weight:700}
+.profile-account-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 4px;border-top:1px solid var(--profile-line);border-bottom:1px solid var(--profile-line)}
+.profile-account-actions strong{font-size:.88rem}
+.profile-account-actions p{margin:5px 0 0;color:#ad9eb4;font-size:.74rem}
+.secondary-button{border:1px solid #ffffff24;border-radius:11px;padding:10px 14px;background:#ffffff06;color:#f7d5e8;font-size:.78rem;font-weight:700;cursor:pointer}
+.secondary-button:hover{border-color:#ff72b7aa}
+.profile-logout{width:100%;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
+.profile-footnote{margin:18px 0;text-align:center;color:#76677e;font-size:.7rem}
+.privacy-card h3{display:flex;justify-content:space-between;margin:0 0 11px;font:700 .93rem 'Manrope',sans-serif}
+.privacy-card h3 span{color:#ff72b7}
+.privacy-card p{margin:0;color:#ad9eb4;font-size:.8rem;line-height:1.75}
+.privacy-card a{display:inline-block;margin-top:14px;color:#f6a1d0;font-size:.75rem;font-weight:700}
+.profile-home-button{display:grid;place-items:center}
+@media(max-width:1120px){.profile-rightbar{display:none}}
+@media(max-width:720px){.profile-main{padding-top:0}.profile-heading{align-items:flex-start}.profile-back-link{display:none}.profile-hero{align-items:flex-start;gap:15px;padding:19px 15px;border-radius:17px}.profile-avatar{width:66px;height:66px;flex-basis:66px;border-radius:22px;font-size:1.8rem}.profile-hero h2{font-size:1.2rem}.profile-private-note{max-width:260px;font-size:.68rem}.profile-heart-decoration{right:6px;bottom:0;font-size:3.8rem}.profile-stats{gap:8px}.profile-stat{padding:14px 4px;border-radius:14px}.profile-stat strong{font-size:1.25rem}.profile-stat>span:last-child{font-size:.65rem}.profile-section{padding:17px 14px;border-radius:17px}.section-heading h2{font-size:1.12rem}.section-description{font-size:.75rem}.profile-account-actions{padding:17px 3px}.profile-account-actions p{max-width:220px;line-height:1.6}}
