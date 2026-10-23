@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#160d1c">
+  <title>Home · Amora</title>
+  <link rel="stylesheet" href="/css/feed.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-client.js" defer></script>
+  <script src="/js/feed.js" defer></script>
+</head>
+<body class="amora-feed-page">
+  <div class="feed-shell">
+    <aside class="feed-sidebar" aria-label="Main navigation">
+      <a class="feed-brand" href="/pages/social-home.html" aria-label="Amora home"><span class="brand-mark">a</span><span>amora</span></a>
+      <nav class="main-nav">
+        <a class="nav-link active" href="/pages/social-home.html"><span class="nav-icon">⌂</span><span>Home</span></a>
+        <a class="nav-link" href="/pages/messages.html"><span class="nav-icon">✉</span><span>Messages</span></a>
+        <button class="nav-link" type="button" data-focus-composer><span class="nav-icon">＋</span><span>Share a thought</span></button>
+        <a class="nav-link" href="/pages/profile.html"><span class="nav-icon">◎</span><span>Profile</span></a>
+      </nav>
+      <div class="sidebar-note"><span class="note-heart">♡</span><p>A little more honest.<br>A little more you.</p></div>
+      <a class="sidebar-account" href="/pages/profile.html"><span class="avatar avatar-you">?</span><span><strong>Your space</strong><small>Manage your profile</small></span><span class="more-dots">···</span></a>
+    </aside>
+
+    <main class="feed-main">
+      <header class="mobile-topbar">
+        <a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a>
+        <button class="icon-button" type="button" aria-label="Notifications" title="Notifications">♡</button>
+      </header>
+      <div class="feed-heading">
+        <div><p class="eyebrow">YOUR CORNER OF THE INTERNET</p><h1>Home <span class="heading-heart">♡</span></h1></div>
+        <button class="icon-button desktop-notifications" type="button" aria-label="Notifications" title="Notifications">♡</button>
+      </div>
+      <section class="composer card" id="composer" aria-label="Create a post">
+        <div class="composer-top">
+          <span class="avatar avatar-you">?</span>
+          <label class="sr-only" for="post-text">What is on your mind?</label>
+          <textarea id="post-text" rows="2" maxlength="2000" placeholder="What’s on your mind?"></textarea>
+        </div>
+        <div class="image-preview" id="image-preview" hidden></div>
+        <div class="composer-bottom">
+          <div class="composer-tools">
+            <label class="tool-button" for="post-image"><span>▧</span> Photo</label>
+            <input id="post-image" type="file" accept="image/*" hidden>
+            <label class="identity-toggle"><input id="hide-identity" type="checkbox"><span class="toggle-track"></span><span>Hide my identity</span><span class="info-dot" title="Your username will not be shown on this post or its replies.">i</span></label>
+          </div>
+          <button id="publish-post" class="primary-button" type="button" disabled>Post <span>↗</span></button>
+        </div>
+        <p id="composer-status" class="status-message" role="status"></p>
+      </section>
+
+      <div class="feed-tabs" role="tablist" aria-label="Choose your feed">
+        <button class="feed-tab active" role="tab" aria-selected="true" data-feed="for-you">For You</button>
+        <button class="feed-tab" role="tab" aria-selected="false" data-feed="following">Following</button>
+        <button class="feed-tab" role="tab" aria-selected="false" data-feed="public">Public</button>
+      </div>
+      <section id="feed-list" class="feed-list" aria-live="polite">
+        <div class="feed-empty card">
+          <div class="empty-art"><span>♡</span><i>✦</i><b>✧</b></div>
+          <h2>Your feed starts here</h2>
+          <p>Share a thought, tell a story, or start a conversation. This space is yours to shape.</p>
+          <button class="primary-button" type="button" data-focus-composer>Write the first post <span>↗</span></button>
+        </div>
+      </section>
+      <footer class="feed-footer">A softer place to be yourself <span>♡</span></footer>
+    </main>
+
+    <aside class="feed-rightbar">
+      <section class="welcome-card">
+        <span class="welcome-sparkle">✦</span><p class="eyebrow">WELCOME TO AMORA</p>
+        <h2>Be real.<br><span>Be whoever.</span></h2>
+        <p>Share your world, find your people, and join the conversation on your terms.</p>
+      </section>
+      <section class="right-card community-card">
+        <h3>Your community <span>♡</span></h3>
+        <p>People you follow and public conversations will appear here as your community grows.</p>
+        <div class="community-avatars"><span class="mini-avatar pink">♡</span><span class="mini-avatar purple">✦</span><span class="mini-avatar peach">☺</span><span class="mini-avatar muted">+</span></div>
+      </section>
+      <p class="legal-links"><a href="/pages/privacy.html">Privacy</a><span>·</span><a href="/pages/terms.html">Terms</a><span>·</span><span>© Amora</span></p>
+    </aside>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <a class="mobile-nav-link active" href="/pages/social-home.html" aria-label="Home"><span>⌂</span></a>
+    <a class="mobile-nav-link" href="/pages/messages.html" aria-label="Messages"><span>✉</span></a>
+    <button class="mobile-nav-link share-nav" type="button" data-focus-composer aria-label="Share a thought"><span>＋</span></button>
+    <a class="mobile-nav-link" href="/pages/profile.html" aria-label="Profile"><span>◎</span></a>
+  </nav>
+</body>
+</html>
