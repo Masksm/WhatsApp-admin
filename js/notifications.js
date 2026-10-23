@@ -1,4 +1,3 @@
-
 import { $, supabase, getErrorMessage } from "./core.js";
 import { openConversation } from "./messages.js";
 
