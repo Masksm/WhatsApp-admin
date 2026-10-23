@@ -118,8 +118,12 @@ function showDashboard(user) {
   const email = byId("dashboard-email");
 
   if (user) {
-    if (authPanel) authPanel.hidden = true;
-    if (dashboardPanel) dashboardPanel.hidden = false;
+    // Only hide the auth form when this page actually has a dashboard panel.
+    // The login/signup page must keep its form visible until a session is verified.
+    if (dashboardPanel) {
+      dashboardPanel.hidden = false;
+      if (authPanel) authPanel.hidden = true;
+    }
     if (email) email.textContent = user.email || "";
     return;
   }
@@ -187,22 +191,53 @@ async function processPendingClaims() {
 }
 
 async function refreshAuthenticatedUser() {
-  if (!supabase) return;
-
-  const { data, error } = await supabase.auth.getSession();
-
-  if (error) {
-    setStatus(byId("auth-status"), error.message, true);
+  if (!supabase) {
+    showDashboard(null);
+    setStatus(byId("auth-status"), "Authentication is currently unavailable.", true);
     return;
   }
 
-  const user = data.session?.user || null;
-  showDashboard(user);
+  // getSession() only reads the browser's saved session. It does not prove
+  // that the account still exists, so verify the access token with Supabase Auth.
+  const { data, error } = await supabase.auth.getSession();
 
-  if (user) {
-    await processPendingClaims();
-    window.location.replace("/pages/social-home.html");
+  if (error) {
+    showDashboard(null);
+    setStatus(byId("auth-status"), "Your saved session could not be verified. Log in again.", true);
+    return;
   }
+
+  const session = data.session;
+  if (!session?.access_token) {
+    showDashboard(null);
+    setAuthMode(params.get("auth") === "login" ? "login" : "signup");
+    return;
+  }
+
+  const { data: verifiedData, error: verifyError } =
+    await supabase.auth.getUser(session.access_token);
+  const verifiedUser = verifiedData?.user || null;
+
+  // A cached token without a real, currently recognised account is not a login.
+  if (verifyError || !verifiedUser || verifiedUser.id !== session.user?.id) {
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      // The form still remains available even if local cleanup fails.
+    }
+    showDashboard(null);
+    setAuthMode(params.get("auth") === "login" ? "login" : "signup");
+    setStatus(
+      byId("auth-status"),
+      "Your saved session is invalid or its account no longer exists. Please log in again.",
+      true
+    );
+    return;
+  }
+
+  showDashboard(verifiedUser);
+  await processPendingClaims();
+  window.location.replace("/pages/social-home.html");
 }
 
 async function handleAuthSubmit(event) {
@@ -343,10 +378,12 @@ function initAuth() {
   if (!supabase) return;
 
   supabase.auth.onAuthStateChange((_event, session) => {
-    showDashboard(session?.user || null);
+    // Do not treat a browser-cached session as verified here. refreshAuthenticatedUser()
+    // checks the token against Supabase Auth before any redirect is allowed.
+    if (!session?.user) showDashboard(null);
 
     if (session?.user) {
-      // Defer Supabase calls to avoid blocking the auth callback.
+      // Defer this call to avoid blocking the auth callback.
       setTimeout(() => {
         processPendingClaims();
       }, 0);
