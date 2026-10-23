@@ -1,191 +1,195 @@
 
 import {
-  $,
-  supabase,
-  setStatus
-} from "./core.js";
+$,
+supabase,
+setStatus
+} from “./core.js”;
 
 // ============================================================
 // AMORA ANONYMOUS LINKS
 // ============================================================
 
 function setLinkStatus(message, isError = false) {
-  setStatus($("#anonymous-link-status"), message, isError);
+setStatus($(”#anonymous-link-status”), message, isError);
 }
 
 function displayAnonymousLink(slug) {
-  const result = $("#anonymous-link-result");
-  const urlElement = $("#anonymous-link-url");
+const result = $(”#anonymous-link-result”);
+const urlElement = $(”#anonymous-link-url”);
 
-  if (!slug || typeof slug !== "string") {
-    setLinkStatus("Your anonymous link is unavailable.", true);
-    return;
-  }
+if (!slug || typeof slug !== “string”) {
+setLinkStatus(“Your anonymous link is unavailable.”, true);
+return;
+}
 
-  const url = new URL(window.location.href);
-  url.search = "";
-  url.hash = "";
-  url.pathname = url.pathname.replace(/\/[^/]*$/, "/");
-  url.searchParams.set("anon", slug);
+const url = new URL(window.location.href);
+url.search = “”;
+url.hash = “”;
 
-  if (urlElement) {
-    urlElement.textContent = url.toString();
-    urlElement.href = url.toString();
-  }
+// Build the public link while preserving the deployed site path.
+url.pathname = url.pathname.replace(//[^/]*$/, “/”);
+url.searchParams.set(“anon”, slug);
 
-  if (result) {
-    result.hidden = false;
-  }
+if (urlElement) {
+urlElement.value = url.toString();
+urlElement.textContent = url.toString();
+urlElement.href = url.toString();
+}
+
+if (result) {
+result.hidden = false;
+}
 }
 
 async function loadAnonymousLink() {
-  if (!supabase) return;
+if (!supabase) return;
 
-  const { data: sessionData, error: sessionError } =
-    await supabase.auth.getSession();
+try {
+const { data: sessionData, error: sessionError } =
+await supabase.auth.getSession();
 
-  if (sessionError) {
-    setLinkStatus("Unable to check your account. Please try again.", true);
-    return;
-  }
+if (sessionError) throw sessionError;
+const user = sessionData.session?.user;
+if (!user) return;
+const { data, error } = await supabase
+  .from("anonymous_links")
+  .select("slug")
+  .eq("owner_id", user.id)
+  .eq("is_active", true)
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .maybeSingle();
+if (error) throw error;
+if (data?.slug) {
+  displayAnonymousLink(data.slug);
+}
 
-  if (!sessionData.session?.user) return;
-
-  const { data, error } = await supabase
-    .from("anonymous_links")
-    .select("slug")
-    .eq("user_id", sessionData.session.user.id)
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Unable to load anonymous link:", error.message);
-    setLinkStatus("Unable to load your anonymous link.", true);
-    return;
-  }
-
-  if (data?.slug) {
-    displayAnonymousLink(data.slug);
-  }
+} catch (error) {
+console.error(“Unable to load anonymous link:”, error.message);
+setLinkStatus(“Unable to load your anonymous link.”, true);
+}
 }
 
 async function createAnonymousLink() {
-  if (!supabase) {
-    setLinkStatus("Unable to connect. Please try again later.", true);
-    return;
-  }
+if (!supabase) {
+setLinkStatus(“Unable to connect. Please try again later.”, true);
+return;
+}
 
-  const createButton = $("#create-anonymous-link");
-  if (createButton) createButton.disabled = true;
+const createButton = $(”#create-anonymous-link”);
 
-  setLinkStatus("Preparing your link…");
+if (createButton) {
+createButton.disabled = true;
+}
 
-  try {
-    const { data: sessionData, error: sessionError } =
-      await supabase.auth.getSession();
+setLinkStatus(“Preparing your link…”);
 
-    if (sessionError) throw sessionError;
+try {
+const { data: sessionData, error: sessionError } =
+await supabase.auth.getSession();
 
-    const user = sessionData.session?.user;
+if (sessionError) throw sessionError;
+const user = sessionData.session?.user;
+if (!user) {
+  setLinkStatus("Log in before creating your anonymous link.", true);
+  return;
+}
+// Reuse the newest active link to avoid unnecessary duplicates.
+const { data: existing, error: lookupError } = await supabase
+  .from("anonymous_links")
+  .select("slug")
+  .eq("owner_id", user.id)
+  .eq("is_active", true)
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .maybeSingle();
+if (lookupError) throw lookupError;
+if (existing?.slug) {
+  displayAnonymousLink(existing.slug);
+  setLinkStatus("Your existing anonymous link is ready.");
+  return;
+}
+// Generate a random 36-character hexadecimal slug.
+const bytes = new Uint8Array(18);
+crypto.getRandomValues(bytes);
+const slug = Array.from(bytes, (byte) =>
+  byte.toString(16).padStart(2, "0")
+).join("");
+const { data, error } = await supabase
+  .from("anonymous_links")
+  .insert({
+    owner_id: user.id,
+    slug,
+    is_active: true
+  })
+  .select("slug")
+  .single();
+if (error) throw error;
+displayAnonymousLink(data.slug);
+setLinkStatus("Your anonymous link is ready to share.");
 
-    if (!user) {
-      setLinkStatus("Log in before creating your anonymous link.", true);
-      return;
-    }
+} catch (error) {
+console.error(“Unable to create anonymous link:”, error.message);
 
-    // Reuse the existing link instead of creating duplicates.
-    const { data: existing, error: lookupError } = await supabase
-      .from("anonymous_links")
-      .select("slug")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+setLinkStatus(
+  error.code === "23505" ||
+    error.message?.toLowerCase().includes("duplicate")
+    ? "A link may already exist. Try refreshing the page."
+    : "Unable to create your link. Please try again.",
+  true
+);
 
-    if (lookupError) throw lookupError;
-
-    if (existing?.slug) {
-      displayAnonymousLink(existing.slug);
-      setLinkStatus("Your existing anonymous link is ready.");
-      return;
-    }
-
-    // Generate an unpredictable slug in the browser.
-    const bytes = new Uint8Array(18);
-    crypto.getRandomValues(bytes);
-
-    const slug = Array.from(bytes, (byte) =>
-      byte.toString(16).padStart(2, "0")
-    ).join("");
-
-    const { data, error } = await supabase
-      .from("anonymous_links")
-      .insert({
-        user_id: user.id,
-        slug
-      })
-      .select("slug")
-      .single();
-
-    if (error) throw error;
-
-    displayAnonymousLink(data.slug);
-    setLinkStatus("Your anonymous link is ready to share.");
-  } catch (error) {
-    console.error("Unable to create anonymous link:", error.message);
-
-    setLinkStatus(
-      error.message?.includes("duplicate")
-        ? "A link may already exist. Try refreshing the page."
-        : "Unable to create your link. Please try again.",
-      true
-    );
-  } finally {
-    if (createButton) createButton.disabled = false;
-  }
+} finally {
+if (createButton) {
+createButton.disabled = false;
+}
+}
 }
 
 async function copyAnonymousLink() {
-  const urlElement = $("#anonymous-link-url");
-  const url = urlElement?.href || urlElement?.textContent || "";
+const urlElement = $(”#anonymous-link-url”);
+const url = urlElement?.href ||
+urlElement?.value ||
+urlElement?.textContent ||
+“”;
 
-  if (!url || url === window.location.href) {
-    setLinkStatus("Create or load your link first.", true);
-    return;
-  }
+if (!url || url === window.location.href) {
+setLinkStatus(“Create or load your link first.”, true);
+return;
+}
 
-  try {
-    await navigator.clipboard.writeText(url);
-    setLinkStatus("Link copied. Share it with your friends.");
-  } catch (_) {
-    setLinkStatus("Copy failed. Select and copy the link manually.", true);
-  }
+try {
+await navigator.clipboard.writeText(url);
+setLinkStatus(“Link copied. Share it with your friends.”);
+} catch (_) {
+setLinkStatus(“Copy failed. Select and copy the link manually.”, true);
+}
 }
 
 function initAnonymousLinks() {
-  $("#create-anonymous-link")?.addEventListener(
-    "click",
-    createAnonymousLink
-  );
+$(”#create-anonymous-link”)?.addEventListener(
+“click”,
+createAnonymousLink
+);
 
-  $("#copy-anonymous-link")?.addEventListener(
-    "click",
-    copyAnonymousLink
-  );
+$(”#copy-anonymous-link”)?.addEventListener(
+“click”,
+copyAnonymousLink
+);
 
-  // Load the existing link when a signed-in user opens the dashboard.
-  loadAnonymousLink();
+loadAnonymousLink();
 
-  supabase?.auth.onAuthStateChange((event, session) => {
-    if (session?.user && event !== "TOKEN_REFRESHED") {
-      loadAnonymousLink();
-    }
-  });
+supabase?.auth.onAuthStateChange((event, session) => {
+if (session?.user && event !== “TOKEN_REFRESHED”) {
+loadAnonymousLink();
+}
+});
 }
 
 export {
-  initAnonymousLinks,
-  loadAnonymousLink,
-  createAnonymousLink,
-  copyAnonymousLink,
-  displayAnonymousLink
+initAnonymousLinks,
+loadAnonymousLink,
+createAnonymousLink,
+copyAnonymousLink,
+displayAnonymousLink
 };
