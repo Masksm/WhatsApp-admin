@@ -1,35 +1,13 @@
 
-import {
-  $,
-  supabase,
-  getErrorMessage
-} from "./core.js";
+import { $, supabase, getErrorMessage } from "./core.js";
 
-// ============================================================
-// AMORA PRIVATE MESSAGING
-// ============================================================
-
-let activeChatConversationId = null;
+let activeConversationId = null;
 let chatRequestInProgress = false;
+let initialized = false;
 
-function setChatStatus(message, isError = false) {
-  const element = $("#chat-status");
-  if (!element) return;
-
-  element.textContent = message;
-  element.style.color = isError ? "#dc2626" : "";
-}
-
-function addChatText(parent, text, className) {
-  const element = document.createElement("div");
-  element.textContent = String(text ?? "");
-
-  if (className) {
-    element.className = className;
-  }
-
-  parent.append(element);
-  return element;
+function setChatStatus(message) {
+  const status = $("#chat-status");
+  if (status) status.textContent = message || "";
 }
 
 function formatChatDate(value) {
@@ -37,229 +15,219 @@ function formatChatDate(value) {
 
   const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
+  if (Number.isNaN(date.getTime())) return "";
 
   return date.toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
+    dateStyle: "short",
+    timeStyle: "short"
   });
 }
 
-function clearChatElement(element) {
-  if (element) element.replaceChildren();
+function notifyRefresh() {
+  window.dispatchEvent(
+    new CustomEvent("amora:refresh-notifications")
+  );
 }
 
-function renderChatMessages(messages) {
+function renderConversationList(conversations) {
+  const list = $("#conversation-list");
+  if (!list) return;
+
+  list.replaceChildren();
+
+  if (!conversations.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No conversations yet.";
+    list.appendChild(empty);
+    return;
+  }
+
+  conversations.forEach((conversation) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "conversation-item";
+
+    if (
+      conversation.conversation_id === activeConversationId
+    ) {
+      button.classList.add("active");
+    }
+
+    const title = document.createElement("strong");
+    title.textContent =
+      conversation.other_anonymous_name || "Anonymous";
+
+    const preview = document.createElement("span");
+    preview.textContent =
+      conversation.last_message_preview || "No messages yet.";
+
+    button.append(title, preview);
+
+    if (Number(conversation.unread_count) > 0) {
+      const unread = document.createElement("span");
+      unread.className = "unread-count";
+      unread.textContent = String(conversation.unread_count);
+      button.appendChild(unread);
+    }
+
+    button.addEventListener("click", () => {
+      openConversation(
+        conversation.conversation_id,
+        conversation.other_anonymous_name || "Anonymous"
+      );
+    });
+
+    list.appendChild(button);
+  });
+}
+
+async function loadChatConversations(showLoading = true) {
+  const list = $("#conversation-list");
+
+  if (!supabase || !list) return;
+
+  if (showLoading) {
+    list.textContent = "Loading conversations...";
+  }
+
+  const { data, error } = await supabase.rpc(
+    "get_my_conversations"
+  );
+
+  if (error) {
+    list.textContent = "Could not load conversations.";
+    setChatStatus(
+      getErrorMessage(error, "Could not load conversations.")
+    );
+    return;
+  }
+
+  renderConversationList(data || []);
+}
+
+function renderMessages(messages) {
   const list = $("#message-list");
   if (!list) return;
 
-  clearChatElement(list);
+  list.replaceChildren();
 
-  if (!messages?.length) {
-    addChatText(list, "No messages yet.", "empty-state");
+  if (!messages.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No messages in this conversation yet.";
+    list.appendChild(empty);
     return;
   }
 
   messages.forEach((message) => {
-    const row = document.createElement("article");
-    row.className = "chat-message";
+    const item = document.createElement("div");
 
-    const body = document.createElement("p");
-    body.textContent = String(message.message ?? message.content ?? "");
+    item.className = message.sent_by_me
+      ? "chat-message sent"
+      : "chat-message received";
 
-    const timestamp = document.createElement("small");
-    timestamp.textContent = formatChatDate(
-      message.created_at || message.sent_at
-    );
+    const content = document.createElement("p");
+    content.textContent = message.message_text || "";
 
-    row.append(body, timestamp);
-    list.append(row);
+    const meta = document.createElement("small");
+    const sender =
+      message.sent_by_me
+        ? "You"
+        : message.sender_anonymous_name || "Anonymous";
+
+    const date = formatChatDate(message.sent_at);
+
+    meta.textContent = date ? `${sender} · ${date}` : sender;
+
+    item.append(content, meta);
+    list.appendChild(item);
   });
 
   list.scrollTop = list.scrollHeight;
 }
 
-function renderConversations(conversations) {
-  const list = $("#conversation-list");
-  if (!list) return;
-
-  clearChatElement(list);
-
-  if (!conversations?.length) {
-    addChatText(list, "Your conversations will appear here.", "empty-state");
-    return;
-  }
-
-  conversations.forEach((conversation) => {
-    const id =
-      conversation.conversation_id ||
-      conversation.id;
-
-    if (!id) return;
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "conversation-item";
-
-    if (id === activeChatConversationId) {
-      button.classList.add("active");
-    }
-
-    const name = document.createElement("strong");
-    name.textContent =
-      conversation.display_name ||
-      conversation.name ||
-      conversation.other_user_name ||
-      "Amora conversation";
-
-    const preview = document.createElement("span");
-    preview.textContent =
-      conversation.last_message ||
-      conversation.last_message_text ||
-      "Open conversation";
-
-    const timestamp = document.createElement("small");
-    timestamp.textContent = formatChatDate(
-      conversation.last_message_at ||
-      conversation.updated_at ||
-      conversation.created_at
-    );
-
-    button.append(name, preview, timestamp);
-
-    button.addEventListener("click", () => {
-      openConversation(id, name.textContent);
-    });
-
-    list.append(button);
-  });
-}
-
 async function loadChatMessages(conversationId) {
   if (!supabase || !conversationId) return;
 
-  const { data, error } = await supabase.rpc(
-    "get_conversation_messages",
-    {
-      p_conversation_id: conversationId
-    }
-  );
-
-  if (error) {
-    setChatStatus(
-      getErrorMessage(error, "Unable to load messages."),
-      true
-    );
-    return;
-  }
-
-  renderChatMessages(data || []);
-
-  // Mark this conversation as read.
-  const { error: readError } = await supabase.rpc(
-    "mark_conversation_read",
-    {
-      p_conversation_id: conversationId
-    }
-  );
-
-  if (readError) {
-    console.warn("Unable to mark conversation as read:", readError.message);
-  }
-}
-
-async function openConversation(conversationId, title = "") {
-  if (!supabase || chatRequestInProgress) return;
-
+  activeConversationId = conversationId;
   chatRequestInProgress = true;
-  activeChatConversationId = conversationId;
 
-  const heading = $("#active-conversation-heading");
-  if (heading) {
-    heading.textContent = title || "Conversation";
+  const messageList = $("#message-list");
+  const messageInput = $("#chat-message-text");
+  const sendButton = $("#send-chat-message");
+
+  if (messageList) {
+    messageList.textContent = "Loading messages...";
   }
 
-  setChatStatus("Loading conversation…");
+  if (messageInput) messageInput.disabled = true;
+  if (sendButton) sendButton.disabled = true;
 
   try {
-    await loadChatMessages(conversationId);
+    const { data, error } = await supabase.rpc(
+      "get_conversation_messages",
+      { p_conversation_id: conversationId }
+    );
+
+    if (error) throw error;
+
+    if (activeConversationId !== conversationId) return;
+
+    renderMessages(data || []);
     setChatStatus("");
-    await loadChatConversations();
+
+    await supabase.rpc("mark_conversation_read", {
+      p_conversation_id: conversationId
+    });
+
+    notifyRefresh();
+    await loadChatConversations(false);
   } catch (error) {
-    setChatStatus(
-      getErrorMessage(error, "Unable to open this conversation."),
-      true
-    );
+    if (activeConversationId === conversationId) {
+      if (messageList) {
+        messageList.textContent = "Could not load messages.";
+      }
+
+      setChatStatus(
+        getErrorMessage(error, "Could not load messages.")
+      );
+    }
   } finally {
-    chatRequestInProgress = false;
+    if (activeConversationId === conversationId) {
+      chatRequestInProgress = false;
+
+      if (messageInput) messageInput.disabled = false;
+      if (sendButton) sendButton.disabled = false;
+    }
   }
 }
 
-async function loadChatConversations() {
-  if (!supabase) return;
+function openConversation(conversationId, title = "Anonymous") {
+  const heading = $("#active-conversation-heading");
 
-  const { data: sessionData, error: sessionError } =
-    await supabase.auth.getSession();
+  if (heading) heading.textContent = title;
 
-  if (sessionError) {
-    setChatStatus("Unable to check your session.", true);
-    return;
-  }
-
-  if (!sessionData.session?.user) {
-    clearChatElement($("#conversation-list"));
-    clearChatElement($("#message-list"));
-    return;
-  }
-
-  const { data, error } = await supabase.rpc("get_my_conversations");
-
-  if (error) {
-    setChatStatus(
-      getErrorMessage(error, "Unable to load conversations."),
-      true
-    );
-    return;
-  }
-
-  renderConversations(data || []);
-
-  if (
-    activeChatConversationId &&
-    !(data || []).some(
-      (conversation) =>
-        (conversation.conversation_id || conversation.id) ===
-        activeChatConversationId
-    )
-  ) {
-    activeChatConversationId = null;
-    clearChatElement($("#message-list"));
-  }
+  loadChatMessages(conversationId);
 }
 
-async function sendChatMessage(event) {
+async function handleSendMessage(event) {
   event.preventDefault();
 
-  const field = $("#chat-message-text");
+  const input = $("#chat-message-text");
   const button = $("#send-chat-message");
-  const message = field?.value.trim() || "";
+  const message = input?.value.trim() || "";
+
+  if (!supabase || !activeConversationId) {
+    setChatStatus("Choose a conversation first.");
+    return;
+  }
 
   if (!message) {
-    setChatStatus("Write a message before sending it.", true);
+    setChatStatus("Enter a message before sending.");
     return;
   }
 
-  if (!activeChatConversationId) {
-    setChatStatus("Choose a conversation first.", true);
-    return;
-  }
-
-  if (!supabase) {
-    setChatStatus("Unable to connect. Please try again.", true);
+  if (message.length > 2000) {
+    setChatStatus("Messages must be 2,000 characters or fewer.");
     return;
   }
 
@@ -268,13 +236,15 @@ async function sendChatMessage(event) {
   chatRequestInProgress = true;
   if (button) button.disabled = true;
 
-  setChatStatus("Sending…");
+  setChatStatus("Checking and sending your message...");
 
   try {
+    const conversationId = activeConversationId;
+
     const { data, error } = await supabase.rpc(
       "send_chat_message",
       {
-        p_conversation_id: activeChatConversationId,
+        p_conversation_id: conversationId,
         p_message: message
       }
     );
@@ -282,72 +252,120 @@ async function sendChatMessage(event) {
     if (error) throw error;
 
     const result = Array.isArray(data) ? data[0] : data;
-    const status =
-      typeof result === "string"
-        ? result
-        : result?.status;
 
-    if (status !== "approved") {
+    if (result?.status === "blocked") {
       setChatStatus(
-        status === "blocked"
-          ? "Please remove contact details or off-platform contact requests."
-          : "Your message could not be sent.",
-        true
+        result.message ||
+          "This message cannot be sent because it violates messaging rules."
       );
       return;
     }
 
-    if (field) field.value = "";
+    if (result?.status !== "approved") {
+      setChatStatus(
+        "The message was not approved. Please review it and try again."
+      );
+      return;
+    }
+
+    if (input) input.value = "";
 
     setChatStatus("Message sent.");
-    await loadChatMessages(activeChatConversationId);
-    await loadChatConversations();
+
+    await loadChatMessages(conversationId);
   } catch (error) {
     setChatStatus(
-      getErrorMessage(error, "Unable to send your message."),
-      true
+      getErrorMessage(error, "Could not send your message.")
     );
   } finally {
     chatRequestInProgress = false;
-    if (button) button.disabled = false;
+
+    if (button) {
+      button.disabled = !activeConversationId;
+    }
   }
 }
 
-async function refreshConversations() {
-  await loadChatConversations();
+function clearChat() {
+  activeConversationId = null;
+  chatRequestInProgress = false;
 
-  if (activeChatConversationId) {
-    await loadChatMessages(activeChatConversationId);
+  const conversations = $("#conversation-list");
+  const notifications = $("#notification-list");
+  const messages = $("#message-list");
+  const heading = $("#active-conversation-heading");
+  const input = $("#chat-message-text");
+  const button = $("#send-chat-message");
+
+  if (conversations) {
+    conversations.textContent = "Sign in to view your conversations.";
   }
+
+  if (notifications) {
+    notifications.textContent = "Sign in to view notifications.";
+  }
+
+  if (messages) {
+    messages.textContent = "Select a conversation to read messages.";
+  }
+
+  if (heading) heading.textContent = "Choose a conversation";
+  if (input) input.disabled = true;
+  if (button) button.disabled = true;
+
+  setChatStatus("");
+}
+
+async function refreshInbox() {
+  if (!supabase) return;
+
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error || !data.session?.user) {
+    clearChat();
+    return;
+  }
+
+  await loadChatConversations();
+  notifyRefresh();
 }
 
 function initMessages() {
+  if (initialized) return;
+  initialized = true;
+
   $("#chat-message-form")?.addEventListener(
     "submit",
-    sendChatMessage
+    handleSendMessage
   );
 
   $("#refresh-conversations")?.addEventListener(
     "click",
-    refreshConversations
+    refreshInbox
   );
 
-  supabase?.auth.onAuthStateChange((event, session) => {
+  if (!supabase) {
+    setChatStatus("Messaging is currently unavailable.");
+    return;
+  }
+
+  supabase.auth.onAuthStateChange((_event, session) => {
     if (session?.user) {
-      refreshConversations();
-    } else if (event === "SIGNED_OUT") {
-      activeChatConversationId = null;
-      clearChatElement($("#conversation-list"));
-      clearChatElement($("#message-list"));
-      setChatStatus("");
+      setTimeout(() => {
+        refreshInbox();
+      }, 0);
+    } else {
+      clearChat();
     }
   });
+
+  refreshInbox();
 }
 
 export {
   initMessages,
-  loadChatMessages,
   loadChatConversations,
+  loadChatMessages,
   openConversation,
-  refreshConversations
+  refreshInbox
 };
