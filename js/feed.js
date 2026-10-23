@@ -43,18 +43,41 @@ document.addEventListener("DOMContentLoaded", () => {
   textInput.addEventListener("input", updatePublishButton);
 
   imageInput?.addEventListener("change", () => {
-    selectedImage = imageInput.files?.[0] || null;
+    const file = imageInput.files?.[0] || null;
     imagePreview?.replaceChildren();
-    if (!selectedImage) {
+    if (!file) {
+      selectedImage = null;
       if (imagePreview) imagePreview.hidden = true;
       updatePublishButton();
       return;
     }
-    // No storage bucket has been verified yet. Never pretend a local image was published.
-    selectedImage = null;
-    imageInput.value = "";
-    if (imagePreview) imagePreview.hidden = true;
-    setStatus("Photo posts are being connected securely. For now, publish text-only posts.", true);
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      selectedImage = null;
+      imageInput.value = "";
+      if (imagePreview) imagePreview.hidden = true;
+      setStatus("Choose a JPG, PNG, WebP, or GIF image.", true);
+      updatePublishButton();
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      selectedImage = null;
+      imageInput.value = "";
+      if (imagePreview) imagePreview.hidden = true;
+      setStatus("Images must be 8 MB or smaller.", true);
+      updatePublishButton();
+      return;
+    }
+    selectedImage = file;
+    if (imagePreview) {
+      imagePreview.hidden = false;
+      const img = document.createElement("img");
+      img.alt = "Selected image preview";
+      img.src = URL.createObjectURL(file);
+      img.onload = () => URL.revokeObjectURL(img.src);
+      imagePreview.append(img);
+    }
+    setStatus("");
     updatePublishButton();
   });
 
@@ -278,6 +301,15 @@ document.addEventListener("DOMContentLoaded", () => {
     content.className = "post-content";
     content.textContent = post.content;
     article.append(header, content);
+    (Array.isArray(post.media_urls) ? post.media_urls : []).slice(0, 4).forEach((url) => {
+      if (typeof url !== "string" || !url.startsWith("https://")) return;
+      const image = document.createElement("img");
+      image.className = "post-image";
+      image.src = url;
+      image.alt = "Image attached to post";
+      image.loading = "lazy";
+      article.append(image);
+    });
 
     const comments = await loadComments(post.id);
     const stats = document.createElement("div");
@@ -437,41 +469,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
   publishButton.addEventListener("click", async () => {
     const body = textInput.value.trim();
-    if (!body) {
-      setStatus("Write something first. Photo-only posts will be available after secure storage is configured.", true);
+    if (!body && !selectedImage) {
+      setStatus("Write something or attach an image first.", true);
       return;
     }
     loading = true;
     updatePublishButton();
+    let uploadedPath = null;
     try {
       const user = await requireUser();
-      let error;
+      let mediaUrls = [];
+      if (selectedImage) {
+        const extension = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" })[selectedImage.type];
+        if (!extension) throw new Error("That image format is not supported.");
+        uploadedPath = user.id + "/" + crypto.randomUUID() + "." + extension;
+        const { error: uploadError } = await supabase.storage
+          .from("amora-post-images")
+          .upload(uploadedPath, selectedImage, { contentType: selectedImage.type, upsert: false });
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage.from("amora-post-images").getPublicUrl(uploadedPath);
+        if (!publicUrlData?.publicUrl) throw new Error("Could not create the image URL.");
+        mediaUrls = [publicUrlData.publicUrl];
+      }
+
       if (hideIdentity.checked) {
         const token = randomDeletionToken();
         const result = await supabase.rpc("create_hidden_post", {
           p_content: body,
-          p_media_urls: [],
+          p_media_urls: mediaUrls,
           p_deletion_token: token
         });
-        error = result.error;
-        if (error) throw error;
+        if (result.error) throw result.error;
         if (typeof result.data !== "string") throw new Error("The post was not confirmed by the server.");
         saveHiddenToken(result.data, token);
       } else {
-        const result = await supabase.from("posts").insert({
+        const { error } = await supabase.from("posts").insert({
           author_id: user.id,
           content: body,
-          media_urls: [],
+          media_urls: mediaUrls,
           visibility: "public",
           is_anonymous: false
         });
-        error = result.error;
         if (error) throw error;
       }
       textInput.value = "";
       hideIdentity.checked = false;
       if (imageInput) imageInput.value = "";
       selectedImage = null;
+      if (imagePreview) {
+        imagePreview.replaceChildren();
+        imagePreview.hidden = true;
+      }
       setStatus("Your post has been published.");
       activeFeed = "for-you";
       feedTabs.forEach((tab) => {
@@ -481,6 +529,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       await loadFeed();
     } catch (error) {
+      if (uploadedPath) {
+        try { await supabase.storage.from("amora-post-images").remove([uploadedPath]); } catch {}
+      }
       setStatus(error.message || "Could not publish your post. Your draft is still here.", true);
     } finally {
       loading = false;
