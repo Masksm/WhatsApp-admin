@@ -801,7 +801,7 @@ publicMessageStatus.innerHTML = `
 
       <p>
         Already have an account?
-        <a href="${window.location.origin}/">Log in</a>
+        <a class="primary-btn" href="${window.location.origin}/">Log in</a>
       </p>
     </div>
   </div>
