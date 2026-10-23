@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#160d1c">
-  <title>Your Profile · Amora</title>
+  <title>Profile · Amora</title>
   <link rel="stylesheet" href="/css/feed.css">
   <link rel="stylesheet" href="/css/profile.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -21,17 +21,17 @@
         <a class="nav-link active" href="/pages/profile.html"><span class="nav-icon">◎</span><span>Profile</span></a>
       </nav>
       <div class="sidebar-note"><span class="note-heart">♡</span><p>Your identity.<br>Your rules.</p></div>
-      <button class="sidebar-account profile-logout" id="logout-button" type="button"><span class="avatar avatar-you" id="sidebar-avatar">?</span><span><strong id="sidebar-username">Your space</strong><small>Sign out safely</small></span><span class="more-dots">↗</span></button>
+      <a class="sidebar-account" id="sidebar-profile-link" href="/pages/profile.html"><span class="avatar avatar-you" id="sidebar-avatar">?</span><span><strong id="sidebar-username">Amora profile</strong><small>View profile</small></span><span class="more-dots">♡</span></a>
     </aside>
 
     <main class="feed-main profile-main">
       <header class="mobile-topbar">
         <a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a>
-        <a class="icon-button profile-home-button" href="/pages/social-home.html" aria-label="Home">⌂</a>
+        <button class="icon-button profile-settings-button" id="profile-settings-button" type="button" aria-label="Profile settings" title="Profile settings">⚙</button>
       </header>
 
       <div class="feed-heading profile-heading">
-        <div><p class="eyebrow">YOUR PRIVATE DASHBOARD</p><h1>Your profile <span class="heading-heart">♡</span></h1></div>
+        <div><p class="eyebrow" id="profile-eyebrow">YOUR AMORA SPACE</p><h1 id="profile-page-title">Profile <span class="heading-heart">♡</span></h1></div>
         <a class="profile-back-link" href="/pages/social-home.html">← Back to Home</a>
       </div>
 
@@ -39,10 +39,10 @@
         <div class="profile-hero-glow"></div>
         <div class="profile-avatar" id="profile-avatar">?</div>
         <div class="profile-hero-copy">
-          <span class="profile-kicker">YOUR AMORA IDENTITY</span>
+          <span class="profile-kicker" id="profile-kicker">AMORA IDENTITY</span>
           <h2 id="profile-title">Loading your profile…</h2>
           <p id="profile-handle" class="profile-handle">@loading</p>
-          <p class="profile-private-note"><span>🔒</span> Your email and account ID are private. Your username is your public identity.</p>
+          <p class="profile-private-note" id="profile-private-note"><span>🔒</span> Your email and account details are private.</p>
         </div>
         <span class="profile-heart-decoration">♡</span>
       </section>
@@ -50,10 +50,10 @@
       <section class="profile-stats" aria-label="Profile activity">
         <div class="profile-stat card"><span class="stat-icon">✎</span><strong id="post-count">—</strong><span>Identified posts</span></div>
         <div class="profile-stat card"><span class="stat-icon">♡</span><strong id="follower-count">—</strong><span>Followers</span></div>
-        <div class="profile-stat card"><span class="stat-icon">✦</span><strong id="following-count">—</strong><span>Following</span></div>
+        <div class="profile-stat card"><span class="stat-icon">♥</span><strong id="likes-count">—</strong><span>Likes received</span></div>
       </section>
 
-      <section class="profile-section card">
+      <section class="profile-section card" id="identity-settings" hidden>
         <div class="section-heading"><div><p class="eyebrow">MAKE IT YOURS</p><h2>Identity settings</h2></div><span class="section-symbol">✧</span></div>
         <p class="section-description">Choose the name people see on your public posts. Do not use your real name if you want to stay anonymous.</p>
         <form id="profile-form" class="profile-form">
@@ -66,16 +66,12 @@
       </section>
 
       <section class="profile-section card">
-        <div class="section-heading"><div><p class="eyebrow">YOUR ACTIVITY</p><h2>Your posts</h2></div><a href="/pages/social-home.html" class="text-link">Write a post ↗</a></div>
-        <p class="section-description">Posts you shared with your account identity appear here. Posts made with “Hide my identity” are not listed in this identified-post view.</p>
+        <div class="section-heading"><div><p class="eyebrow">ON AMORA</p><h2 id="posts-section-title">Posts</h2></div><a href="/pages/social-home.html" class="text-link" id="write-post-link">Write a post ↗</a></div>
+        <p class="section-description" id="posts-section-description">Identified posts shared by this account.</p>
         <div id="profile-posts" class="profile-posts" aria-live="polite"><div class="profile-loading">Loading your posts…</div></div>
       </section>
 
-      <section class="profile-account-actions">
-        <div><strong>Need a break?</strong><p>You can sign out of Amora on this device.</p></div>
-        <button class="secondary-button" id="logout-main" type="button">Sign out</button>
-      </section>
-      <p class="profile-footnote">Amora · A little more honest. A little more you. ♡</p>
+            <p class="profile-footnote">Amora · A little more honest. A little more you. ♡</p>
     </main>
 
     <aside class="feed-rightbar profile-rightbar">
