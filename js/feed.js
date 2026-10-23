@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let loading = false;
   let posts = [];
   const commentCache = new Map();
+  const profileCache = new Map();
   const likeCache = new Set();
   const bookmarkCache = new Set();
   const repostCache = new Set();
@@ -147,6 +148,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!reposts.error) reposts.data.forEach((row) => repostCache.add(row.post_id));
   }
 
+  async function loadPublicProfiles(ids) {
+    const missing = [...new Set((ids || []).filter((id) => typeof id === "string" && id && !profileCache.has(id)))].slice(0, 200);
+    if (!missing.length || !supabase) return;
+    const { data, error } = await supabase.rpc("get_public_profiles", { p_user_ids: missing });
+    if (error) {
+      console.warn("Public profile lookup failed:", error.message);
+      missing.forEach((id) => profileCache.set(id, null));
+      return;
+    }
+    (data || []).forEach((profile) => profileCache.set(profile.id, profile));
+    missing.forEach((id) => {
+      if (!profileCache.has(id)) profileCache.set(id, null);
+    });
+  }
+
+  function profileLabel(userId) {
+    if (!userId) return "Amora member";
+    const profile = profileCache.get(userId);
+    if (!profile) return userId === currentUser?.id ? "You" : "Amora member";
+    if (profile.display_name?.trim()) return profile.display_name.trim();
+    if (profile.username?.trim()) return "@" + profile.username.trim();
+    return userId === currentUser?.id ? "You" : "Amora member";
+  }
+
   async function loadComments(postId) {
     if (commentCache.has(postId)) return commentCache.get(postId);
     const { data, error } = await supabase
@@ -156,9 +181,10 @@ document.addEventListener("DOMContentLoaded", () => {
       .order("created_at", { ascending: true });
     if (error) throw error;
     const rows = data || [];
+    await loadPublicProfiles(rows.filter((row) => row.author_id).map((row) => row.author_id));
     const byId = new Map();
     rows.forEach((row) => byId.set(row.id, {
-      ...row, author: row.is_anonymous ? "Anonymous" : (row.author_id === currentUser?.id ? "You" : "Amora member"),
+      ...row, author: row.is_anonymous ? "Anonymous" : profileLabel(row.author_id),
       replies: []
     }));
     const roots = [];
@@ -265,12 +291,14 @@ document.addEventListener("DOMContentLoaded", () => {
     header.className = "post-header";
     const avatar = document.createElement("span");
     avatar.className = "avatar post-avatar";
-    avatar.textContent = post.is_anonymous ? "♡" : "a";
+    const publicProfile = post.author_id ? profileCache.get(post.author_id) : null;
+    const avatarLabel = publicProfile?.display_name?.trim() || publicProfile?.username?.trim() || "";
+    avatar.textContent = post.is_anonymous ? "♡" : (avatarLabel ? avatarLabel.slice(0, 1).toUpperCase() : "a");
     if (post.is_anonymous) avatar.classList.add("avatar-anonymous");
     const identity = document.createElement("div");
     identity.className = "post-identity";
     const name = document.createElement("strong");
-    name.textContent = post.is_anonymous ? "Anonymous" : (post.author_id === currentUser?.id ? "You" : "Amora member");
+    name.textContent = post.is_anonymous ? "Anonymous" : profileLabel(post.author_id);
     const meta = document.createElement("span");
     meta.textContent = timeAgo(post.created_at) + (post.visibility === "followers" ? " · Followers" : "");
     identity.append(name, meta);
@@ -437,6 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (error) throw error;
       posts = data || [];
       commentCache.clear();
+      await loadPublicProfiles(posts.filter((post) => !post.is_anonymous && post.author_id).map((post) => post.author_id));
       await loadMyInteractions();
       loading = false;
       await renderFeed();
