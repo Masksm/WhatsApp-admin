@@ -197,6 +197,7 @@ async function refreshAuthenticatedUser() {
 
   if (user) {
     await processPendingClaims();
+    window.location.replace("/pages/social-home.html");
   }
 }
 
@@ -259,8 +260,9 @@ async function handleAuthSubmit(event) {
     if (result.error) throw result.error;
 
     if (result.data.session?.user) {
-      showDashboard(result.data.session.user);
       await processPendingClaims();
+      window.location.replace("/pages/social-home.html");
+      return;
     } else if (authMode === "signup") {
       setStatus(
         status,
