@@ -10,46 +10,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const composerStatus = document.getElementById("composer-status");
   const feedList = document.getElementById("feed-list");
   const feedTabs = [...document.querySelectorAll("[data-feed]")];
+  const supabase = window.amoraSupabase || null;
 
   if (!composer || !textInput || !feedList || !publishButton) return;
 
-  const supabase = window.amoraSupabase || null;
   let selectedImage = null;
-  let previewUrl = null;
   let activeFeed = "for-you";
-  let nextId = 10;
-
-  // Clearly labelled preview content keeps the page from looking broken
-  // while the real posts schema and privacy policies are being connected.
-  const posts = [
-    {
-      id: 1, author: "MoonlitFox", avatar: "M", time: "12 min",
-      text: "Sometimes you just need a place where you can say what you actually think, without overthinking every word. 💗",
-      following: true, likes: 18, liked: false, reposts: 3, reposted: false,
-      bookmarked: false, hidden: false, preview: true,
-      comments: [
-        { id: 101, author: "VelvetRose", text: "This. A little honesty goes a long way.", replies: [] },
-        { id: 102, author: "Anonymous", text: "Especially when you can't say it anywhere else.", replies: [], anonymous: true }
-      ]
-    },
-    {
-      id: 2, author: "Anonymous", avatar: "♡", time: "34 min",
-      text: "What's one thing you wish people understood about you without you having to explain it?",
-      following: false, likes: 42, liked: false, reposts: 7, reposted: false,
-      bookmarked: false, hidden: true, preview: true,
-      comments: [
-        { id: 201, author: "Anonymous", text: "That being quiet doesn't mean I have nothing to say.", anonymous: true, replies: [
-          { id: 202, author: "Anonymous", text: "Exactly. Sometimes I'm just figuring out how to say it.", anonymous: true, replies: [] }
-        ] }
-      ]
-    },
-    {
-      id: 3, author: "SoftChaos", avatar: "S", time: "1 hr",
-      text: "A reminder that starting over is still progress. You don't have to have everything figured out today. ✨",
-      following: true, likes: 9, liked: false, reposts: 1, reposted: false,
-      bookmarked: false, hidden: false, preview: true, comments: []
-    }
-  ];
+  let currentUser = null;
+  let loading = false;
+  let posts = [];
+  const commentCache = new Map();
+  const likeCache = new Set();
+  const bookmarkCache = new Set();
+  const repostCache = new Set();
+  const hiddenTokenStorageKey = "amora_hidden_post_delete_tokens";
 
   document.querySelectorAll("[data-focus-composer]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -59,70 +33,148 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function setStatus(message, isError = false) {
-    composerStatus.textContent = message;
+    composerStatus.textContent = message || "";
     composerStatus.style.color = isError ? "#ff9aaa" : "";
   }
 
   function updatePublishButton() {
-    publishButton.disabled = !textInput.value.trim() && !selectedImage;
+    publishButton.disabled = loading || (!textInput.value.trim() && !selectedImage);
   }
   textInput.addEventListener("input", updatePublishButton);
 
-  function clearImage() {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    previewUrl = null;
+  imageInput?.addEventListener("change", () => {
+    selectedImage = imageInput.files?.[0] || null;
+    imagePreview?.replaceChildren();
+    if (!selectedImage) {
+      if (imagePreview) imagePreview.hidden = true;
+      updatePublishButton();
+      return;
+    }
+    // No storage bucket has been verified yet. Never pretend a local image was published.
     selectedImage = null;
     imageInput.value = "";
-    imagePreview.replaceChildren();
-    imagePreview.hidden = true;
-    updatePublishButton();
-  }
-
-  imageInput.addEventListener("change", () => {
-    selectedImage = imageInput.files?.[0] || null;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    previewUrl = null;
-    imagePreview.replaceChildren();
-    imagePreview.hidden = !selectedImage;
-    if (!selectedImage) { updatePublishButton(); return; }
-
-    if (!selectedImage.type.startsWith("image/")) {
-      clearImage();
-      setStatus("Choose an image file.", true);
-      return;
-    }
-    if (selectedImage.size > 8 * 1024 * 1024) {
-      clearImage();
-      setStatus("Images must be 8 MB or smaller.", true);
-      return;
-    }
-
-    previewUrl = URL.createObjectURL(selectedImage);
-    const img = document.createElement("img");
-    img.src = previewUrl;
-    img.alt = "Selected image preview";
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "remove-image";
-    remove.setAttribute("aria-label", "Remove selected image");
-    remove.textContent = "×";
-    remove.addEventListener("click", clearImage);
-    imagePreview.append(img, remove);
-    setStatus("");
+    if (imagePreview) imagePreview.hidden = true;
+    setStatus("Photo posts are being connected securely. For now, publish text-only posts.", true);
     updatePublishButton();
   });
 
-  function makeButton(label, className, action, pressed = false) {
+  function readHiddenTokens() {
+    try {
+      const value = JSON.parse(localStorage.getItem(hiddenTokenStorageKey) || "{}");
+      return value && typeof value === "object" ? value : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function saveHiddenToken(postId, token) {
+    const tokens = readHiddenTokens();
+    tokens[postId] = token;
+    try { localStorage.setItem(hiddenTokenStorageKey, JSON.stringify(tokens)); } catch {}
+  }
+
+  function randomDeletionToken() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  }
+
+  function makeButton(label, className, action, active = false) {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = className;
+    button.className = className + (active ? " is-active" : "");
     button.textContent = label;
-    if (pressed) button.classList.add("is-active");
     button.addEventListener("click", action);
     return button;
   }
 
-  function makeComment(comment, post) {
+  function timeAgo(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Recently";
+    const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+    if (seconds < 60) return "Just now";
+    if (seconds < 3600) return Math.floor(seconds / 60) + "m ago";
+    if (seconds < 86400) return Math.floor(seconds / 3600) + "h ago";
+    if (seconds < 604800) return Math.floor(seconds / 86400) + "d ago";
+    return date.toLocaleDateString();
+  }
+
+  async function requireUser() {
+    if (!supabase) throw new Error("Supabase did not load. Refresh and try again.");
+    const { data, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    currentUser = data.user || null;
+    if (!currentUser) throw new Error("Log in to use this feature.");
+    return currentUser;
+  }
+
+  async function loadMyInteractions() {
+    likeCache.clear();
+    bookmarkCache.clear();
+    repostCache.clear();
+    if (!currentUser || !posts.length) return;
+    const ids = posts.map((post) => post.id);
+    const [likes, bookmarks, reposts] = await Promise.all([
+      supabase.from("post_likes").select("post_id").eq("user_id", currentUser.id).in("post_id", ids),
+      supabase.from("post_bookmarks").select("post_id").eq("user_id", currentUser.id).in("post_id", ids),
+      supabase.from("post_reposts").select("post_id").eq("user_id", currentUser.id).in("post_id", ids)
+    ]);
+    if (!likes.error) likes.data.forEach((row) => likeCache.add(row.post_id));
+    if (!bookmarks.error) bookmarks.data.forEach((row) => bookmarkCache.add(row.post_id));
+    if (!reposts.error) reposts.data.forEach((row) => repostCache.add(row.post_id));
+  }
+
+  async function loadComments(postId) {
+    if (commentCache.has(postId)) return commentCache.get(postId);
+    const { data, error } = await supabase
+      .from("post_comments")
+      .select("id,post_id,parent_comment_id,author_id,content,is_anonymous,created_at")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    const rows = data || [];
+    const byId = new Map();
+    rows.forEach((row) => byId.set(row.id, {
+      ...row, author: row.is_anonymous ? "Anonymous" : (row.author_id === currentUser?.id ? "You" : "Amora member"),
+      replies: []
+    }));
+    const roots = [];
+    rows.forEach((row) => {
+      const item = byId.get(row.id);
+      const parent = row.parent_comment_id ? byId.get(row.parent_comment_id) : null;
+      if (parent) parent.replies.push(item);
+      else roots.push(item);
+    });
+    commentCache.set(postId, roots);
+    return roots;
+  }
+
+  async function addComment(post, parentId, input, form) {
+    const value = input.value.trim();
+    if (!value) return;
+    try {
+      const user = await requireUser();
+      form.querySelector("button[type=submit]").disabled = true;
+      const payload = {
+        post_id: post.id,
+        parent_comment_id: parentId || null,
+        author_id: post.is_anonymous ? null : user.id,
+        is_anonymous: Boolean(post.is_anonymous),
+        content: value
+      };
+      const { error } = await supabase.from("post_comments").insert(payload);
+      if (error) throw error;
+      commentCache.delete(post.id);
+      await renderFeed();
+    } catch (error) {
+      setStatus(error.message || "Could not publish your reply.", true);
+    } finally {
+      const button = form.querySelector("button[type=submit]");
+      if (button) button.disabled = false;
+    }
+  }
+
+  function makeComment(comment, post, depth = 0) {
     const item = document.createElement("div");
     item.className = "comment-item";
     const body = document.createElement("div");
@@ -130,21 +182,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const head = document.createElement("div");
     head.className = "comment-head";
     const author = document.createElement("strong");
-    author.textContent = post.hidden || comment.anonymous ? "Anonymous" : comment.author;
+    author.textContent = post.is_anonymous || comment.is_anonymous ? "Anonymous" : comment.author;
     const text = document.createElement("p");
-    text.textContent = comment.text;
+    text.textContent = comment.content;
     head.append(author);
     body.append(head, text);
-    item.append(body);
-
     const replyButton = makeButton("Reply", "comment-reply-button", () => {
-      const existing = item.querySelector(".reply-composer");
-      if (existing) { existing.remove(); return; }
+      const old = item.querySelector(":scope > .reply-composer");
+      if (old) { old.remove(); return; }
       const form = document.createElement("form");
       form.className = "reply-composer";
       const input = document.createElement("input");
-      input.type = "text";
-      input.maxLength = 1000;
+      input.maxLength = 3000;
       input.placeholder = "Write a reply…";
       input.setAttribute("aria-label", "Write a reply");
       const send = document.createElement("button");
@@ -153,92 +202,106 @@ document.addEventListener("DOMContentLoaded", () => {
       form.append(input, send);
       form.addEventListener("submit", (event) => {
         event.preventDefault();
-        const value = input.value.trim();
-        if (!value) return;
-        if (!comment.replies) comment.replies = [];
-        comment.replies.push({
-          id: nextId++, author: "You", text: value,
-          anonymous: post.hidden, replies: []
-        });
-        renderFeed();
+        addComment(post, comment.id, input, form);
       });
       item.append(form);
       input.focus();
     });
     body.append(replyButton);
-
-    if (comment.replies?.length) {
+    item.append(body);
+    if (comment.replies?.length && depth < 8) {
       const children = document.createElement("div");
       children.className = "comment-replies";
-      comment.replies.forEach((reply) => children.append(makeComment(reply, post)));
+      comment.replies.forEach((reply) => children.append(makeComment(reply, post, depth + 1)));
       item.append(children);
     }
     return item;
   }
 
-  function renderPost(post) {
+  async function toggleRow(table, postId, cache, column = "post_id") {
+    const user = await requireUser();
+    const active = cache.has(postId);
+    if (active) {
+      const { error } = await supabase.from(table).delete().eq(column, postId).eq("user_id", user.id);
+      if (error) throw error;
+      cache.delete(postId);
+    } else {
+      const { error } = await supabase.from(table).insert({ [column]: postId, user_id: user.id });
+      if (error) throw error;
+      cache.add(postId);
+    }
+    await renderFeed();
+  }
+
+  async function renderPost(post) {
     const article = document.createElement("article");
     article.className = "post-card card";
-    article.dataset.postId = String(post.id);
+    article.dataset.postId = post.id;
 
     const header = document.createElement("div");
     header.className = "post-header";
     const avatar = document.createElement("span");
     avatar.className = "avatar post-avatar";
-    avatar.textContent = post.hidden ? "♡" : post.avatar || "?";
-    if (post.hidden) avatar.classList.add("avatar-anonymous");
+    avatar.textContent = post.is_anonymous ? "♡" : "a";
+    if (post.is_anonymous) avatar.classList.add("avatar-anonymous");
     const identity = document.createElement("div");
     identity.className = "post-identity";
     const name = document.createElement("strong");
-    name.textContent = post.hidden ? "Anonymous" : post.author;
+    name.textContent = post.is_anonymous ? "Anonymous" : (post.author_id === currentUser?.id ? "You" : "Amora member");
     const meta = document.createElement("span");
-    meta.textContent = post.preview ? `${post.time} · Preview post` : `${post.time} · Just now`;
+    meta.textContent = timeAgo(post.created_at) + (post.visibility === "followers" ? " · Followers" : "");
     identity.append(name, meta);
-    const more = document.createElement("span");
-    more.className = "post-more";
-    more.textContent = "···";
-    more.setAttribute("aria-hidden", "true");
-    header.append(avatar, identity, more);
+    header.append(avatar, identity);
+    if (post.is_anonymous && readHiddenTokens()[post.id]) {
+      header.append(makeButton("Delete", "post-more", async () => {
+        const token = readHiddenTokens()[post.id];
+        try {
+          const { data, error } = await supabase.rpc("delete_hidden_post", { p_post_id: post.id, p_deletion_token: token });
+          if (error) throw error;
+          if (data !== true) throw new Error("The deletion token was not accepted.");
+          const tokens = readHiddenTokens();
+          delete tokens[post.id];
+          localStorage.setItem(hiddenTokenStorageKey, JSON.stringify(tokens));
+          setStatus("Anonymous post deleted.");
+          await loadFeed();
+        } catch (error) { setStatus(error.message || "Could not delete this post.", true); }
+      }));
+    } else {
+      const more = document.createElement("span");
+      more.className = "post-more";
+      more.textContent = "♡";
+      more.setAttribute("aria-hidden", "true");
+      header.append(more);
+    }
 
     const content = document.createElement("p");
     content.className = "post-content";
-    content.textContent = post.text;
+    content.textContent = post.content;
     article.append(header, content);
 
-    if (post.imageUrl) {
-      const image = document.createElement("img");
-      image.className = "post-image";
-      image.src = post.imageUrl;
-      image.alt = "Image attached to post";
-      article.append(image);
-    }
-
+    const comments = await loadComments(post.id);
     const stats = document.createElement("div");
     stats.className = "post-stats";
     const likesText = document.createElement("span");
-    likesText.textContent = `${post.likes} likes`;
+    likesText.textContent = "Likes are private to each account";
     const repliesText = document.createElement("span");
-    repliesText.textContent = `${post.comments.length} replies`;
-    const repostsText = document.createElement("span");
-    repostsText.textContent = `${post.reposts} reposts`;
-    stats.append(likesText, repliesText, repostsText);
+    repliesText.textContent = comments.length + (comments.length === 1 ? " reply" : " replies");
+    stats.append(likesText, repliesText);
 
     const actions = document.createElement("div");
     actions.className = "post-actions";
     actions.append(
-      makeButton(`${post.liked ? "♥" : "♡"} Like`, "post-action" + (post.liked ? " is-active" : ""), () => {
-        post.liked = !post.liked;
-        post.likes += post.liked ? 1 : -1;
-        renderFeed();
-      }),
+      makeButton(likeCache.has(post.id) ? "♥ Liked" : "♡ Like", "post-action", async () => {
+        try { await toggleRow("post_likes", post.id, likeCache); }
+        catch (error) { setStatus(error.message || "Could not update like.", true); }
+      }, likeCache.has(post.id)),
       makeButton("▢ Reply", "post-action", () => {
-        const box = article.querySelector(".post-reply-composer");
-        if (box) { box.remove(); return; }
+        const old = article.querySelector(":scope > .post-reply-composer");
+        if (old) { old.remove(); return; }
         const form = document.createElement("form");
         form.className = "post-reply-composer";
         const input = document.createElement("input");
-        input.type = "text";
-        input.maxLength = 1000;
+        input.maxLength = 3000;
         input.placeholder = "Join the conversation…";
         input.setAttribute("aria-label", "Write a reply");
         const send = document.createElement("button");
@@ -247,58 +310,62 @@ document.addEventListener("DOMContentLoaded", () => {
         form.append(input, send);
         form.addEventListener("submit", (event) => {
           event.preventDefault();
-          const value = input.value.trim();
-          if (!value) return;
-          post.comments.push({
-            id: nextId++, author: "You", text: value,
-            anonymous: post.hidden, replies: []
-          });
-          renderFeed();
+          addComment(post, null, input, form);
         });
         article.append(form);
         input.focus();
       }),
-      makeButton(`${post.reposted ? "↻" : "⟳"} Repost`, "post-action" + (post.reposted ? " is-active" : ""), () => {
-        post.reposted = !post.reposted;
-        post.reposts += post.reposted ? 1 : -1;
-        renderFeed();
-      }),
-      makeButton(post.bookmarked ? "▣ Saved" : "▢ Save", "post-action" + (post.bookmarked ? " is-active" : ""), () => {
-        post.bookmarked = !post.bookmarked;
-        renderFeed();
-      }),
+      makeButton(repostCache.has(post.id) ? "↻ Reposted" : "⟳ Repost", "post-action", async () => {
+        try { await toggleRow("post_reposts", post.id, repostCache); }
+        catch (error) { setStatus(error.message || "Could not repost.", true); }
+      }, repostCache.has(post.id)),
+      makeButton(bookmarkCache.has(post.id) ? "▣ Saved" : "▢ Save", "post-action", async () => {
+        try { await toggleRow("post_bookmarks", post.id, bookmarkCache); }
+        catch (error) { setStatus(error.message || "Could not save post.", true); }
+      }, bookmarkCache.has(post.id)),
       makeButton("↗ Share", "post-action", async () => {
-        const shareUrl = `${window.location.origin}/pages/social-home.html#post-${post.id}`;
+        const shareUrl = window.location.origin + "/pages/social-home.html#post-" + post.id;
         try {
-          if (navigator.share) await navigator.share({ title: "Amora post", text: post.text, url: shareUrl });
+          if (navigator.share) await navigator.share({ title: "Amora post", text: post.content, url: shareUrl });
           else if (navigator.clipboard?.writeText) {
             await navigator.clipboard.writeText(shareUrl);
             setStatus("Post link copied.");
-          } else {
-            setStatus(shareUrl);
-          }
+          } else setStatus(shareUrl);
         } catch (error) {
           if (error?.name !== "AbortError") setStatus("Could not share this post.", true);
         }
       })
     );
     article.append(stats, actions);
-
-    if (post.comments.length) {
-      const comments = document.createElement("section");
-      comments.className = "post-comments";
+    if (comments.length) {
+      const section = document.createElement("section");
+      section.className = "post-comments";
       const title = document.createElement("h3");
       title.textContent = "Conversation";
-      comments.append(title);
-      post.comments.forEach((comment) => comments.append(makeComment(comment, post)));
-      article.append(comments);
+      section.append(title);
+      comments.forEach((comment) => section.append(makeComment(comment, post)));
+      article.append(section);
     }
     return article;
   }
 
-  function renderFeed() {
+  async function renderFeed() {
     feedList.replaceChildren();
-    const visible = posts.filter((post) => activeFeed !== "following" || post.following);
+    if (loading) {
+      const message = document.createElement("div");
+      message.className = "feed-empty card";
+      message.textContent = "Loading your feed…";
+      feedList.append(message);
+      return;
+    }
+    let visible = posts;
+    if (activeFeed === "following" && currentUser) {
+      const { data, error } = await supabase.from("user_follows").select("followed_id").eq("follower_id", currentUser.id);
+      if (!error) {
+        const followed = new Set((data || []).map((row) => row.followed_id));
+        visible = posts.filter((post) => post.is_anonymous || followed.has(post.author_id));
+      }
+    }
     if (!visible.length) {
       const empty = document.createElement("div");
       empty.className = "feed-empty card";
@@ -306,76 +373,120 @@ document.addEventListener("DOMContentLoaded", () => {
       art.className = "empty-art";
       art.textContent = "♡";
       const heading = document.createElement("h2");
-      heading.textContent = activeFeed === "following" ? "Your circle is growing" : "The public feed is waiting";
+      heading.textContent = activeFeed === "following" ? "Your circle is growing" : "Your feed starts here";
       const copy = document.createElement("p");
       copy.textContent = activeFeed === "following"
         ? "Posts from accounts you follow will appear here."
-        : "Public posts will appear here when Amora's feed database is connected.";
+        : "Be the first to share a thought with the Amora community.";
       empty.append(art, heading, copy);
       feedList.append(empty);
       return;
     }
-    visible.forEach((post) => feedList.append(renderPost(post)));
-    const note = document.createElement("p");
-    note.className = "preview-feed-note";
-    note.textContent = "Preview content and interactions are temporary in this first UI build. They are not shared with other accounts yet.";
-    feedList.append(note);
+    for (const post of visible) feedList.append(await renderPost(post));
+  }
+
+  async function loadFeed() {
+    if (!supabase) {
+      setStatus("Supabase did not load. Refresh the page and check the connection.", true);
+      return;
+    }
+    loading = true;
+    await renderFeed();
+    try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getUser();
+      if (sessionError) throw sessionError;
+      currentUser = sessionData.user || null;
+      let query = supabase.from("posts")
+        .select("id,author_id,content,media_urls,visibility,is_anonymous,created_at")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (activeFeed === "public") query = query.eq("visibility", "public");
+      const { data, error } = await query;
+      if (error) throw error;
+      posts = data || [];
+      commentCache.clear();
+      await loadMyInteractions();
+      loading = false;
+      await renderFeed();
+    } catch (error) {
+      loading = false;
+      feedList.replaceChildren();
+      const empty = document.createElement("div");
+      empty.className = "feed-empty card";
+      const heading = document.createElement("h2");
+      heading.textContent = "Your feed could not load";
+      const copy = document.createElement("p");
+      copy.textContent = error.message || "Please refresh and try again.";
+      empty.append(heading, copy);
+      feedList.append(empty);
+      setStatus("Could not load posts. Check the connection and try again.", true);
+    }
   }
 
   feedTabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
+    tab.addEventListener("click", async () => {
       activeFeed = tab.dataset.feed;
       feedTabs.forEach((item) => {
         const selected = item === tab;
         item.classList.toggle("active", selected);
         item.setAttribute("aria-selected", String(selected));
       });
-      renderFeed();
+      await loadFeed();
     });
   });
 
   publishButton.addEventListener("click", async () => {
     const body = textInput.value.trim();
-    if (!body && !selectedImage) return;
-
-    let user = null;
-    if (supabase) {
-      try {
-        const { data, error } = await supabase.auth.getUser();
-        if (error) throw error;
-        user = data?.user || null;
-      } catch {
-        setStatus("Could not verify your session. Your draft is still here.", true);
-        return;
-      }
-    }
-    if (!user) {
-      setStatus("Log in before publishing. Your draft is still here on this page.", true);
+    if (!body) {
+      setStatus("Write something first. Photo-only posts will be available after secure storage is configured.", true);
       return;
     }
-
-    // Frontend preview only. Do not send a post to Supabase until the
-    // schema and database-level hidden-identity rules have been verified.
-    const imageUrl = selectedImage ? URL.createObjectURL(selectedImage) : null;
-    posts.unshift({
-      id: nextId++, author: "You", avatar: "Y", time: "now",
-      text: body, imageUrl, following: true, likes: 0, liked: false,
-      reposts: 0, reposted: false, bookmarked: false,
-      hidden: hideIdentity.checked, preview: false, comments: []
-    });
-    textInput.value = "";
-    hideIdentity.checked = false;
-    clearImage();
-    setStatus("Post added to this preview. It is not published to other accounts yet.");
-    activeFeed = "for-you";
-    feedTabs.forEach((tab) => {
-      const selected = tab.dataset.feed === activeFeed;
-      tab.classList.toggle("active", selected);
-      tab.setAttribute("aria-selected", String(selected));
-    });
-    renderFeed();
+    loading = true;
+    updatePublishButton();
+    try {
+      const user = await requireUser();
+      let error;
+      if (hideIdentity.checked) {
+        const token = randomDeletionToken();
+        const result = await supabase.rpc("create_hidden_post", {
+          p_content: body,
+          p_media_urls: [],
+          p_deletion_token: token
+        });
+        error = result.error;
+        if (error) throw error;
+        if (typeof result.data !== "string") throw new Error("The post was not confirmed by the server.");
+        saveHiddenToken(result.data, token);
+      } else {
+        const result = await supabase.from("posts").insert({
+          author_id: user.id,
+          content: body,
+          media_urls: [],
+          visibility: "public",
+          is_anonymous: false
+        });
+        error = result.error;
+        if (error) throw error;
+      }
+      textInput.value = "";
+      hideIdentity.checked = false;
+      if (imageInput) imageInput.value = "";
+      selectedImage = null;
+      setStatus("Your post has been published.");
+      activeFeed = "for-you";
+      feedTabs.forEach((tab) => {
+        const selected = tab.dataset.feed === activeFeed;
+        tab.classList.toggle("active", selected);
+        tab.setAttribute("aria-selected", String(selected));
+      });
+      await loadFeed();
+    } catch (error) {
+      setStatus(error.message || "Could not publish your post. Your draft is still here.", true);
+    } finally {
+      loading = false;
+      updatePublishButton();
+    }
   });
 
-  if (!supabase) setStatus("Supabase did not load. Refresh the page and check the connection.", true);
-  renderFeed();
+  loadFeed();
 });
