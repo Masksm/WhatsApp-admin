@@ -1,195 +1,204 @@
 
-import {
-$,
-supabase,
-setStatus
-} from “./core.js”;
+import { $, supabase, setStatus } from "./core.js";
 
-// ============================================================
-// AMORA ANONYMOUS LINKS
-// ============================================================
-
-function setLinkStatus(message, isError = false) {
-setStatus($(”#anonymous-link-status”), message, isError);
-}
+let currentUser = null;
+let initialized = false;
 
 function displayAnonymousLink(slug) {
-const result = $(”#anonymous-link-result”);
-const urlElement = $(”#anonymous-link-url”);
+  const result = $("#anonymous-link-result");
+  const urlInput = $("#anonymous-link-url");
 
-if (!slug || typeof slug !== “string”) {
-setLinkStatus(“Your anonymous link is unavailable.”, true);
-return;
+  if (!result || !urlInput) return;
+
+  const link = new URL(window.location.href);
+  link.search = "";
+  link.hash = "";
+  link.searchParams.set("anon", slug);
+
+  urlInput.value = link.toString();
+  result.hidden = false;
 }
 
-const url = new URL(window.location.href);
-url.search = “”;
-url.hash = “”;
+async function loadAnonymousLink(user) {
+  const createButton = $("#create-anonymous-link");
+  const status = $("#anonymous-link-status");
 
-// Build the public link while preserving the deployed site path.
-url.pathname = url.pathname.replace(//[^/]*$/, “/”);
-url.searchParams.set(“anon”, slug);
+  if (!user || !supabase || !createButton) return;
 
-if (urlElement) {
-urlElement.value = url.toString();
-urlElement.textContent = url.toString();
-urlElement.href = url.toString();
-}
+  currentUser = user;
+  createButton.disabled = true;
 
-if (result) {
-result.hidden = false;
-}
-}
+  try {
+    const { data, error } = await supabase
+      .from("anonymous_links")
+      .select("slug, is_active")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-async function loadAnonymousLink() {
-if (!supabase) return;
+    if (error) throw error;
 
-try {
-const { data: sessionData, error: sessionError } =
-await supabase.auth.getSession();
-
-if (sessionError) throw sessionError;
-const user = sessionData.session?.user;
-if (!user) return;
-const { data, error } = await supabase
-  .from("anonymous_links")
-  .select("slug")
-  .eq("owner_id", user.id)
-  .eq("is_active", true)
-  .order("created_at", { ascending: false })
-  .limit(1)
-  .maybeSingle();
-if (error) throw error;
-if (data?.slug) {
-  displayAnonymousLink(data.slug);
-}
-
-} catch (error) {
-console.error(“Unable to load anonymous link:”, error.message);
-setLinkStatus(“Unable to load your anonymous link.”, true);
-}
+    if (data?.is_active && data.slug) {
+      displayAnonymousLink(data.slug);
+      setStatus(status, "Your anonymous link is ready.");
+    } else {
+      const result = $("#anonymous-link-result");
+      if (result) result.hidden = true;
+      setStatus(status, "Create your personal anonymous message link.");
+    }
+  } catch (error) {
+    setStatus(
+      status,
+      error.message || "Could not load your anonymous link.",
+      true
+    );
+  } finally {
+    createButton.disabled = !currentUser;
+  }
 }
 
 async function createAnonymousLink() {
-if (!supabase) {
-setLinkStatus(“Unable to connect. Please try again later.”, true);
-return;
-}
+  const button = $("#create-anonymous-link");
+  const status = $("#anonymous-link-status");
 
-const createButton = $(”#create-anonymous-link”);
+  if (!supabase || !currentUser || !button) {
+    setStatus(status, "Please sign in before creating your link.", true);
+    return;
+  }
 
-if (createButton) {
-createButton.disabled = true;
-}
+  button.disabled = true;
+  setStatus(status, "Checking your anonymous link...");
 
-setLinkStatus(“Preparing your link…”);
+  try {
+    const { data: existing, error: lookupError } = await supabase
+      .from("anonymous_links")
+      .select("slug, is_active")
+      .eq("owner_id", currentUser.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-try {
-const { data: sessionData, error: sessionError } =
-await supabase.auth.getSession();
+    if (lookupError) throw lookupError;
 
-if (sessionError) throw sessionError;
-const user = sessionData.session?.user;
-if (!user) {
-  setLinkStatus("Log in before creating your anonymous link.", true);
-  return;
-}
-// Reuse the newest active link to avoid unnecessary duplicates.
-const { data: existing, error: lookupError } = await supabase
-  .from("anonymous_links")
-  .select("slug")
-  .eq("owner_id", user.id)
-  .eq("is_active", true)
-  .order("created_at", { ascending: false })
-  .limit(1)
-  .maybeSingle();
-if (lookupError) throw lookupError;
-if (existing?.slug) {
-  displayAnonymousLink(existing.slug);
-  setLinkStatus("Your existing anonymous link is ready.");
-  return;
-}
-// Generate a random 36-character hexadecimal slug.
-const bytes = new Uint8Array(18);
-crypto.getRandomValues(bytes);
-const slug = Array.from(bytes, (byte) =>
-  byte.toString(16).padStart(2, "0")
-).join("");
-const { data, error } = await supabase
-  .from("anonymous_links")
-  .insert({
-    owner_id: user.id,
-    slug,
-    is_active: true
-  })
-  .select("slug")
-  .single();
-if (error) throw error;
-displayAnonymousLink(data.slug);
-setLinkStatus("Your anonymous link is ready to share.");
+    if (existing?.slug) {
+      displayAnonymousLink(existing.slug);
+      setStatus(status, "Your existing anonymous link is ready.");
+      return;
+    }
 
-} catch (error) {
-console.error(“Unable to create anonymous link:”, error.message);
+    const slug =
+      "m-" +
+      crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 
-setLinkStatus(
-  error.code === "23505" ||
-    error.message?.toLowerCase().includes("duplicate")
-    ? "A link may already exist. Try refreshing the page."
-    : "Unable to create your link. Please try again.",
-  true
-);
+    const { data, error } = await supabase
+      .from("anonymous_links")
+      .insert({
+        owner_id: currentUser.id,
+        slug,
+        is_active: true
+      })
+      .select("slug")
+      .single();
 
-} finally {
-if (createButton) {
-createButton.disabled = false;
-}
-}
+    if (error) throw error;
+
+    displayAnonymousLink(data.slug);
+    setStatus(status, "Your anonymous link has been created.");
+  } catch (error) {
+    setStatus(
+      status,
+      error.message || "Could not create your anonymous link.",
+      true
+    );
+  } finally {
+    button.disabled = !currentUser;
+  }
 }
 
 async function copyAnonymousLink() {
-const urlElement = $(”#anonymous-link-url”);
-const url = urlElement?.href ||
-urlElement?.value ||
-urlElement?.textContent ||
-“”;
+  const input = $("#anonymous-link-url");
+  const status = $("#anonymous-link-status");
 
-if (!url || url === window.location.href) {
-setLinkStatus(“Create or load your link first.”, true);
-return;
-}
+  if (!input?.value) {
+    setStatus(status, "Create your link first.", true);
+    return;
+  }
 
-try {
-await navigator.clipboard.writeText(url);
-setLinkStatus(“Link copied. Share it with your friends.”);
-} catch (_) {
-setLinkStatus(“Copy failed. Select and copy the link manually.”, true);
-}
+  try {
+    await navigator.clipboard.writeText(input.value);
+    setStatus(status, "Link copied successfully.");
+  } catch {
+    input.focus();
+    input.select();
+
+    const copied = document.execCommand("copy");
+
+    setStatus(
+      status,
+      copied
+        ? "Link copied successfully."
+        : "Copy the selected link manually.",
+      !copied
+    );
+  }
 }
 
 function initAnonymousLinks() {
-$(”#create-anonymous-link”)?.addEventListener(
-“click”,
-createAnonymousLink
-);
+  if (initialized) return;
+  initialized = true;
 
-$(”#copy-anonymous-link”)?.addEventListener(
-“click”,
-copyAnonymousLink
-);
+  $("#create-anonymous-link")?.addEventListener(
+    "click",
+    createAnonymousLink
+  );
 
-loadAnonymousLink();
+  $("#copy-anonymous-link")?.addEventListener(
+    "click",
+    copyAnonymousLink
+  );
 
-supabase?.auth.onAuthStateChange((event, session) => {
-if (session?.user && event !== “TOKEN_REFRESHED”) {
-loadAnonymousLink();
-}
-});
+  if (!supabase) return;
+
+  supabase.auth.getSession().then(({ data, error }) => {
+    if (error) {
+      setStatus(
+        $("#anonymous-link-status"),
+        error.message,
+        true
+      );
+      return;
+    }
+
+    currentUser = data.session?.user || null;
+
+    if (currentUser) {
+      loadAnonymousLink(currentUser);
+    }
+  });
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    currentUser = session?.user || null;
+
+    if (currentUser) {
+      loadAnonymousLink(currentUser);
+    } else {
+      const result = $("#anonymous-link-result");
+      if (result) result.hidden = true;
+
+      const button = $("#create-anonymous-link");
+      if (button) button.disabled = true;
+
+      setStatus(
+        $("#anonymous-link-status"),
+        "Sign in to manage your anonymous link."
+      );
+    }
+  });
 }
 
 export {
-initAnonymousLinks,
-loadAnonymousLink,
-createAnonymousLink,
-copyAnonymousLink,
-displayAnonymousLink
+  initAnonymousLinks,
+  loadAnonymousLink
 };
