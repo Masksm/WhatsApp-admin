@@ -577,8 +577,28 @@ document.addEventListener("DOMContentLoaded", () => {
     await renderFeed();
     try {
       const { data: sessionData, error: sessionError } = await supabase.auth.getUser();
-      if (sessionError) throw sessionError;
+
+      // The social home is for signed-in accounts only. If Supabase confirms
+      // there is no valid user, clear this browser's saved session and return
+      // to the landing page instead of leaving an unauthenticated feed open.
+      if (sessionError) {
+        const authFailure = /invalid jwt|jwt expired|user from sub claim in jwt does not exist|user not found|session not found|refresh token.*(invalid|not found|already used)|not authenticated|auth session missing/i
+          .test(String(sessionError.message || ""));
+        if (authFailure) {
+          try { await supabase.auth.signOut({ scope: "local" }); } catch {}
+          window.location.replace("/index.html");
+          return;
+        }
+        throw sessionError;
+      }
+
       currentUser = sessionData.user || null;
+      if (!currentUser) {
+        try { await supabase.auth.signOut({ scope: "local" }); } catch {}
+        window.location.replace("/index.html");
+        return;
+      }
+
       let query = supabase.from("posts")
         .select("id,author_id,content,media_urls,visibility,is_anonymous,created_at")
         .order("created_at", { ascending: false })
