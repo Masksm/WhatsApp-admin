@@ -65,6 +65,10 @@ function setAuthMode(mode) {
     nameInput.style.display =
       authMode === "signup" ? "" : "none";
     nameInput.required = authMode === "signup";
+    nameInput.maxLength = 30;
+    nameInput.autocomplete = "nickname";
+    nameInput.pattern = "[A-Za-z0-9_]{3,30}";
+    nameInput.title = "Use 3–30 letters, numbers, or underscores.";
 
     const label = document.querySelector(
       'label[for="auth-name"]'
@@ -226,8 +230,12 @@ async function handleAuthSubmit(event) {
     return;
   }
 
-  if (authMode === "signup" && !name) {
-    setStatus(status, "Enter a display name.", true);
+  if (authMode === "signup" && !/^[A-Za-z0-9_]{3,30}$/.test(name)) {
+    setStatus(
+      status,
+      "Username must contain 3–30 letters, numbers, or underscores.",
+      true
+    );
     return;
   }
 
