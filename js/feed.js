@@ -355,9 +355,18 @@ document.addEventListener("DOMContentLoaded", () => {
     identity.className = "post-identity";
     const name = document.createElement("strong");
     name.textContent = post.is_anonymous ? "Anonymous" : profileLabel(post.author_id);
+    if (!post.is_anonymous && publicProfile?.username) {
+      const profileLink = document.createElement("a");
+      profileLink.href = "/pages/profile.html?username=" + encodeURIComponent(publicProfile.username);
+      profileLink.className = "post-author-profile-link";
+      profileLink.append(name);
+      identity.append(profileLink);
+    } else {
+      identity.append(name);
+    }
     const meta = document.createElement("span");
     meta.textContent = timeAgo(post.created_at) + (post.visibility === "followers" ? " · Followers" : "");
-    identity.append(name, meta);
+    identity.append(meta);
     header.append(avatar, identity);
     if (post.is_anonymous && readHiddenTokens()[post.id]) {
       header.append(makeButton("Delete", "post-more", async () => {
