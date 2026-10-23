@@ -2,16 +2,441 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#fff0f5">
-  <meta name="description" content="Amora — Little love notes, beautifully delivered.">
-  <title>Amora — Little love notes, beautifully delivered.</title>
-  <script>
-    window.location.replace("pages/home.html");
-  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#100914">
+
+  <meta
+    name="description"
+    content="Amora brings anonymous messages, private conversations and meaningful connections together in one beautiful space."
+  >
+
+  <title>Amora | Every Connection Starts Somewhere</title>
+
+  <link rel="stylesheet" href="css/index.css">
+  <script src="js/index.js" defer></script>
 </head>
+
 <body>
-  <p>Opening Amora... <a href="pages/home.html">Continue</a></p>
+  <header class="site-header" id="top">
+    <nav class="navbar container" aria-label="Main navigation">
+      <a class="brand" href="#top" aria-label="Amora home">
+        <span class="brand-mark" aria-hidden="true">a</span>
+        <span>amora<span class="brand-period">.</span></span>
+      </a>
+
+      <button
+        class="menu-toggle"
+        id="menu-toggle"
+        type="button"
+        aria-label="Open navigation menu"
+        aria-expanded="false"
+        aria-controls="nav-links"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div class="nav-links" id="nav-links">
+        <a href="#features">Features</a>
+        <a href="#live">Amora Live</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#privacy">Privacy</a>
+      </div>
+
+      <div class="nav-actions">
+        <a class="login-link" href="pages/home.html">Log in</a>
+        <a class="button button-small button-primary" href="pages/home.html">
+          Get started <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero section" id="hero">
+      <div class="hero-glow hero-glow-one" aria-hidden="true"></div>
+      <div class="hero-glow hero-glow-two" aria-hidden="true"></div>
+
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <div class="eyebrow">
+            <span class="status-dot" aria-hidden="true"></span>
+            A little mystery. A lot of connection.
+          </div>
+
+          <h1>
+            Some things are
+            <span class="text-gradient">better left</span>
+            <span class="hero-last-line">unsaid. Until now.</span>
+          </h1>
+
+          <p class="hero-description">
+            Anonymous messages, private conversations and unexpected
+            connections. Your next favourite interaction could start
+            with a single message.
+          </p>
+
+          <div class="hero-actions">
+            <a class="button button-primary" href="pages/home.html">
+              Enter your Amora space <span aria-hidden="true">↗</span>
+            </a>
+            <a class="button button-secondary" href="#how-it-works">
+              Discover Amora <span aria-hidden="true">↓</span>
+            </a>
+          </div>
+
+          <div class="hero-note">
+            <span class="avatar-stack" aria-hidden="true">
+              <span>A</span>
+              <span>M</span>
+              <span>♡</span>
+            </span>
+            <p>A space for messages that mean something.</p>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="Illustration of the Amora messaging experience">
+          <div class="visual-orbit orbit-one" aria-hidden="true"></div>
+          <div class="visual-orbit orbit-two" aria-hidden="true"></div>
+
+          <div class="floating-label floating-label-top">
+            <span class="label-icon">♡</span>
+            <span>Something unexpected</span>
+          </div>
+
+          <div class="preview-window">
+            <div class="preview-topbar">
+              <div class="window-dots" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+              <span class="preview-title">your amora space</span>
+              <span class="preview-menu" aria-hidden="true">•••</span>
+            </div>
+
+            <div class="preview-body">
+              <div class="preview-greeting">
+                <span class="preview-kicker">YOUR LITTLE CORNER OF THE INTERNET</span>
+                <h2>Messages meant<br>just for you<span>.</span></h2>
+                <p>There is something special about not knowing who might write next.</p>
+              </div>
+
+              <article class="message-card message-card-primary">
+                <div class="message-card-header">
+                  <span class="message-avatar avatar-pink">♡</span>
+                  <div>
+                    <strong>Someone out there</strong>
+                    <span>Anonymous message</span>
+                  </div>
+                  <span class="message-sparkle" aria-hidden="true">✦</span>
+                </div>
+                <p>“You make ordinary days feel a little less ordinary.”</p>
+                <span class="message-tag">A little mystery</span>
+              </article>
+
+              <article class="message-card message-card-secondary">
+                <div class="message-card-header">
+                  <span class="message-avatar avatar-violet">✉</span>
+                  <div>
+                    <strong>A private moment</strong>
+                    <span>Conversation preview</span>
+                  </div>
+                  <span class="message-indicator" aria-hidden="true"></span>
+                </div>
+                <p>Some conversations are worth keeping.</p>
+              </article>
+
+              <div class="preview-bottom">
+                <span class="preview-heart" aria-hidden="true">♥</span>
+                <span>Make room for a connection.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="floating-label floating-label-bottom">
+            <span class="live-indicator" aria-hidden="true"></span>
+            <span>Little moments. Real meaning.</span>
+          </div>
+
+          <span class="decorative-heart heart-one" aria-hidden="true">♡</span>
+          <span class="decorative-heart heart-two" aria-hidden="true">✦</span>
+        </div>
+      </div>
+
+      <a class="scroll-cue" href="#live">
+        <span>SCROLL TO EXPLORE</span>
+        <span aria-hidden="true">↓</span>
+      </a>
+    </section>
+
+    <section class="live-section section" id="live">
+      <div class="container">
+        <div class="section-heading section-heading-row">
+          <div>
+            <span class="eyebrow">THE WORLD OF AMORA</span>
+            <h2>Little moments,<br><span class="text-gradient">always unfolding.</span></h2>
+          </div>
+          <p>
+            A glimpse into the kinds of connections Amora makes possible.
+            These preview cards are examples, not live user activity.
+          </p>
+        </div>
+
+        <div class="live-grid">
+          <article class="activity-card activity-featured">
+            <div class="activity-card-top">
+              <span class="activity-icon">♡</span>
+              <span class="demo-label">SAMPLE PREVIEW</span>
+            </div>
+            <span class="activity-category">ANONYMOUS MESSAGES</span>
+            <h3>A message from someone you didn't expect.</h3>
+            <p>
+              A little honesty can go a long way, especially when
+              someone finally says what they have been thinking.
+            </p>
+            <span class="activity-decoration" aria-hidden="true">♡</span>
+          </article>
+
+          <article class="activity-card">
+            <div class="activity-card-top">
+              <span class="activity-icon activity-icon-violet">✉</span>
+              <span class="demo-label">SAMPLE PREVIEW</span>
+            </div>
+            <span class="activity-category">PRIVATE CONVERSATIONS</span>
+            <h3>One conversation. A different kind of connection.</h3>
+            <p>
+              Make space for the conversations you want to continue.
+            </p>
+          </article>
+
+          <article class="activity-card">
+            <div class="activity-card-top">
+              <span class="activity-icon activity-icon-blue">✦</span>
+              <span class="demo-label">SAMPLE PREVIEW</span>
+            </div>
+            <span class="activity-category">LITTLE SURPRISES</span>
+            <h3>Not every notification has to feel ordinary.</h3>
+            <p>
+              Discover the small moments that make checking your
+              messages feel a little more interesting.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="features-section section" id="features">
+      <div class="container">
+        <div class="section-heading section-heading-centered">
+          <span class="eyebrow">MORE THAN A MESSAGE</span>
+          <h2>Connection, with<br><span class="text-gradient">a little more feeling.</span></h2>
+          <p>
+            The essentials for sharing a thought, starting a conversation
+            and making an ordinary moment memorable.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <article class="feature-card">
+            <span class="feature-icon">♡</span>
+            <span class="feature-number">01 / EXPRESS</span>
+            <h3>Anonymous Messages</h3>
+            <p>
+              Share your message link and let people send you messages
+              without displaying their identity to you.
+            </p>
+            <a href="pages/home.html" class="text-link">
+              Explore your space <span aria-hidden="true">↗</span>
+            </a>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon feature-icon-violet">✉</span>
+            <span class="feature-number">02 / CONNECT</span>
+            <h3>Private Conversations</h3>
+            <p>
+              Continue conversations in a more personal space using
+              the messaging features available to your account.
+            </p>
+            <a href="pages/home.html" class="text-link">
+              Start a conversation <span aria-hidden="true">↗</span>
+            </a>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon feature-icon-blue">✦</span>
+            <span class="feature-number">03 / DISCOVER</span>
+            <h3>Smart Notifications</h3>
+            <p>
+              Keep up with supported message and conversation
+              updates without having to check every moment.
+            </p>
+            <a href="pages/home.html" class="text-link">
+              See your messages <span aria-hidden="true">↗</span>
+            </a>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon feature-icon-gold">❋</span>
+            <span class="feature-number">04 / SURPRISE</span>
+            <h3>Romantic Surprises</h3>
+            <p>
+              Add a little personality to the way you share a message
+              and create a moment someone might remember.
+            </p>
+            <a href="pages/home.html" class="text-link">
+              Discover Amora <span aria-hidden="true">↗</span>
+            </a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="how-section section" id="how-it-works">
+      <div class="container how-grid">
+        <div class="how-intro">
+          <span class="eyebrow">THREE SIMPLE STEPS</span>
+          <h2>It starts small.<br><span class="text-gradient">It could mean a lot.</span></h2>
+          <p>
+            You don't need a grand introduction. Sometimes, all you need
+            is a place to start.
+          </p>
+          <a class="button button-primary" href="pages/home.html">
+            Find your starting point <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+
+        <div class="steps-list">
+          <article class="step-item">
+            <span class="step-number">01</span>
+            <div>
+              <h3>Create your space</h3>
+              <p>
+                Open your Amora account and set up your personal
+                space for receiving anonymous messages.
+              </p>
+            </div>
+            <span class="step-symbol" aria-hidden="true">↗</span>
+          </article>
+
+          <article class="step-item">
+            <span class="step-number">02</span>
+            <div>
+              <h3>Receive the unexpected</h3>
+              <p>
+                Share your anonymous message link and see what people
+                choose to send your way.
+              </p>
+            </div>
+            <span class="step-symbol" aria-hidden="true">♡</span>
+          </article>
+
+          <article class="step-item">
+            <span class="step-number">03</span>
+            <div>
+              <h3>Build a connection</h3>
+              <p>
+                Explore your messages and continue conversations
+                through the features available on Amora.
+              </p>
+            </div>
+            <span class="step-symbol" aria-hidden="true">✦</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="privacy-section section" id="privacy">
+      <div class="container privacy-panel">
+        <div class="privacy-visual" aria-hidden="true">
+          <div class="privacy-orbit"></div>
+          <div class="privacy-lock">⌑</div>
+          <span class="privacy-sparkle privacy-sparkle-one">✦</span>
+          <span class="privacy-sparkle privacy-sparkle-two">♡</span>
+        </div>
+
+        <div class="privacy-content">
+          <span class="eyebrow">YOUR SPACE, YOUR CHOICE</span>
+          <h2>Meaningful connections<br><span class="text-gradient">need trust.</span></h2>
+          <p>
+            Anonymous messages should let people express themselves
+            without making promises that a platform cannot keep.
+            Understand how messages work and use the privacy controls
+            available in your account.
+          </p>
+
+          <ul class="privacy-list">
+            <li>
+              <span class="privacy-check">✓</span>
+              <span>Know what information a message reveals to its recipient.</span>
+            </li>
+            <li>
+              <span class="privacy-check">✓</span>
+              <span>Keep private conversations within the access controls provided by Amora.</span>
+            </li>
+            <li>
+              <span class="privacy-check">✓</span>
+              <span>Review the platform's privacy policy and terms before using its features.</span>
+            </li>
+          </ul>
+
+          <a class="text-link" href="pages/home.html">
+            Enter Amora <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta section">
+      <div class="container final-cta-inner">
+        <span class="cta-decoration cta-decoration-one" aria-hidden="true">♡</span>
+        <span class="cta-decoration cta-decoration-two" aria-hidden="true">✦</span>
+
+        <span class="eyebrow">YOUR NEXT CHAPTER COULD START HERE</span>
+        <h2>Every connection<br>starts <span class="text-gradient">somewhere.</span></h2>
+        <p>
+          A message. A thought. A moment you didn't see coming.
+          Give it somewhere to begin.
+        </p>
+        <a class="button button-primary button-large" href="pages/home.html">
+          Get Started with Amora <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-main">
+        <div class="footer-brand">
+          <a class="brand" href="#top">
+            <span class="brand-mark" aria-hidden="true">a</span>
+            <span>amora<span class="brand-period">.</span></span>
+          </a>
+          <p>A little mystery. A lot of connection.</p>
+        </div>
+
+        <div class="footer-column">
+          <h3>Explore</h3>
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#live">About Amora</a>
+        </div>
+
+        <div class="footer-column">
+          <h3>Information</h3>
+          <a href="pages/home.html">Privacy policy</a>
+          <a href="pages/home.html">Terms of service</a>
+          <a href="pages/home.html">Contact</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© <span id="current-year">2026</span> Amora. Made for meaningful connections.</p>
+        <a href="#top">Back to top ↑</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
