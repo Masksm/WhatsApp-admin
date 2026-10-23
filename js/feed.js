@@ -318,11 +318,29 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) { setStatus(error.message || "Could not delete this post.", true); }
       }));
     } else {
-      const more = document.createElement("span");
-      more.className = "post-more";
-      more.textContent = "♡";
-      more.setAttribute("aria-hidden", "true");
-      header.append(more);
+      if (post.author_id && currentUser && post.author_id !== currentUser.id) {
+        header.append(makeButton("Block", "post-more", async () => {
+          const confirmed = window.confirm("Block this account? Their posts will be hidden from your feed.");
+          if (!confirmed) return;
+          try {
+            const { error } = await supabase.from("user_blocks").insert({
+              blocker_id: currentUser.id,
+              blocked_id: post.author_id
+            });
+            if (error && error.code !== "23505") throw error;
+            setStatus("Account blocked.");
+            await loadFeed();
+          } catch (error) {
+            setStatus(error.message || "Could not block this account.", true);
+          }
+        }));
+      } else {
+        const more = document.createElement("span");
+        more.className = "post-more";
+        more.textContent = "♡";
+        more.setAttribute("aria-hidden", "true");
+        header.append(more);
+      }
     }
 
     const content = document.createElement("p");
@@ -394,6 +412,31 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
           if (error?.name !== "AbortError") setStatus("Could not share this post.", true);
         }
+      }),
+      makeButton("⚑ Report", "post-action", async () => {
+        try {
+          const user = await requireUser();
+          const reason = window.prompt("Why are you reporting this post? (1–1000 characters)");
+          if (reason === null) return;
+          const trimmedReason = reason.trim();
+          if (!trimmedReason || trimmedReason.length > 1000) {
+            setStatus("Enter a report reason between 1 and 1000 characters.", true);
+            return;
+          }
+          const { error } = await supabase.from("post_reports").insert({
+            post_id: post.id,
+            reporter_id: user.id,
+            reason: trimmedReason
+          });
+          if (error?.code === "23505") {
+            setStatus("You have already reported this post.");
+            return;
+          }
+          if (error) throw error;
+          setStatus("Report submitted for review.");
+        } catch (error) {
+          setStatus(error.message || "Could not submit the report.", true);
+        }
       })
     );
     article.append(stats, actions);
@@ -464,6 +507,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const { data, error } = await query;
       if (error) throw error;
       posts = data || [];
+      if (currentUser && posts.length) {
+        const { data: blocks, error: blockError } = await supabase
+          .from("user_blocks")
+          .select("blocked_id")
+          .eq("blocker_id", currentUser.id);
+        if (!blockError && blocks?.length) {
+          const blockedIds = new Set(blocks.map((row) => row.blocked_id));
+          posts = posts.filter((post) => post.is_anonymous || !blockedIds.has(post.author_id));
+        }
+      }
       commentCache.clear();
       await loadPublicProfiles(posts.filter((post) => !post.is_anonymous && post.author_id).map((post) => post.author_id));
       await loadMyInteractions();
