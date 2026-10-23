@@ -770,15 +770,34 @@ publicMessagePanel.hidden = false;
       publicMessageStatus.textContent = "Sending your message...";
 
       try {
-        const { error } = await window.amoraSupabase.rpc(
-          "submit_anonymous_message",
-          {
-            p_slug: publicAnonymousSlug,
-            p_message: message
-          }
-        );
+        
+const { data: claimToken, error } =
+  await window.amoraSupabase.rpc(
+    "submit_anonymous_message",
+    {
+      p_slug: publicAnonymousSlug,
+      p_message: message
+    }
+  );
 
-        if (error) throw error;
+if (error) throw error;
+
+if (typeof claimToken !== "string" || !/^[a-f0-9]{64}$/.test(claimToken)) {
+  throw new Error("The message was sent, but its claim token was not returned correctly.");
+}
+
+const storageKey = "amora_pending_claim_tokens";
+const existingTokens = JSON.parse(
+  sessionStorage.getItem(storageKey) || "[]"
+);
+
+existingTokens.push(claimToken);
+
+sessionStorage.setItem(
+  storageKey,
+  JSON.stringify(existingTokens)
+);
+
 
         
 publicMessageForm.reset();
