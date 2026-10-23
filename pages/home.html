@@ -36,116 +36,226 @@
     </section>
     <p class="demo-note">Preview figures and activity below are illustrative demo content.</p>
 
-<section class="panel form-panel" id="auth-panel">
-  <div class="section-kicker">YOUR LITTLE CORNER OF AMORA</div>
-  <h2>Create your account</h2>
-  <p class="muted">
-    Sign up to manage your profile and your anonymous message link.
-  </p>
 
-  <form id="auth-form">
-    <label for="auth-name">Display name</label>
-    <input
-      id="auth-name"
-      type="text"
-      autocomplete="name"
-      placeholder="What should we call you?"
+<main class="auth-layout">
+
+  <!-- Introductory panel -->
+  <section class="auth-intro">
+    <a class="auth-brand" href="/">
+      <span class="auth-brand-mark">A</span>
+      <span>amora</span>
+    </a>
+
+    <p class="auth-eyebrow">A little corner of connection</p>
+
+    <h1>
+      Be yourself.
+      <span class="auth-gradient-text">Stay anonymous.</span>
+    </h1>
+
+    <p class="auth-intro-copy">
+      Some conversations begin with a secret.
+      Some connections begin with a simple hello.
+      Make space for both with Amora.
+    </p>
+
+    <div class="auth-preview">
+      <p class="auth-preview-label">A TASTE OF AMORA</p>
+
+      <div class="auth-preview-message">
+        <span class="auth-preview-icon">♡</span>
+        <div>
+          <strong>A little mystery</strong>
+          <p>Someone might have something sweet to tell you.</p>
+        </div>
+      </div>
+
+      <div class="auth-preview-message">
+        <span class="auth-preview-icon">✦</span>
+        <div>
+          <strong>Your own little space</strong>
+          <p>Connect at your own pace, one conversation at a time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Authentication card -->
+  <div class="auth-card">
+
+    <div class="auth-card-top">
+      <span class="auth-step-label">
+        <span class="auth-status-dot"></span>
+        YOUR LITTLE CORNER OF AMORA
+      </span>
+    </div>
+
+    <!-- Login and signup share the existing form -->
+    <section class="panel form-panel" id="auth-panel">
+
+      <h2>Create your account</h2>
+
+      <p class="muted">
+        Choose your anonymous identity and make yourself at home.
+      </p>
+
+      <form id="auth-form">
+
+        <label for="auth-name">Anonymous username</label>
+
+        <div class="auth-username-row" id="auth-username-row">
+          <input
+            id="auth-name"
+            type="text"
+            autocomplete="nickname"
+            placeholder="Choose your anonymous name"
+          >
+
+          <button
+            class="auth-random-name"
+            type="button"
+            id="auth-random-name"
+            aria-label="Generate a random anonymous username"
+          >
+            🎲 Random
+          </button>
+        </div>
+
+        <label for="auth-email">Email address</label>
+
+        <input
+          id="auth-email"
+          type="email"
+          autocomplete="email"
+          placeholder="you@example.com"
+          required
+        >
+
+        <label for="auth-password">Password</label>
+
+        <input
+          id="auth-password"
+          type="password"
+          autocomplete="new-password"
+          minlength="8"
+          placeholder="At least 8 characters"
+          required
+        >
+
+        <button class="primary-btn" type="submit">
+          Create account 💗
+        </button>
+
+        <button
+          class="secondary-btn"
+          id="login-button"
+          type="button"
+        >
+          I already have an account
+        </button>
+
+        <p class="password-reset-link">
+          <a href="#" id="forgot-password-link">Forgot password?</a>
+        </p>
+
+        <p class="error-message" id="auth-status" role="status"></p>
+
+      </form>
+    </section>
+
+    <!-- Request a password recovery email -->
+    <section
+      id="password-reset-section"
+      class="password-reset-section"
+      hidden
     >
+      <h2>Reset your password</h2>
 
-    <label for="auth-email">Email address</label>
-    <input
-      id="auth-email"
-      type="email"
-      autocomplete="email"
-      placeholder="you@example.com"
-      required
+      <p>Enter the email address linked to your Amora account.</p>
+
+      <form id="password-reset-form">
+
+        <label for="reset-email">Email address</label>
+
+        <input
+          type="email"
+          id="reset-email"
+          autocomplete="email"
+          placeholder="Enter your registered email"
+          required
+        >
+
+        <button class="primary-btn" type="submit" id="send-reset-link">
+          Send reset link
+        </button>
+
+        <p id="password-reset-status" role="status"></p>
+
+        <button class="secondary-btn" type="button" id="back-to-login">
+          Back to login
+        </button>
+
+      </form>
+    </section>
+
+    <!-- Set a new password from the recovery link -->
+    <section
+      id="new-password-section"
+      class="password-reset-section"
+      hidden
     >
+      <h2>Choose a new password</h2>
 
-    <label for="auth-password">Password</label>
-    <input
-      id="auth-password"
-      type="password"
-      autocomplete="new-password"
-      minlength="8"
-      placeholder="At least 8 characters"
-      required
-    >
+      <p>Enter and confirm your new password.</p>
 
-    <button class="primary-btn" type="submit" href="${window.location.origin}/?auth=signup">
-      Create account 💗
-    </button>
+      <form id="new-password-form">
 
-    <button
-      class="secondary-btn" href="${window.location.origin}/?auth=login"
-      id="login-button"
-      type="button"
-    >
-      I already have an account
-    </button>
-<p class="password-reset-link">
-  <a href="#" id="forgot-password-link">Forgot password?</a>
-</p>
-    <p class="error-message" id="auth-status" role="status"></p>
-  </form>
-  
-<!-- Password reset: request a recovery email -->
-<section id="password-reset-section" class="password-reset-section" hidden>
-  <h2>Reset your password</h2>
-  <p>Enter the email address linked to your Amora account.</p>
+        <label for="new-password">New password</label>
 
-  <form id="password-reset-form">
-    <label for="reset-email">Email address</label>
-    <input
-      type="email"
-      id="reset-email"
-      placeholder="Enter your registered email"
-      required
-    />
+        <input
+          type="password"
+          id="new-password"
+          minlength="8"
+          autocomplete="new-password"
+          placeholder="At least 8 characters"
+          required
+        >
 
-    <button type="submit" id="send-reset-link">
-      Send reset link
-    </button>
+        <label for="confirm-new-password">Confirm new password</label>
 
-    <p id="password-reset-status" role="status"></p>
-    <button type="button" id="back-to-login">Back to login</button>
-  </form>
-</section>
+        <input
+          type="password"
+          id="confirm-new-password"
+          minlength="8"
+          autocomplete="new-password"
+          placeholder="Enter the password again"
+          required
+        >
 
-<!-- Set a new password after opening the email link -->
-<section id="new-password-section" class="password-reset-section" hidden>
-  <h2>Choose a new password</h2>
-  <p>Enter and confirm your new password.</p>
+        <button class="primary-btn" type="submit" id="save-new-password">
+          Update password
+        </button>
 
-  <form id="new-password-form">
-    <label for="new-password">New password</label>
-    <input
-      type="password"
-      id="new-password"
-      minlength="8"
-      autocomplete="new-password"
-      placeholder="At least 8 characters"
-      required
-    />
+        <p id="new-password-status" role="status"></p>
 
-    <label for="confirm-new-password">Confirm new password</label>
-    <input
-      type="password"
-      id="confirm-new-password"
-      minlength="8"
-      autocomplete="new-password"
-      placeholder="Enter the password again"
-      required
-    />
+      </form>
+    </section>
 
-    <button type="submit" id="save-new-password">
-      Update password
-    </button>
+    <div class="auth-privacy-note">
+      <span>🔒</span>
+      <span>Your identity is yours. Choose an anonymous username that feels right for you.</span>
+    </div>
 
-    <p id="new-password-status" role="status"></p>
-  </form>
-</section>
+    <footer class="auth-footer">
+      By using Amora, you agree to use the platform responsibly.
+      <br>
+      © <span id="current-year"></span> Amora
+    </footer>
 
-</section>
+  </div>
+
+</main>
+
 
 <section class="panel form-panel" id="dashboard-panel" hidden>
   <div class="section-kicker">YOUR AMORA SPACE</div>
