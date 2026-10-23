@@ -1669,4 +1669,82 @@
     refreshAmoraInbox();
   }
 
+  async function loadChatNotifications() {
+    if (!supabase || !notificationList) return;
+
+    const { data: notifications, error: notificationError } =
+      await supabase.rpc("get_my_notifications");
+
+    const { data: anonymousMessages, error: anonymousError } =
+      await supabase.rpc("get_my_anonymous_inbox");
+
+    if (notificationError && anonymousError) {
+      clearChatElement(
+        notificationList,
+        "Could not load notifications. Please refresh and try again."
+      );
+      setChatStatus("Could not retrieve notifications.");
+      return;
+    }
+
+    clearChatElement(notificationList, "");
+    let count = 0;
+
+    for (const item of notifications || []) {
+      const card = document.createElement("div");
+      card.className = "notification-item";
+
+      addChatText(card, "strong", "", item.sender_anonymous_name || "Anonymous");
+      addChatText(card, "p", "", item.message_preview || "New message");
+      addChatText(
+        card,
+        "p",
+        "",
+        formatChatDate(item.created_at) + (item.read_at ? "" : " · Unread")
+      );
+
+      if (item.conversation_id) {
+        card.setAttribute("role", "button");
+        card.tabIndex = 0;
+
+        card.addEventListener("click", async () => {
+          conversationHeading.textContent =
+            item.sender_anonymous_name || "Anonymous conversation";
+          await loadChatMessages(item.conversation_id);
+        });
+      }
+
+      notificationList.appendChild(card);
+      count++;
+    }
+
+    for (const item of anonymousMessages || []) {
+      const card = document.createElement("div");
+      card.className = "notification-item";
+
+      addChatText(card, "strong", "", "New anonymous message");
+      addChatText(card, "p", "", item.message_text);
+      addChatText(
+        card,
+        "p",
+        "",
+        formatChatDate(item.created_at) + (item.is_read ? "" : " · New")
+      );
+
+      notificationList.appendChild(card);
+      count++;
+    }
+
+    if (count === 0) {
+      clearChatElement(
+        notificationList,
+        "No notifications or pending anonymous messages yet."
+      );
+    }
+
+    if (anonymousError) {
+      setChatStatus("Pending anonymous messages could not be loaded.");
+    }
+  }
+
 })();
