@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showStatus("Settings are only available on your own profile.");
       return;
     }
-    settingsSection.dataset.open = settingsSection.dataset.open === "true" ? "false" : "true";
+    settingsSection.dataset.open = settingsSection.hidden ? "true" : "false";
     settingsSection.hidden = settingsSection.dataset.open !== "true";
     if (!settingsSection.hidden) settingsSection.scrollIntoView({ behavior: "smooth", block: "start" });
   });
