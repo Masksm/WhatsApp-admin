@@ -1,169 +1,212 @@
 
-import {
-  $,
-  supabase,
-  getErrorMessage
-} from "./core.js";
+import { $, supabase, getErrorMessage } from "./core.js";
+import { openConversation } from "./messages.js";
 
-// ============================================================
-// AMORA NOTIFICATIONS AND ANONYMOUS INBOX
-// ============================================================
+let initialized = false;
+let loading = false;
 
-function clearElement(element) {
-  if (element) element.replaceChildren();
-}
-
-function createTextElement(tag, text, className) {
-  const element = document.createElement(tag);
-  element.textContent = String(text ?? "");
-
-  if (className) {
-    element.className = className;
-  }
-
-  return element;
-}
-
-function formatNotificationDate(value) {
+function formatDate(value) {
   if (!value) return "";
 
   const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
+  if (Number.isNaN(date.getTime())) return "";
 
   return date.toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
+    dateStyle: "short",
+    timeStyle: "short"
   });
 }
 
-function renderNotifications(notifications, anonymousMessages = []) {
+function createEmptyMessage(message) {
+  const paragraph = document.createElement("p");
+  paragraph.textContent = message;
+  return paragraph;
+}
+
+function createNotificationButton({
+  title,
+  message,
+  date,
+  unread = false,
+  onClick
+}) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "notification-item";
+
+  if (unread) button.classList.add("unread");
+
+  const heading = document.createElement("strong");
+  heading.textContent = title;
+
+  const body = document.createElement("span");
+  body.textContent = message || "";
+
+  button.append(heading, body);
+
+  if (date) {
+    const timestamp = document.createElement("small");
+    timestamp.textContent = formatDate(date);
+    button.appendChild(timestamp);
+  }
+
+  if (onClick) {
+    button.addEventListener("click", onClick);
+  } else {
+    button.disabled = true;
+  }
+
+  return button;
+}
+
+function renderNotifications(notifications, inboxMessages) {
   const list = $("#notification-list");
   if (!list) return;
 
-  clearElement(list);
+  list.replaceChildren();
 
-  const entries = [
-    ...(notifications || []).map((item) => ({
-      type: "notification",
-      item
-    })),
-    ...(anonymousMessages || []).map((item) => ({
-      type: "anonymous",
-      item
-    }))
-  ];
+  const items = [];
 
-  if (!entries.length) {
-    list.append(
-      createTextElement(
-        "p",
-        "You're all caught up.",
-        "empty-state"
-      )
+  for (const notification of notifications || []) {
+    items.push({
+      kind: "notification",
+      date: notification.created_at,
+      data: notification
+    });
+  }
+
+  for (const message of inboxMessages || []) {
+    items.push({
+      kind: "anonymous",
+      date: message.created_at,
+      data: message
+    });
+  }
+
+  items.sort((a, b) => {
+    const dateA = new Date(a.date || 0).getTime();
+    const dateB = new Date(b.date || 0).getTime();
+
+    return dateB - dateA;
+  });
+
+  if (!items.length) {
+    list.appendChild(
+      createEmptyMessage("No notifications yet.")
     );
     return;
   }
 
-  entries.forEach(({ type, item }) => {
-    const card = document.createElement("article");
-    card.className = "notification-item";
+  for (const item of items) {
+    if (item.kind === "notification") {
+      const notification = item.data;
 
-    const heading = createTextElement(
-      "strong",
-      type === "anonymous"
-        ? "New anonymous message"
-        : item.title || item.type || "Amora notification"
-    );
+      const button = createNotificationButton({
+        title:
+          notification.sender_anonymous_name ||
+          "Amora notification",
+        message:
+          notification.message_preview ||
+          notification.message ||
+          "You have a new notification.",
+        date: notification.created_at,
+        unread: !notification.read_at,
+        onClick: notification.conversation_id
+          ? () => {
+              openConversation(
+                notification.conversation_id,
+                notification.sender_anonymous_name ||
+                  "Anonymous"
+              );
+            }
+          : null
+      });
 
-    const message = createTextElement(
-      "p",
-      item.message ||
-        item.body ||
-        item.content ||
-        item.message_preview ||
-        "You have a new update."
-    );
+      list.appendChild(button);
+      continue;
+    }
 
-    const timestamp = createTextElement(
-      "small",
-      formatNotificationDate(
-        item.created_at || item.createdAt
-      )
-    );
+    const message = item.data;
 
-    card.append(heading, message, timestamp);
-    list.append(card);
-  });
+    const button = createNotificationButton({
+      title: "Anonymous message 💌",
+      message: message.message_text || "You received a message.",
+      date: message.created_at,
+      unread: !message.is_read,
+      onClick: null
+    });
+
+    list.appendChild(button);
+  }
 }
 
 async function loadChatNotifications() {
-  if (!supabase) return;
+  if (!supabase || loading) return;
 
-  const { data: sessionData, error: sessionError } =
-    await supabase.auth.getSession();
+  const list = $("#notification-list");
+  if (!list) return;
 
-  if (sessionError) {
-    console.error("Unable to check notification session:", sessionError.message);
-    return;
-  }
+  loading = true;
 
-  if (!sessionData.session?.user) {
-    clearElement($("#notification-list"));
-    return;
-  }
+  try {
+    const [notificationResult, inboxResult] = await Promise.all([
+      supabase.rpc("get_my_notifications"),
+      supabase.rpc("get_my_anonymous_inbox")
+    ]);
 
-  const [
-    { data: notifications, error: notificationError },
-    { data: anonymousMessages, error: anonymousError }
-  ] = await Promise.all([
-    supabase.rpc("get_my_notifications"),
-    supabase.rpc("get_my_anonymous_inbox")
-  ]);
-
-  if (notificationError) {
-    console.error(
-      "Unable to load notifications:",
-      notificationError.message
-    );
-  }
-
-  if (anonymousError) {
-    console.error(
-      "Unable to load anonymous inbox:",
-      anonymousError.message
-    );
-  }
-
-  if (notificationError && anonymousError) {
-    const status = $("#chat-status");
-
-    if (status) {
-      status.textContent = getErrorMessage(
-        notificationError,
-        "Unable to load notifications."
-      );
+    if (notificationResult.error) {
+      throw notificationResult.error;
     }
 
-    return;
-  }
+    if (inboxResult.error) {
+      throw inboxResult.error;
+    }
 
-  renderNotifications(
-    notifications || [],
-    anonymousMessages || []
-  );
+    renderNotifications(
+      notificationResult.data || [],
+      inboxResult.data || []
+    );
+  } catch (error) {
+    list.replaceChildren();
+
+    list.appendChild(
+      createEmptyMessage(
+        getErrorMessage(
+          error,
+          "Could not load notifications."
+        )
+      )
+    );
+  } finally {
+    loading = false;
+  }
 }
 
 function initNotifications() {
-  supabase?.auth.onAuthStateChange((event, session) => {
+  if (initialized) return;
+  initialized = true;
+
+  window.addEventListener(
+    "amora:refresh-notifications",
+    loadChatNotifications
+  );
+
+  if (!supabase) return;
+
+  supabase.auth.onAuthStateChange((_event, session) => {
     if (session?.user) {
-      loadChatNotifications();
-    } else if (event === "SIGNED_OUT") {
-      clearElement($("#notification-list"));
+      setTimeout(loadChatNotifications, 0);
+    } else {
+      const list = $("#notification-list");
+
+      if (list) {
+        list.replaceChildren(
+          createEmptyMessage(
+            "Sign in to view notifications."
+          )
+        );
+      }
     }
   });
 
@@ -172,6 +215,5 @@ function initNotifications() {
 
 export {
   initNotifications,
-  loadChatNotifications,
-  renderNotifications
+  loadChatNotifications
 };
