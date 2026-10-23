@@ -353,7 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
           localStorage.setItem(hiddenTokenStorageKey, JSON.stringify(tokens));
           setStatus("Anonymous post deleted.");
           await loadFeed();
-        } catch (error) { setStatus(error.message || "Could not delete this post.", true); }
+        } catch (error) { await logClientError("delete_hidden_post", error); setStatus("Couldn't delete this post. Please try again.", true); }
       }));
     } else {
       if (post.author_id && currentUser && post.author_id !== currentUser.id) {
@@ -369,7 +369,8 @@ document.addEventListener("DOMContentLoaded", () => {
             setStatus("Account blocked.");
             await loadFeed();
           } catch (error) {
-            setStatus(error.message || "Could not block this account.", true);
+            await logClientError("block_account", error);
+            setStatus("Couldn't block this account. Please try again.", true);
           }
         }));
       } else {
@@ -418,7 +419,7 @@ document.addEventListener("DOMContentLoaded", () => {
     actions.append(
       makeButton(likeCache.has(post.id) ? "♥ Liked" : "♡ Like", "post-action", async () => {
         try { await toggleRow("post_likes", post.id, likeCache); }
-        catch (error) { setStatus(error.message || "Could not update like.", true); }
+        catch (error) { await logClientError("toggle_post_like", error); setStatus("Couldn't update your like. Please try again.", true); }
       }, likeCache.has(post.id)),
       makeButton("▢ Reply", "post-action", () => {
         const old = article.querySelector(":scope > .post-reply-composer");
@@ -442,11 +443,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }),
       makeButton(repostCache.has(post.id) ? "↻ Reposted" : "⟳ Repost", "post-action", async () => {
         try { await toggleRow("post_reposts", post.id, repostCache); }
-        catch (error) { setStatus(error.message || "Could not repost.", true); }
+        catch (error) { await logClientError("toggle_post_repost", error); setStatus("Couldn't repost this. Please try again.", true); }
       }, repostCache.has(post.id)),
       makeButton(bookmarkCache.has(post.id) ? "▣ Saved" : "▢ Save", "post-action", async () => {
         try { await toggleRow("post_bookmarks", post.id, bookmarkCache); }
-        catch (error) { setStatus(error.message || "Could not save post.", true); }
+        catch (error) { await logClientError("toggle_post_bookmark", error); setStatus("Couldn't save this post. Please try again.", true); }
       }, bookmarkCache.has(post.id)),
       makeButton("↗ Share", "post-action", async () => {
         const shareUrl = window.location.origin + "/pages/social-home.html#post-" + post.id;
@@ -457,7 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
             setStatus("Post link copied.");
           } else setStatus(shareUrl);
         } catch (error) {
-          if (error?.name !== "AbortError") setStatus("Could not share this post.", true);
+          if (error?.name !== "AbortError") { await logClientError("share_post", error); setStatus("Couldn't share this post. Please try again.", true); }
         }
       }),
       makeButton("⚑ Report", "post-action", async () => {
@@ -482,7 +483,8 @@ document.addEventListener("DOMContentLoaded", () => {
           if (error) throw error;
           setStatus("Report submitted for review.");
         } catch (error) {
-          setStatus(error.message || "Could not submit the report.", true);
+          await logClientError("report_post", error);
+          setStatus("Couldn't submit the report. Please try again.", true);
         }
       })
     );
