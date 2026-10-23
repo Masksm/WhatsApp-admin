@@ -38,6 +38,43 @@ document.addEventListener("DOMContentLoaded", () => {
     composerStatus.style.color = isError ? "#ff9aaa" : "";
   }
 
+  function errorDetails(error) {
+    const rawMessage = String(error?.message || error || "Unknown error");
+    const message = rawMessage
+      .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email]")
+      .replace(/https?:\/\/\S+/gi, "[url]")
+      .replace(/\b[a-f0-9]{32,}\b/gi, "[redacted-token]")
+      .slice(0, 500);
+    return {
+      code: String(error?.code || error?.name || "CLIENT_ERROR").slice(0, 80),
+      message
+    };
+  }
+
+  async function logClientError(context, error) {
+    const details = errorDetails(error);
+    console.error("[Amora]", context, details.code, details.message);
+    if (!supabase) return;
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (!data?.session) return;
+      await supabase.rpc("log_client_error", {
+        p_error_code: details.code,
+        p_context: context,
+        p_message: details.message
+      });
+    } catch (loggingError) {
+      console.error("[Amora] Error logger unavailable:", loggingError?.message || "unknown");
+    }
+  }
+
+  window.addEventListener("unhandledrejection", (event) => {
+    logClientError("unhandled_rejection", event.reason);
+  });
+  window.addEventListener("error", (event) => {
+    logClientError("window_error", event.error || event.message);
+  });
+
   function updatePublishButton() {
     publishButton.disabled = loading || (!textInput.value.trim() && !selectedImage);
   }
@@ -216,7 +253,8 @@ document.addEventListener("DOMContentLoaded", () => {
       commentCache.delete(post.id);
       await renderFeed();
     } catch (error) {
-      setStatus(error.message || "Could not publish your reply.", true);
+      await logClientError("submit_comment", error);
+      setStatus("Couldn't post your reply. Please try again.", true);
     } finally {
       const button = form.querySelector("button[type=submit]");
       if (button) button.disabled = false;
@@ -357,7 +395,16 @@ document.addEventListener("DOMContentLoaded", () => {
       article.append(image);
     });
 
-    const comments = await loadComments(post.id);
+    let comments = [];
+    try {
+      comments = await loadComments(post.id);
+    } catch (error) {
+      await logClientError("load_comments", error);
+      const unavailable = document.createElement("p");
+      unavailable.className = "post-comments-unavailable";
+      unavailable.textContent = "Conversation temporarily unavailable.";
+      article.append(unavailable);
+    }
     const stats = document.createElement("div");
     stats.className = "post-stats";
     const likesText = document.createElement("span");
@@ -523,17 +570,18 @@ document.addEventListener("DOMContentLoaded", () => {
       loading = false;
       await renderFeed();
     } catch (error) {
+      await logClientError("load_feed", error);
       loading = false;
       feedList.replaceChildren();
       const empty = document.createElement("div");
       empty.className = "feed-empty card";
       const heading = document.createElement("h2");
-      heading.textContent = "Your feed could not load";
+      heading.textContent = "Your feed is temporarily unavailable";
       const copy = document.createElement("p");
-      copy.textContent = error.message || "Please refresh and try again.";
+      copy.textContent = "Please try again in a moment.";
       empty.append(heading, copy);
       feedList.append(empty);
-      setStatus("Could not load posts. Check the connection and try again.", true);
+      setStatus("Couldn't load the feed. Please try again.", true);
     }
   }
 
@@ -614,7 +662,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (uploadedPath) {
         try { await supabase.storage.from("amora-post-images").remove([uploadedPath]); } catch {}
       }
-      setStatus(error.message || "Could not publish your post. Your draft is still here.", true);
+      await logClientError("publish_post", error);
+      setStatus("Couldn't publish your post. Your draft is still here.", true);
     } finally {
       loading = false;
       updatePublishButton();
