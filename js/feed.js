@@ -350,8 +350,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     if (!user) {
-      setStatus("Log in before posting. Your draft is still here.", true);
-      window.location.href = "/pages/home.html?auth=login";
+      setStatus("Log in before publishing. Your draft is still here on this page.", true);
       return;
     }
 
