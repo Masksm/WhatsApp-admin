@@ -70,3 +70,5 @@
 .profile-home-button{display:grid;place-items:center}
 @media(max-width:1120px){.profile-rightbar{display:none}}
 @media(max-width:720px){.profile-main{padding-top:0}.profile-heading{align-items:flex-start}.profile-back-link{display:none}.profile-hero{align-items:flex-start;gap:15px;padding:19px 15px;border-radius:17px}.profile-avatar{width:66px;height:66px;flex-basis:66px;border-radius:22px;font-size:1.8rem}.profile-hero h2{font-size:1.2rem}.profile-private-note{max-width:260px;font-size:.68rem}.profile-heart-decoration{right:6px;bottom:0;font-size:3.8rem}.profile-stats{gap:8px}.profile-stat{padding:14px 4px;border-radius:14px}.profile-stat strong{font-size:1.25rem}.profile-stat>span:last-child{font-size:.65rem}.profile-section{padding:17px 14px;border-radius:17px}.section-heading h2{font-size:1.12rem}.section-description{font-size:.75rem}.profile-account-actions{padding:17px 3px}.profile-account-actions p{max-width:220px;line-height:1.6}}
+
+.post-author-profile-link{color:inherit;text-decoration:none}.post-author-profile-link:hover{color:#ff9bc9;text-decoration:underline}
