@@ -1,1 +1,101 @@
 
+/* Amora password recovery styles */
+
+.password-reset-section {
+  width: 100%;
+  max-width: 420px;
+  margin: 24px auto;
+  padding: 24px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid #f0dce5;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(70, 20, 45, 0.08);
+}
+
+.password-reset-section[hidden] {
+  display: none !important;
+}
+
+.password-reset-section h2 {
+  margin: 0 0 10px;
+  color: #8f2455;
+  font-size: 24px;
+}
+
+.password-reset-section p {
+  color: #666666;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.password-reset-section label {
+  display: block;
+  margin: 16px 0 7px;
+  color: #333333;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.password-reset-section input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid #e0c8d4;
+  border-radius: 9px;
+  background: #fffafd;
+  color: #222222;
+  font-size: 16px;
+}
+
+.password-reset-section input:focus {
+  outline: 2px solid #d96b9d;
+  border-color: #b73570;
+}
+
+.password-reset-section button {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 9px;
+  background: #b73570;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.password-reset-section button:hover {
+  background: #922653;
+}
+
+.password-reset-section #back-to-login {
+  background: #f6e8ef;
+  color: #8f2455;
+}
+
+.password-reset-link {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.password-reset-link a {
+  color: #b73570;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.password-reset-link a:hover {
+  text-decoration: underline;
+}
+
+#password-reset-status,
+#new-password-status {
+  overflow-wrap: anywhere;
+  margin-top: 12px;
+}
+
