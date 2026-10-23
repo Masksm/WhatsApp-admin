@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let posts = [];
   const commentCache = new Map();
   const profileCache = new Map();
+  const interactionCounts = new Map();
   const likeCache = new Set();
   const bookmarkCache = new Set();
   const repostCache = new Set();
