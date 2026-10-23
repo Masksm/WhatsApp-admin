@@ -196,10 +196,9 @@ document.addEventListener("DOMContentLoaded", () => {
         image.src = url; image.alt = "Image attached to post"; image.loading = "lazy";
         article.append(image);
       });
-      const { data: likeRows, error: likeReadError } = await supabase.from("post_likes")
-        .select("post_id").eq("post_id", post.id);
-      const { count: likeCount } = await supabase.from("post_likes")
-        .select("post_id", { count: "exact", head: true }).eq("post_id", post.id);
+      const { data: postCounts, error: countsError } = await supabase.rpc("get_post_interaction_counts", { p_post_ids: [post.id] });
+      const postCount = !countsError && Array.isArray(postCounts) ? postCounts.find((row) => row.post_id === post.id) : null;
+      const likeCount = Number(postCount?.likes_count || 0);
       const stats = node("div", "profile-post-stats");
       const likesText = node("span", "", (likeCount || 0) + ((likeCount || 0) === 1 ? " like" : " likes"));
       const commentsResult = await supabase.from("post_comments")
