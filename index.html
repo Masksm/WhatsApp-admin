@@ -140,6 +140,71 @@
 
   <p id="anonymous-link-status" role="status"></p>
 </div>
+  
+<div id="chat-app" class="chat-app">
+  <div class="section-kicker">YOUR PRIVATE SPACE</div>
+  <h3>Your conversations 💬</h3>
+  <p>Connect through anonymous conversations without sharing contact details.</p>
+
+  <div id="chat-status" role="status" aria-live="polite"></div>
+
+  <div class="chat-layout">
+    <section class="conversation-column" aria-label="Inbox">
+      <h4>Inbox</h4>
+      <button
+        id="refresh-conversations"
+        class="secondary-btn"
+        type="button"
+      >
+        Refresh inbox
+      </button>
+
+      <div id="conversation-list">
+        <p>Your conversations will appear here.</p>
+      </div>
+
+      <h4>Notifications</h4>
+      <div id="notification-list">
+        <p>Your notifications will appear here.</p>
+      </div>
+    </section>
+
+    <section class="message-column" aria-label="Private conversation">
+      <h4 id="active-conversation-heading">
+        Choose a conversation
+      </h4>
+
+      <div
+        id="message-list"
+        aria-live="polite"
+      >
+        <p>Select a conversation to read messages.</p>
+      </div>
+
+      <form id="chat-message-form">
+        <label for="chat-message-text">Your message</label>
+        <textarea
+          id="chat-message-text"
+          rows="3"
+          maxlength="2000"
+          placeholder="Write your message..."
+          disabled
+          required
+        ></textarea>
+
+        <button
+          id="send-chat-message"
+          class="primary-btn"
+          type="submit"
+          disabled
+        >
+          Send message
+        </button>
+      </form>
+    </section>
+  </div>
+</div>
+
   <button
     class="secondary-btn"
     id="logout-button"
