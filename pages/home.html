@@ -1,1 +1,187 @@
 
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8fb">
+  <meta name="description" content="Amora is a place to connect, share, and discover meaningful conversations.">
+
+  <title>Amora | Connect anonymously</title>
+
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/navigation.css">
+</head>
+<body>
+  <header class="app-header">
+    <a class="app-brand" href="#home" aria-label="Amora home">
+      <span aria-hidden="true">♥</span> Amora
+    </a>
+
+    <a class="header-login" href="#login">Log in</a>
+  </header>
+
+  <div class="app-layout">
+    <aside class="sidebar" aria-label="Main navigation">
+      <nav class="main-navigation">
+        <a class="nav-link active" href="#home" data-page="home">
+          <span aria-hidden="true">⌂</span> Home
+        </a>
+
+        <a class="nav-link" href="#discover" data-page="discover">
+          <span aria-hidden="true">▶</span> Discover
+        </a>
+
+        <a class="nav-link" href="#messages" data-page="messages">
+          <span aria-hidden="true">♡</span> Messages
+        </a>
+
+        <a class="nav-link" href="#profile" data-page="profile">
+          <span aria-hidden="true">◉</span> Profile
+        </a>
+      </nav>
+
+      <p class="sidebar-note">
+        Your space to connect, share, and be yourself.
+      </p>
+    </aside>
+
+    <main class="main-content">
+      <section id="home" class="page-section" data-section="home">
+        <div class="page-heading">
+          <p class="muted">YOUR COMMUNITY</p>
+          <h1>Welcome to Amora 💗</h1>
+          <p>Honest thoughts. Anonymous connections. Real conversations.</p>
+        </div>
+
+        <article class="surface welcome-card">
+          <h2>A place to be yourself</h2>
+          <p>
+            Discover conversations, share your thoughts, and connect
+            with people without putting your identity on display.
+          </p>
+
+          <div class="welcome-actions">
+            <a class="button button-primary" href="#discover">
+              Explore Discover
+            </a>
+
+            <a class="button button-secondary" href="#profile">
+              Set up profile
+            </a>
+          </div>
+        </article>
+
+        <div class="feed-heading">
+          <h2>Community feed</h2>
+          <p class="muted">A space for thoughts, stories, and discussions.</p>
+        </div>
+
+        <div id="community-feed" aria-live="polite">
+          <article class="surface feed-placeholder">
+            <h3>Your community starts here</h3>
+            <p class="muted">
+              Posts and discussions will appear here when the feed
+              feature is implemented.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="discover" class="page-section" data-section="discover" hidden>
+        <div class="page-heading">
+          <p class="muted">FIND SOMETHING NEW</p>
+          <h1>Discover</h1>
+          <p>Explore short videos, stories, and interesting people.</p>
+        </div>
+
+        <article class="surface empty-state">
+          <div class="empty-state-icon" aria-hidden="true">▶</div>
+          <h2>Discover something different</h2>
+          <p class="muted">
+            The short-video discovery experience will be built here.
+          </p>
+        </article>
+      </section>
+
+      <section id="messages" class="page-section" data-section="messages" hidden>
+        <div class="page-heading">
+          <p class="muted">YOUR PRIVATE SPACE</p>
+          <h1>Messages</h1>
+          <p>Your anonymous messages and private conversations.</p>
+        </div>
+
+        <article class="surface empty-state">
+          <div class="empty-state-icon" aria-hidden="true">♡</div>
+          <h2>Your conversations</h2>
+          <p class="muted">
+            Your existing Supabase inbox and private chat features
+            will be connected here.
+          </p>
+          <p class="muted">
+            Sign-in will be required to access private conversations.
+          </p>
+        </article>
+      </section>
+
+      <section id="profile" class="page-section" data-section="profile" hidden>
+        <div class="page-heading">
+          <p class="muted">YOUR ACCOUNT</p>
+          <h1>Profile</h1>
+          <p>Manage your account and anonymous message link.</p>
+        </div>
+
+        <article class="surface empty-state">
+          <div class="empty-state-icon" aria-hidden="true">◉</div>
+          <h2>Your personal space</h2>
+          <p class="muted">
+            Profile details, account settings, and your anonymous
+            message link will be connected here.
+          </p>
+        </article>
+      </section>
+
+      <section id="login" class="page-section" data-section="login" hidden>
+        <div class="page-heading">
+          <p class="muted">WELCOME BACK</p>
+          <h1>Your Amora account</h1>
+          <p>Authentication and password recovery will be connected next.</p>
+        </div>
+
+        <article class="surface empty-state">
+          <h2>Sign in or create an account</h2>
+          <p class="muted">
+            The existing Supabase authentication will be integrated
+            before this new frontend replaces the live homepage.
+          </p>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-navigation" aria-label="Mobile navigation">
+    <a class="nav-link active" href="#home" data-page="home">
+      <span aria-hidden="true">⌂</span>
+      <span>Home</span>
+    </a>
+
+    <a class="nav-link" href="#discover" data-page="discover">
+      <span aria-hidden="true">▶</span>
+      <span>Discover</span>
+    </a>
+
+    <a class="nav-link" href="#messages" data-page="messages">
+      <span aria-hidden="true">♡</span>
+      <span>Messages</span>
+    </a>
+
+    <a class="nav-link" href="#profile" data-page="profile">
+      <span aria-hidden="true">◉</span>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <script src="../js/navigation.js"></script>
+</body>
+</html>
+
