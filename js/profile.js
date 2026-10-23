@@ -79,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : "♡ Public profile. Private account details are not shown.");
     byId("profile-private-note").firstChild.textContent = isOwner ? "🔒 " : "♡ ";
     byId("profile-form").hidden = !isOwner;
+    settingsButton.hidden = !isOwner;
     byId("identity-settings").hidden = !isOwner || !settingsSection.dataset.open;
     byId("write-post-link").hidden = !isOwner;
     byId("sidebar-profile-link").href = "/pages/profile.html?username=" + encodeURIComponent(username);
