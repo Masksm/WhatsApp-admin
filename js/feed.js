@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const imageInput = document.getElementById("post-image");
   const imagePreview = document.getElementById("image-preview");
   const hideIdentity = document.getElementById("hide-identity");
+  const allowAnonymousComments = document.getElementById("allow-anonymous-comments");
   const publishButton = document.getElementById("publish-post");
   const composerStatus = document.getElementById("composer-status");
   const feedList = document.getElementById("feed-list");
@@ -236,10 +237,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (error) throw error;
     const rows = data || [];
     await loadPublicProfiles(rows.filter((row) => row.author_id).map((row) => row.author_id));
+    const ids = rows.map((row) => row.id);
+    const countsById = new Map();
+    if (ids.length) {
+      const { data: counts } = await supabase.rpc("get_comment_interaction_counts", { p_comment_ids: ids });
+      (counts || []).forEach((row) => countsById.set(row.comment_id, Number(row.likes_count || 0)));
+    }
+    const myLikes = new Set();
+    if (currentUser && ids.length) {
+      const { data: ownLikes } = await supabase.from("comment_likes")
+        .select("comment_id").eq("user_id", currentUser.id).in("comment_id", ids);
+      (ownLikes || []).forEach((row) => myLikes.add(row.comment_id));
+    }
     const byId = new Map();
     rows.forEach((row) => byId.set(row.id, {
       ...row, author: row.is_anonymous ? "Anonymous" : profileLabel(row.author_id),
-      replies: []
+      like_count: countsById.get(row.id) || 0, liked_by_me: myLikes.has(row.id), replies: []
     }));
     const roots = [];
     rows.forEach((row) => {
@@ -258,11 +271,13 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const user = await requireUser();
       form.querySelector("button[type=submit]").disabled = true;
+      const anonymousChoice = form.querySelector("[name=comment-anonymous]");
+      const isAnonymous = Boolean(post.is_anonymous || (post.allow_anonymous_comments && anonymousChoice?.checked));
       const payload = {
         post_id: post.id,
         parent_comment_id: parentId || null,
-        author_id: post.is_anonymous ? null : user.id,
-        is_anonymous: Boolean(post.is_anonymous),
+        author_id: isAnonymous ? null : user.id,
+        is_anonymous: isAnonymous,
         content: value
       };
       const { error } = await supabase.from("post_comments").insert(payload);
@@ -278,9 +293,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function toggleCommentLike(comment, button, countLabel) {
+    try {
+      const user = await requireUser();
+      const { data: existing, error: readError } = await supabase.from("comment_likes")
+        .select("comment_id").eq("comment_id", comment.id).eq("user_id", user.id).maybeSingle();
+      if (readError) throw readError;
+      if (existing) {
+        const { error } = await supabase.from("comment_likes").delete().eq("comment_id", comment.id).eq("user_id", user.id);
+        if (error) throw error;
+        comment.liked_by_me = false;
+        comment.like_count = Math.max(0, Number(comment.like_count || 0) - 1);
+      } else {
+        const { error } = await supabase.from("comment_likes").insert({ comment_id: comment.id, user_id: user.id });
+        if (error) throw error;
+        comment.liked_by_me = true;
+        comment.like_count = Number(comment.like_count || 0) + 1;
+      }
+      button.textContent = (comment.liked_by_me ? "♥ Liked" : "♡ Like") + " · " + comment.like_count;
+      button.classList.toggle("is-active", comment.liked_by_me);
+      countLabel.textContent = comment.like_count + (comment.like_count === 1 ? " like" : " likes");
+    } catch (error) {
+      await logClientError("toggle_comment_like", error);
+      setStatus("Couldn't update the comment like. Please try again.", true);
+    }
+  }
+
   function makeComment(comment, post, depth = 0) {
     const item = document.createElement("div");
     item.className = "comment-item";
+    item.id = "comment-" + comment.id;
     const body = document.createElement("div");
     body.className = "comment-body";
     const head = document.createElement("div");
@@ -291,6 +333,24 @@ document.addEventListener("DOMContentLoaded", () => {
     text.textContent = comment.content;
     head.append(author);
     body.append(head, text);
+    const actions = document.createElement("div");
+    actions.className = "comment-actions";
+    const countLabel = document.createElement("span");
+    countLabel.className = "comment-like-count";
+    countLabel.textContent = Number(comment.like_count || 0) + (Number(comment.like_count || 0) === 1 ? " like" : " likes");
+    let likeButton;
+    likeButton = makeButton((comment.liked_by_me ? "♥ Liked" : "♡ Like") + " · " + Number(comment.like_count || 0), "comment-action", () => toggleCommentLike(comment, likeButton, countLabel), comment.liked_by_me);
+    const shareButton = makeButton("↗ Share", "comment-action", async () => {
+      const shareUrl = window.location.origin + "/pages/social-home.html#comment-" + comment.id;
+      try {
+        if (navigator.share) await navigator.share({ title: "Amora comment", text: comment.content, url: shareUrl });
+        else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(shareUrl); setStatus("Comment link copied."); }
+        else setStatus(shareUrl);
+      } catch (error) {
+        if (error?.name !== "AbortError") setStatus("Couldn't share this comment.", true);
+      }
+    });
+    actions.append(likeButton, countLabel, shareButton);
     const replyButton = makeButton("Reply", "comment-reply-button", () => {
       const old = item.querySelector(":scope > .reply-composer");
       if (old) { old.remove(); return; }
@@ -303,7 +363,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const send = document.createElement("button");
       send.type = "submit";
       send.textContent = "Reply";
-      form.append(input, send);
+      if (post.allow_anonymous_comments && !post.is_anonymous) {
+        const anonymousLabel = document.createElement("label");
+        anonymousLabel.className = "comment-anonymous-choice";
+        const anonymousToggle = document.createElement("input");
+        anonymousToggle.type = "checkbox";
+        anonymousToggle.name = "comment-anonymous";
+        anonymousLabel.append(anonymousToggle, document.createTextNode(" Reply anonymously"));
+        form.append(input, anonymousLabel, send);
+      } else form.append(input, send);
       form.addEventListener("submit", (event) => {
         event.preventDefault();
         addComment(post, comment.id, input, form);
@@ -312,7 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
       input.focus();
     });
     body.append(replyButton);
-    item.append(body);
+    item.append(body, actions);
     if (comment.replies?.length && depth < 8) {
       const children = document.createElement("div");
       children.className = "comment-replies";
@@ -468,7 +536,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const send = document.createElement("button");
         send.type = "submit";
         send.textContent = "Reply";
-        form.append(input, send);
+        if (post.allow_anonymous_comments && !post.is_anonymous) {
+          const anonymousLabel = document.createElement("label");
+          anonymousLabel.className = "comment-anonymous-choice";
+          const anonymousToggle = document.createElement("input");
+          anonymousToggle.type = "checkbox";
+          anonymousToggle.name = "comment-anonymous";
+          anonymousLabel.append(anonymousToggle, document.createTextNode(" Reply anonymously"));
+          form.append(input, anonymousLabel, send);
+        } else form.append(input, send);
         form.addEventListener("submit", (event) => {
           event.preventDefault();
           addComment(post, null, input, form);
@@ -609,7 +685,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       let query = supabase.from("posts")
-        .select("id,author_id,content,media_urls,visibility,is_anonymous,created_at")
+        .select("id,author_id,content,media_urls,visibility,is_anonymous,allow_anonymous_comments,created_at")
         .order("created_at", { ascending: false })
         .limit(50);
       if (activeFeed === "public") query = query.eq("visibility", "public");
@@ -700,12 +776,14 @@ document.addEventListener("DOMContentLoaded", () => {
           content: body,
           media_urls: mediaUrls,
           visibility: "public",
-          is_anonymous: false
+          is_anonymous: false,
+          allow_anonymous_comments: Boolean(allowAnonymousComments?.checked)
         });
         if (error) throw error;
       }
       textInput.value = "";
       hideIdentity.checked = false;
+      if (allowAnonymousComments) allowAnonymousComments.checked = false;
       if (imageInput) imageInput.value = "";
       selectedImage = null;
       if (imagePreview) {
