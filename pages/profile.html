@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#160d1c">
+  <title>Your Profile · Amora</title>
+  <link rel="stylesheet" href="/css/feed.css">
+  <link rel="stylesheet" href="/css/profile.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-client.js" defer></script>
+  <script src="/js/profile.js" defer></script>
+</head>
+<body class="amora-feed-page profile-page">
+  <div class="feed-shell">
+    <aside class="feed-sidebar" aria-label="Main navigation">
+      <a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a>
+      <nav class="main-nav">
+        <a class="nav-link" href="/pages/social-home.html"><span class="nav-icon">⌂</span><span>Home</span></a>
+        <a class="nav-link" href="/pages/messages.html"><span class="nav-icon">✉</span><span>Messages</span></a>
+        <a class="nav-link active" href="/pages/profile.html"><span class="nav-icon">◎</span><span>Profile</span></a>
+      </nav>
+      <div class="sidebar-note"><span class="note-heart">♡</span><p>Your identity.<br>Your rules.</p></div>
+      <button class="sidebar-account profile-logout" id="logout-button" type="button"><span class="avatar avatar-you" id="sidebar-avatar">?</span><span><strong id="sidebar-username">Your space</strong><small>Sign out safely</small></span><span class="more-dots">↗</span></button>
+    </aside>
+
+    <main class="feed-main profile-main">
+      <header class="mobile-topbar">
+        <a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a>
+        <a class="icon-button profile-home-button" href="/pages/social-home.html" aria-label="Home">⌂</a>
+      </header>
+
+      <div class="feed-heading profile-heading">
+        <div><p class="eyebrow">YOUR PRIVATE DASHBOARD</p><h1>Your profile <span class="heading-heart">♡</span></h1></div>
+        <a class="profile-back-link" href="/pages/social-home.html">← Back to Home</a>
+      </div>
+
+      <section class="profile-hero card">
+        <div class="profile-hero-glow"></div>
+        <div class="profile-avatar" id="profile-avatar">?</div>
+        <div class="profile-hero-copy">
+          <span class="profile-kicker">YOUR AMORA IDENTITY</span>
+          <h2 id="profile-title">Loading your profile…</h2>
+          <p id="profile-handle" class="profile-handle">@loading</p>
+          <p class="profile-private-note"><span>🔒</span> Your email and account ID are private. Your username is your public identity.</p>
+        </div>
+        <span class="profile-heart-decoration">♡</span>
+      </section>
+
+      <section class="profile-stats" aria-label="Profile activity">
+        <div class="profile-stat card"><span class="stat-icon">✎</span><strong id="post-count">—</strong><span>Identified posts</span></div>
+        <div class="profile-stat card"><span class="stat-icon">♡</span><strong id="follower-count">—</strong><span>Followers</span></div>
+        <div class="profile-stat card"><span class="stat-icon">✦</span><strong id="following-count">—</strong><span>Following</span></div>
+      </section>
+
+      <section class="profile-section card">
+        <div class="section-heading"><div><p class="eyebrow">MAKE IT YOURS</p><h2>Identity settings</h2></div><span class="section-symbol">✧</span></div>
+        <p class="section-description">Choose the name people see on your public posts. Do not use your real name if you want to stay anonymous.</p>
+        <form id="profile-form" class="profile-form">
+          <label for="profile-username">Username</label>
+          <div class="username-field"><span>@</span><input id="profile-username" name="username" type="text" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" autocomplete="nickname" placeholder="Choose a username" required></div>
+          <p class="field-hint">3–30 letters, numbers, or underscores. Must be unique.</p>
+          <button class="primary-button" id="save-profile" type="submit">Save username <span>↗</span></button>
+          <p class="profile-status" id="profile-status" role="status"></p>
+        </form>
+      </section>
+
+      <section class="profile-section card">
+        <div class="section-heading"><div><p class="eyebrow">YOUR ACTIVITY</p><h2>Your posts</h2></div><a href="/pages/social-home.html" class="text-link">Write a post ↗</a></div>
+        <p class="section-description">Posts you shared with your account identity appear here. Posts made with “Hide my identity” are not listed in this identified-post view.</p>
+        <div id="profile-posts" class="profile-posts" aria-live="polite"><div class="profile-loading">Loading your posts…</div></div>
+      </section>
+
+      <section class="profile-account-actions">
+        <div><strong>Need a break?</strong><p>You can sign out of Amora on this device.</p></div>
+        <button class="secondary-button" id="logout-main" type="button">Sign out</button>
+      </section>
+      <p class="profile-footnote">Amora · A little more honest. A little more you. ♡</p>
+    </main>
+
+    <aside class="feed-rightbar profile-rightbar">
+      <section class="welcome-card">
+        <span class="welcome-sparkle">✦</span><p class="eyebrow">YOUR SPACE</p>
+        <h2>Be real.<br><span>Stay in control.</span></h2>
+        <p>Your public username is separate from your login email. Keep personal details out of your public identity.</p>
+      </section>
+      <section class="right-card privacy-card">
+        <h3>Privacy checklist <span>♡</span></h3>
+        <p>Use a pseudonym, avoid putting contact details in posts, and use anonymous posting when you do not want your username attached.</p>
+        <a href="/pages/privacy.html">Read privacy information ↗</a>
+      </section>
+      <p class="legal-links"><a href="/pages/privacy.html">Privacy</a><span>·</span><a href="/pages/terms.html">Terms</a><span>·</span><span>© Amora</span></p>
+    </aside>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <a class="mobile-nav-link" href="/pages/social-home.html" aria-label="Home"><span>⌂</span></a>
+    <a class="mobile-nav-link" href="/pages/messages.html" aria-label="Messages"><span>✉</span></a>
+    <a class="mobile-nav-link active" href="/pages/profile.html" aria-label="Profile"><span>◎</span></a>
+  </nav>
+</body>
+</html>
