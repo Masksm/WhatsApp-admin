@@ -1325,4 +1325,348 @@
     renderActivity();
   }, 5000);
 
+  // ============================================================
+  // REAL INBOX: SUPABASE CONVERSATIONS, MESSAGES, NOTIFICATIONS
+  // ============================================================
+
+  const chatStatus = document.getElementById("chat-status");
+  const conversationList = document.getElementById("conversation-list");
+  const notificationList = document.getElementById("notification-list");
+  const messageList = document.getElementById("message-list");
+  const conversationHeading = document.getElementById("active-conversation-heading");
+  const chatMessageForm = document.getElementById("chat-message-form");
+  const chatMessageText = document.getElementById("chat-message-text");
+  const sendChatMessageButton = document.getElementById("send-chat-message");
+  const refreshConversationsButton = document.getElementById("refresh-conversations");
+
+  let activeChatConversationId = null;
+  let chatRequestInProgress = false;
+
+  function setChatStatus(message) {
+    if (chatStatus) chatStatus.textContent = message;
+  }
+
+  function addChatText(parent, tag, className, content) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    element.textContent = content == null ? "" : String(content);
+    parent.appendChild(element);
+    return element;
+  }
+
+  function formatChatDate(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleString();
+  }
+
+  function clearChatElement(element, message) {
+    if (!element) return;
+    element.replaceChildren();
+    if (message) addChatText(element, "p", "", message);
+  }
+
+  async function loadChatMessages(conversationId) {
+    if (!supabase || !conversationId) return;
+
+    activeChatConversationId = conversationId;
+    chatMessageText.disabled = true;
+    sendChatMessageButton.disabled = true;
+    clearChatElement(messageList, "Loading messages...");
+
+    const { data, error } = await supabase.rpc(
+      "get_conversation_messages",
+      { p_conversation_id: conversationId }
+    );
+
+    if (error) {
+      clearChatElement(messageList, "Could not load messages.");
+      setChatStatus(error.message);
+      return;
+    }
+
+    if (activeChatConversationId !== conversationId) return;
+
+    clearChatElement(
+      messageList,
+      data && data.length ? "" : "No messages in this conversation yet."
+    );
+
+    for (const message of data || []) {
+      const bubble = document.createElement("div");
+      bubble.className = "chat-message " +
+        (message.sent_by_me ? "sent" : "received");
+
+      addChatText(
+        bubble,
+        "div",
+        "",
+        message.message_text
+      );
+
+      addChatText(
+        bubble,
+        "small",
+        "",
+        (message.sender_anonymous_name || "Anonymous") +
+          " · " + formatChatDate(message.sent_at)
+      );
+
+      messageList.appendChild(bubble);
+    }
+
+    if (data && data.length) {
+      messageList.scrollTop = messageList.scrollHeight;
+    }
+
+    chatMessageText.disabled = false;
+    sendChatMessageButton.disabled = false;
+
+    const { error: readError } = await supabase.rpc(
+      "mark_conversation_read",
+      { p_conversation_id: conversationId }
+    );
+
+    if (readError) {
+      setChatStatus("Messages loaded, but read status could not be updated.");
+    }
+
+    await loadChatNotifications();
+    await loadChatConversations(false);
+  }
+
+  async function loadChatConversations(showLoading = true) {
+    if (!supabase || !conversationList) return;
+
+    if (showLoading) {
+      clearChatElement(conversationList, "Loading inbox...");
+    }
+
+    const { data, error } = await supabase.rpc("get_my_conversations");
+
+    if (error) {
+      clearChatElement(conversationList, "Could not load your inbox.");
+      setChatStatus(error.message);
+      return;
+    }
+
+    clearChatElement(
+      conversationList,
+      data && data.length ? "" : "No conversations yet. Share your anonymous link to receive a message."
+    );
+
+    for (const conversation of data || []) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "conversation-item" +
+        (conversation.conversation_id === activeChatConversationId
+          ? " active"
+          : "");
+
+      const title = addChatText(
+        button,
+        "strong",
+        "",
+        conversation.other_anonymous_name || "Anonymous"
+      );
+
+      addChatText(
+        button,
+        "p",
+        "",
+        conversation.last_message_preview || "Start your conversation"
+      );
+
+      if (Number(conversation.unread_count) > 0) {
+        addChatText(
+          button,
+          "p",
+          "",
+          "Unread messages: " + conversation.unread_count
+        );
+      }
+
+      button.addEventListener("click", async () => {
+        conversationHeading.textContent =
+          conversation.other_anonymous_name || "Anonymous conversation";
+
+        await loadChatMessages(conversation.conversation_id);
+
+        for (const item of conversationList.querySelectorAll(".conversation-item")) {
+          item.classList.remove("active");
+        }
+        button.classList.add("active");
+      });
+
+      conversationList.appendChild(button);
+    }
+  }
+
+  async function loadChatNotifications() {
+    if (!supabase || !notificationList) return;
+
+    const { data, error } = await supabase.rpc("get_my_notifications");
+
+    if (error) {
+      clearChatElement(notificationList, "Could not load notifications.");
+      return;
+    }
+
+    clearChatElement(
+      notificationList,
+      data && data.length ? "" : "No notifications yet."
+    );
+
+    for (const notification of data || []) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "notification-item";
+
+      addChatText(
+        button,
+        "strong",
+        "",
+        notification.sender_anonymous_name || "Anonymous"
+      );
+
+      addChatText(
+        button,
+        "p",
+        "",
+        notification.message_preview || "You have a new notification."
+      );
+
+      addChatText(
+        button,
+        "p",
+        "",
+        formatChatDate(notification.created_at) +
+          (notification.read_at ? "" : " · Unread")
+      );
+
+      button.addEventListener("click", async () => {
+        if (!notification.conversation_id) return;
+
+        conversationHeading.textContent =
+          notification.sender_anonymous_name || "Anonymous conversation";
+
+        await loadChatMessages(notification.conversation_id);
+      });
+
+      notificationList.appendChild(button);
+    }
+  }
+
+  async function refreshAmoraInbox() {
+    if (!supabase) {
+      setChatStatus("Supabase is not available.");
+      return;
+    }
+
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+
+    if (sessionError || !sessionData.session) {
+      setChatStatus("Log in to view your conversations.");
+      clearChatElement(conversationList, "Log in to access your inbox.");
+      clearChatElement(notificationList, "Log in to access notifications.");
+      return;
+    }
+
+    setChatStatus("");
+    await loadChatConversations();
+    await loadChatNotifications();
+  }
+
+  if (refreshConversationsButton) {
+    refreshConversationsButton.addEventListener(
+      "click",
+      refreshAmoraInbox
+    );
+  }
+
+  if (chatMessageForm) {
+    chatMessageForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (chatRequestInProgress) return;
+
+      const conversationId = activeChatConversationId;
+      const message = chatMessageText.value.trim();
+
+      if (!conversationId) {
+        setChatStatus("Choose a conversation first.");
+        return;
+      }
+
+      if (!message) {
+        setChatStatus("Write a message first.");
+        return;
+      }
+
+      if (message.length > 2000) {
+        setChatStatus("Messages cannot exceed 2000 characters.");
+        return;
+      }
+
+      chatRequestInProgress = true;
+      sendChatMessageButton.disabled = true;
+      setChatStatus("Sending message...");
+
+      try {
+        const { data, error } = await supabase.rpc(
+          "send_chat_message",
+          {
+            p_conversation_id: conversationId,
+            p_message: message
+          }
+        );
+
+        if (error) {
+          setChatStatus("Message could not be sent: " + error.message);
+          return;
+        }
+
+        if (!data || data.status !== "approved") {
+          setChatStatus(
+            data && data.status === "blocked"
+              ? "This message was blocked by the safety filter. Remove contact details or links and try again."
+              : "The message was not accepted. Please try again."
+          );
+          return;
+        }
+
+        chatMessageText.value = "";
+        setChatStatus("Message sent.");
+        await loadChatMessages(conversationId);
+      } catch (error) {
+        setChatStatus("Something went wrong while sending the message.");
+      } finally {
+        chatRequestInProgress = false;
+        sendChatMessageButton.disabled = !activeChatConversationId;
+      }
+    });
+  }
+
+  // Refresh the inbox when the user signs in or restores a session.
+  if (supabase) {
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session && session.user) {
+        refreshAmoraInbox();
+      } else {
+        activeChatConversationId = null;
+        chatMessageText.disabled = true;
+        sendChatMessageButton.disabled = true;
+        clearChatElement(conversationList, "Log in to access your inbox.");
+        clearChatElement(notificationList, "Log in to access notifications.");
+        clearChatElement(messageList, "Select a conversation to read messages.");
+        conversationHeading.textContent = "Choose a conversation";
+        setChatStatus("");
+      }
+    });
+
+    refreshAmoraInbox();
+  }
+
 })();
