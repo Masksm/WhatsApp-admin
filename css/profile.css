@@ -45,6 +45,18 @@
 .profile-empty strong{display:block;margin-bottom:6px;color:#fff;font:700 1rem 'Manrope',sans-serif}
 .profile-empty a{display:inline-block;margin-top:8px;color:#f6a1d0;font-weight:700}
 .profile-account-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 4px;border-top:1px solid var(--profile-line);border-bottom:1px solid var(--profile-line)}
+.profile-settings-button{display:grid;place-items:center;font-size:1.15rem}
+.profile-post-card{padding:17px 0}
+.profile-post-stats{display:flex;gap:14px;margin-top:12px;color:#ad9eb4;font-size:.74rem}
+.profile-post-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;padding:10px 0;border-top:1px solid var(--profile-line);border-bottom:1px solid var(--profile-line)}
+.profile-post-actions .post-action{border:0;border-radius:9px;padding:8px 10px;background:#ffffff06;color:#d9c8df;font-size:.75rem;cursor:pointer}
+.profile-post-actions .post-action:hover{background:#ff72b715;color:#fff}
+.profile-comment-form{display:flex;gap:8px;margin:12px 0}
+.profile-comment-form input{flex:1;min-width:0;border:1px solid #ffffff1b;border-radius:10px;padding:10px;background:#100b14;color:#fff}
+.profile-comment-form button{border:0;border-radius:10px;padding:0 13px;background:linear-gradient(105deg,#ff70b5,#ba83ff);color:#fff;font-weight:700}
+.profile-comments{display:grid;gap:7px;margin-top:10px}
+.profile-comment{margin:0;padding:9px 11px;border-radius:9px;background:#ffffff05;color:#d8c9dc;font-size:.76rem;line-height:1.6}
+[hidden]{display:none!important}
 .profile-account-actions strong{font-size:.88rem}
 .profile-account-actions p{margin:5px 0 0;color:#ad9eb4;font-size:.74rem}
 .secondary-button{border:1px solid #ffffff24;border-radius:11px;padding:10px 14px;background:#ffffff06;color:#f7d5e8;font-size:.78rem;font-weight:700;cursor:pointer}
