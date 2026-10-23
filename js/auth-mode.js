@@ -1,4 +1,3 @@
-
 "use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -12,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const status = document.getElementById("auth-status");
 
   if (!authPanel || !authForm || !loginButton) {
-    console.error("Amora: Required authentication elements were not found.");
+    console.error("Amora: Authentication elements are missing.");
     return;
   }
 
@@ -29,6 +28,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (nameInput) {
       nameInput.style.display = isSignup ? "" : "none";
       nameInput.required = isSignup;
+      nameInput.maxLength = 30;
+      nameInput.autocomplete = "nickname";
+      nameInput.pattern = "[A-Za-z0-9_]{3,30}";
+      nameInput.title =
+        "Use 3–30 letters, numbers, or underscores.";
     }
 
     if (nameLabel) {
@@ -37,6 +41,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (usernameRow) {
       usernameRow.style.display = isSignup ? "" : "none";
+    }
+
+    if (emailInput) {
+      emailInput.type = "email";
+      emailInput.required = true;
+      emailInput.maxLength = 254;
+      emailInput.autocomplete = "email";
+    }
+
+    if (passwordInput) {
+      passwordInput.required = true;
+      passwordInput.autocomplete = isSignup
+        ? "new-password"
+        : "current-password";
     }
 
     if (heading) {
@@ -55,12 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ? "I already have an account"
       : "Create a new account";
 
-    if (passwordInput) {
-      passwordInput.autocomplete = isSignup
-        ? "new-password"
-        : "current-password";
-    }
-
     if (status) {
       status.textContent = "";
     }
@@ -69,6 +81,25 @@ document.addEventListener("DOMContentLoaded", () => {
   loginButton.addEventListener("click", (event) => {
     event.preventDefault();
     setMode(mode === "signup" ? "login" : "signup");
+  });
+
+  authForm.addEventListener("submit", (event) => {
+    if (mode !== "signup" || !nameInput) return;
+
+    const username = nameInput.value.trim();
+
+    if (!/^[A-Za-z0-9_]{3,30}$/.test(username)) {
+      event.preventDefault();
+
+      if (status) {
+        status.textContent =
+          "Username must contain 3–30 letters, numbers, or underscores.";
+      }
+
+      nameInput.focus();
+    } else {
+      nameInput.value = username;
+    }
   });
 
   setMode("signup");
