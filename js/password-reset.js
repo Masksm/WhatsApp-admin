@@ -25,13 +25,23 @@ const authPanel = document.getElementById("auth-panel");
     return;
   }
 
-  function showSection(sectionToShow) {
-    if (authForm) authForm.hidden = sectionToShow !== "login";
-    if (resetSection) resetSection.hidden = sectionToShow !== "reset";
-    if (newPasswordSection) {
-      newPasswordSection.hidden = sectionToShow !== "new-password";
-    }
+  
+function showSection(sectionToShow) {
+  if (authPanel) {
+    authPanel.hidden = sectionToShow !== "login";
+  } else if (authForm) {
+    authForm.hidden = sectionToShow !== "login";
   }
+
+  if (resetSection) {
+    resetSection.hidden = sectionToShow !== "reset";
+  }
+
+  if (newPasswordSection) {
+    newPasswordSection.hidden = sectionToShow !== "new-password";
+  }
+}
+
 
   if (forgotLink) {
     forgotLink.addEventListener("click", function (event) {
