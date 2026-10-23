@@ -5,6 +5,7 @@
   const supabase = window.amoraSupabase;
 
   const authForm = document.getElementById("auth-form");
+const authPanel = document.getElementById("auth-panel");
   const forgotLink = document.getElementById("forgot-password-link");
 
   const resetSection = document.getElementById("password-reset-section");
