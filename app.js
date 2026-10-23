@@ -1,8 +1,15 @@
 (() => {
   "use strict";
+
+  // ============================================================
+  // AMORA CORE HELPERS AND CONFIGURATION
+  // ============================================================
+
   const $ = (selector) => document.querySelector(selector);
+  const byId = (id) => document.getElementById(id);
   const base = window.AMORA || {};
   const params = new URLSearchParams(window.location.search);
+
   const config = {
     ...base,
     to: params.get("to") || base.to || "someone special",
@@ -12,7 +19,15 @@
     photo: params.get("img") || base.photo || ""
   };
 
-  const stages = ["#form-panel", "#queue-stage", "#verify-stage", "#reveal-stage"];
+  const supabase = window.amoraSupabase;
+
+  const stages = [
+    "#form-panel",
+    "#queue-stage",
+    "#verify-stage",
+    "#reveal-stage"
+  ];
+
   let queueTimer = null;
   let countdownTimer = null;
   let typingTimer = null;
@@ -24,50 +39,123 @@
   let currentLetter = "";
   let audioContext = null;
 
-  function showToast(message) {
-    const toast = $("#toast");
-    toast.textContent = message;
-    toast.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("show"), 2100);
-  }
-
-  function showStage(id) {
-    stages.forEach(selector => { $(selector).hidden = selector !== id; });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
   function safeText(value) {
     return String(value == null ? "" : value);
   }
 
+  function showToast(message) {
+    const toast = $("#toast");
+    if (!toast) return;
+
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(() => {
+      toast.classList.remove("show");
+    }, 2100);
+  }
+
+  function showStage(id) {
+    stages.forEach((selector) => {
+      const element = $(selector);
+      if (element) element.hidden = selector !== id;
+    });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
+
+  function setStatus(element, message, isError = false) {
+    if (!element) return;
+
+    element.textContent = message;
+    element.style.color = isError ? "#dc2626" : "#15803d";
+  }
+
+  function getErrorMessage(error, fallback) {
+    const message = error?.message || "";
+
+    if (/invalid or expired|already used|claim token/i.test(message)) {
+      return "This message's claim link is invalid, expired, or has already been used.";
+    }
+
+    if (/cannot claim a message sent to your own account/i.test(message)) {
+      return "This message was sent to your own account. Log in with the account that sent it to claim it.";
+    }
+
+    if (/contact information|messaging rules/i.test(message)) {
+      return "Please remove contact details or off-platform contact requests and try again.";
+    }
+
+    return message || fallback;
+  }
+
+  // ============================================================
+  // LANDING PAGE DEMO: STATS, ACTIVITY, TESTIMONIALS AND FAQ
+  // ============================================================
+
   function renderStats() {
-    $("#stat-sent").textContent = Number(stats.sentToday || 2184).toLocaleString();
-    $("#stat-online").textContent = Number(stats.online || 1247).toLocaleString();
-    $("#nav-online").textContent = `${Number(stats.online || 1247).toLocaleString()} online`;
-    const couples = Number(stats.couples || 41300);
-    $("#stat-couples").textContent = couples >= 1000 ? `${(couples / 1000).toFixed(1)}k` : couples.toLocaleString();
+    const sent = $("#stat-sent");
+    const online = $("#stat-online");
+    const navOnline = $("#nav-online");
+    const couplesElement = $("#stat-couples");
+
+    if (sent) {
+      sent.textContent = Number(stats.sentToday || 2184).toLocaleString();
+    }
+
+    if (online) {
+      online.textContent = Number(stats.online || 1247).toLocaleString();
+    }
+
+    if (navOnline) {
+      navOnline.textContent =
+        `${Number(stats.online || 1247).toLocaleString()} online`;
+    }
+
+    if (couplesElement) {
+      const couples = Number(stats.couples || 41300);
+
+      couplesElement.textContent = couples >= 1000
+        ? `${(couples / 1000).toFixed(1)}k`
+        : couples.toLocaleString();
+    }
   }
 
   function renderActivity() {
     const list = $("#activity-list");
+    if (!list) return;
+
     list.replaceChildren();
-    activity.slice(0, 4).forEach(item => {
+
+    activity.slice(0, 4).forEach((item) => {
       const row = document.createElement("div");
       row.className = "activity-item";
+
       const avatar = document.createElement("div");
       avatar.className = "activity-avatar";
       avatar.textContent = item.avatar || "💗";
+
       const copy = document.createElement("div");
       copy.className = "activity-copy";
+
       const names = document.createElement("strong");
-      names.textContent = `${safeText(item.from)} → ${safeText(item.to)}`;
+      names.textContent =
+        `${safeText(item.from)} → ${safeText(item.to)}`;
+
       const city = document.createElement("small");
       city.textContent = `Demo activity · ${safeText(item.city)}`;
+
       copy.append(names, city);
+
       const time = document.createElement("span");
       time.className = "activity-time";
       time.textContent = safeText(item.time || "recently");
+
       row.append(avatar, copy, time);
       list.append(row);
     });
@@ -75,28 +163,41 @@
 
   function renderTestimonials() {
     const target = $("#testimonials");
+    if (!target) return;
+
     target.replaceChildren();
-    (config.testimonials || []).forEach(item => {
+
+    (config.testimonials || []).forEach((item) => {
       const card = document.createElement("article");
       card.className = "testimonial-card";
+
       const head = document.createElement("div");
       head.className = "testimonial-head";
+
       const avatar = document.createElement("div");
       avatar.className = "testimonial-avatar";
       avatar.textContent = item.avatar || "💗";
+
       const person = document.createElement("div");
+
       const name = document.createElement("strong");
       name.textContent = safeText(item.name);
+
       const city = document.createElement("small");
       city.textContent = safeText(item.city);
+
       person.append(name, city);
+
       const stars = document.createElement("span");
       stars.className = "stars";
       stars.setAttribute("aria-label", "5 out of 5 stars");
       stars.textContent = "★★★★★";
+
       head.append(avatar, person, stars);
+
       const quote = document.createElement("blockquote");
       quote.textContent = `“${safeText(item.quote)}”`;
+
       card.append(head, quote);
       target.append(card);
     });
@@ -104,35 +205,50 @@
 
   function renderFaq() {
     const target = $("#faq-list");
+    if (!target) return;
+
     target.replaceChildren();
+
     (config.faq || []).forEach((item, index) => {
       const card = document.createElement("article");
       card.className = "faq-item";
+
       const button = document.createElement("button");
       button.type = "button";
       button.className = "faq-question";
       button.setAttribute("aria-expanded", "false");
       button.setAttribute("aria-controls", `faq-answer-${index}`);
+
       const question = document.createElement("span");
       question.textContent = safeText(item.question);
+
       const plus = document.createElement("span");
       plus.setAttribute("aria-hidden", "true");
       plus.textContent = "+";
+
       button.append(question, plus);
+
       const answer = document.createElement("div");
       answer.className = "faq-answer";
       answer.id = `faq-answer-${index}`;
       answer.hidden = true;
       answer.textContent = safeText(item.answer);
+
       button.addEventListener("click", () => {
         const open = button.getAttribute("aria-expanded") === "true";
+
         button.setAttribute("aria-expanded", String(!open));
         answer.hidden = open;
       });
+
       card.append(button, answer);
       target.append(card);
     });
   }
+
+  // ============================================================
+  // DEMO SURPRISE FLOW
+  // ============================================================
 
   function validatePhone(value) {
     const digits = value.replace(/\D/g, "");
@@ -140,25 +256,64 @@
   }
 
   function runQueue() {
+    if (!$("#queue-stage")) return;
+
     showStage("#queue-stage");
+
     queueStarted = Date.now();
     queuePosition = 47;
+
     const phases = [
-      ["Connecting to secure preview…", "Preparing your demo experience."],
-      ["You're in the queue", "Getting your little surprise ready."],
-      ["Finding the sweetest words…", "Almost ready for the reveal."],
-      ["Preparing your surprise…", "A little moment of happiness is on its way."]
+      [
+        "Connecting to secure preview…",
+        "Preparing your demo experience."
+      ],
+      [
+        "You're in the queue",
+        "Getting your little surprise ready."
+      ],
+      [
+        "Finding the sweetest words…",
+        "Almost ready for the reveal."
+      ],
+      [
+        "Preparing your surprise…",
+        "A little moment of happiness is on its way."
+      ]
     ];
+
     const duration = 11000;
+
     clearInterval(queueTimer);
+
     queueTimer = setInterval(() => {
       const elapsed = Date.now() - queueStarted;
       const progress = Math.min(100, elapsed / duration * 100);
-      $("#progress-fill").style.width = `${progress}%`;
-      $("#queue-position").textContent = Math.max(1, 47 - Math.floor(progress / 100 * 46));
-      const phaseIndex = Math.min(phases.length - 1, Math.floor(progress / 100 * phases.length));
-      $("#queue-title").textContent = phases[phaseIndex][0];
-      $("#queue-subtitle").textContent = phases[phaseIndex][1];
+
+      const progressFill = $("#progress-fill");
+      const position = $("#queue-position");
+      const title = $("#queue-title");
+      const subtitle = $("#queue-subtitle");
+
+      if (progressFill) {
+        progressFill.style.width = `${progress}%`;
+      }
+
+      if (position) {
+        position.textContent = Math.max(
+          1,
+          47 - Math.floor(progress / 100 * 46)
+        );
+      }
+
+      const phaseIndex = Math.min(
+        phases.length - 1,
+        Math.floor(progress / 100 * phases.length)
+      );
+
+      if (title) title.textContent = phases[phaseIndex][0];
+      if (subtitle) subtitle.textContent = phases[phaseIndex][1];
+
       if (elapsed >= duration) {
         clearInterval(queueTimer);
         showVerify();
@@ -167,70 +322,113 @@
   }
 
   function showVerify() {
+    if (!$("#verify-stage")) return;
+
     showStage("#verify-stage");
+
     let seconds = 10;
-    $("#countdown").textContent = "Demo preview continues in 0:10";
+    const countdown = $("#countdown");
+
+    if (countdown) {
+      countdown.textContent = "Demo preview continues in 0:10";
+    }
+
     clearInterval(countdownTimer);
+
     countdownTimer = setInterval(() => {
       seconds -= 1;
-      $("#countdown").textContent = `Demo preview continues in 0:${String(Math.max(0, seconds)).padStart(2, "0")}`;
+
+      if (countdown) {
+        countdown.textContent = seconds > 0
+          ? `Demo preview continues in 0:${String(seconds).padStart(2, "0")}`
+          : "Preview ready";
+      }
+
       if (seconds <= 0) {
         clearInterval(countdownTimer);
-        $("#countdown").textContent = "Preview ready";
       }
     }, 1000);
   }
 
   function playChime() {
     try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext || window.webkitAudioContext;
+
       if (!AudioCtx) return;
+
       audioContext = audioContext || new AudioCtx();
-      if (audioContext.state === "suspended") audioContext.resume();
-      [523.25, 659.25, 783.99].forEach((frequency, i) => {
+
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
+
+      [523.25, 659.25, 783.99].forEach((frequency, index) => {
         const oscillator = audioContext.createOscillator();
         const gain = audioContext.createGain();
+
         oscillator.type = "sine";
         oscillator.frequency.value = frequency;
-        gain.gain.setValueAtTime(0.0001, audioContext.currentTime + i * 0.16);
-        gain.gain.exponentialRampToValueAtTime(0.09, audioContext.currentTime + i * 0.16 + 0.025);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + i * 0.16 + 0.28);
+
+        const start = audioContext.currentTime + index * 0.16;
+
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.09, start + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.28);
+
         oscillator.connect(gain);
         gain.connect(audioContext.destination);
-        oscillator.start(audioContext.currentTime + i * 0.16);
-        oscillator.stop(audioContext.currentTime + i * 0.16 + 0.3);
+
+        oscillator.start(start);
+        oscillator.stop(start + 0.3);
       });
     } catch (_) {
-      // Audio is an optional enhancement; the reveal still works without it.
+      // The reveal works without audio.
     }
   }
 
   function launchConfetti() {
     const target = $("#confetti");
+    if (!target) return;
+
     target.replaceChildren();
+
     const pieces = ["💗", "✨", "💕", "✦", "🌸"];
-    for (let i = 0; i < 24; i++) {
+
+    for (let index = 0; index < 24; index++) {
       const piece = document.createElement("span");
-      piece.textContent = pieces[Math.floor(Math.random() * pieces.length)];
+
+      piece.textContent =
+        pieces[Math.floor(Math.random() * pieces.length)];
+
       piece.style.setProperty("--x", `${Math.random() * 100}%`);
       piece.style.setProperty("--fall-time", `${2.1 + Math.random() * 2.4}s`);
       piece.style.setProperty("--size", `${12 + Math.random() * 12}px`);
       piece.style.animationDelay = `${Math.random() * 1.1}s`;
+
       target.append(piece);
     }
+
     setTimeout(() => target.replaceChildren(), 6000);
   }
 
   function typeLetter() {
     clearInterval(typingTimer);
+
     const output = $("#letter-text");
     const cursor = $("#typing-cursor");
+
+    if (!output || !cursor) return;
+
     output.textContent = "";
     cursor.hidden = false;
+
     let index = 0;
+
     typingTimer = setInterval(() => {
       output.textContent = currentLetter.slice(0, index);
       index += 2;
+
       if (index >= currentLetter.length) {
         output.textContent = currentLetter;
         clearInterval(typingTimer);
@@ -242,17 +440,26 @@
   function reveal() {
     clearInterval(countdownTimer);
     clearInterval(queueTimer);
+
     currentLetter = safeText(config.message);
-    $("#letter-label").textContent = `A note for ${config.to}`;
-    $("#signature").textContent = `— from ${config.from}`;
+
+    const label = $("#letter-label");
+    const signature = $("#signature");
     const photo = $("#letter-photo");
-    if (config.photo && /^https?:\/\//i.test(config.photo)) {
-      photo.src = config.photo;
-      photo.hidden = false;
-    } else {
-      photo.removeAttribute("src");
-      photo.hidden = true;
+
+    if (label) label.textContent = `A note for ${config.to}`;
+    if (signature) signature.textContent = `— from ${config.from}`;
+
+    if (photo) {
+      if (config.photo && /^https?:\/\//i.test(config.photo)) {
+        photo.src = config.photo;
+        photo.hidden = false;
+      } else {
+        photo.removeAttribute("src");
+        photo.hidden = true;
+      }
     }
+
     showStage("#reveal-stage");
     launchConfetti();
     playChime();
@@ -260,7 +467,7 @@
   }
 
   // ============================================================
-  // AMORA ACCOUNT SIGNUP AND LOGIN
+  // ACCOUNT SIGNUP AND LOGIN
   // ============================================================
 
   const authForm = $("#auth-form");
@@ -268,295 +475,395 @@
   const authEmail = $("#auth-email");
   const authPassword = $("#auth-password");
   const authStatus = $("#auth-status");
-  const authSubmit = authForm.querySelector('button[type="submit"]');
+  const authSubmit = authForm?.querySelector('button[type="submit"]');
   const loginButton = $("#login-button");
 
-  let authMode = "signup";
-
-  function setAuthStatus(message, isError = false) {
-    authStatus.textContent = message;
-    authStatus.style.color = isError ? "#dc2626" : "#15803d";
-  }
-
-  function setAuthMode(mode) {
-    authMode = mode;
-
-    const isSignup = mode === "signup";
-
-    authName.required = isSignup;
-    authName.closest("label")?.setAttribute("aria-hidden", "false");
-
-    authName.style.display = isSignup ? "" : "none";
-    authName.previousElementSibling.style.display = isSignup ? "" : "none";
-
-    authName.placeholder = "What should we call you?";
-    authPassword.autocomplete = isSignup
-      ? "new-password"
-      : "current-password";
-
-    authSubmit.textContent = isSignup
-      ? "Create account 💗"
-      : "Log in 💗";
-
-    loginButton.textContent = isSignup
-      ? "I already have an account"
-      : "Create a new account";
-
-    setAuthStatus("");
-  }
-
-  loginButton.addEventListener("click", () => {
-    setAuthMode(authMode === "signup" ? "login" : "signup");
-  });
-
-  authForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const supabase = window.amoraSupabase;
-
-    if (!supabase) {
-      setAuthStatus(
-        "Connection unavailable. Please refresh and try again.",
-        true
-      );
-      return;
-    }
-
-    const email = authEmail.value.trim();
-    const password = authPassword.value;
-    const name = authName.value.trim();
-
-    authSubmit.disabled = true;
-    loginButton.disabled = true;
-    setAuthStatus(
-      authMode === "signup"
-        ? "Creating your account..."
-        : "Signing you in..."
-    );
-
-    try {
-      let result;
-
-      if (authMode === "signup") {
-        result = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              name: name
-            }
-          }
-        });
-      } else {
-        result = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-      }
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      if (authMode === "signup") {
-        if (result.data.session) {
-          setAuthStatus(
-            "Account created successfully. Welcome to Amora! 💗"
-          );
-        } else {
-          setAuthStatus(
-            "Account created. Check your email for the confirmation link."
-          );
-        }
-      } else {
-        setAuthStatus(
-          "Login successful. Welcome back to Amora! 💗"
-        );
-      }
-    } catch (error) {
-      setAuthStatus(
-        error.message || "Something went wrong. Please try again.",
-        true
-      );
-    } finally {
-      authSubmit.disabled = false;
-      loginButton.disabled = false;
-    }
-  });
-
-  setAuthMode("signup");
-
-const requestedAuthMode = new URLSearchParams(
-  window.location.search
-).get("auth");
-
-if (
-  requestedAuthMode === "signup" ||
-  requestedAuthMode === "login"
-) {
-  setAuthMode(requestedAuthMode);
-
-  const authPanel = document.getElementById("auth-panel");
-
-  if (authPanel) {
-    authPanel.hidden = false;
-    authPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-}
-
-  // ============================================================
-  // AMORA DASHBOARD AND SESSION MANAGEMENT
-  // ============================================================
-
+  const authPanel = $("#auth-panel");
   const dashboardPanel = $("#dashboard-panel");
   const dashboardEmail = $("#dashboard-email");
   const dashboardStatus = $("#dashboard-status");
   const logoutButton = $("#logout-button");
-  const authPanel = $("#auth-panel");
 
-  function showDashboard(user) {
-    if (user) {
-      dashboardEmail.textContent = user.email || "Email unavailable";
-      dashboardStatus.textContent =
-        "You're signed in. Your Amora space is ready. 💗";
+  let authMode = "signup";
 
-      dashboardPanel.hidden = false;
-      authPanel.hidden = true;
-    } else {
-      dashboardPanel.hidden = true;
-      authPanel.hidden = false;
+  function setAuthStatus(message, isError = false) {
+    setStatus(authStatus, message, isError);
+  }
+
+  function setAuthMode(mode) {
+    authMode = mode === "login" ? "login" : "signup";
+
+    const isSignup = authMode === "signup";
+
+    if (authName) {
+      authName.required = isSignup;
+      authName.style.display = isSignup ? "" : "none";
+
+      if (authName.previousElementSibling) {
+        authName.previousElementSibling.style.display =
+          isSignup ? "" : "none";
+      }
+
+      authName.placeholder = "What should we call you?";
+      authName.autocomplete = "name";
+    }
+
+    if (authPassword) {
+      authPassword.autocomplete = isSignup
+        ? "new-password"
+        : "current-password";
+    }
+
+    if (authSubmit) {
+      authSubmit.textContent = isSignup
+        ? "Create account 💗"
+        : "Log in 💗";
+    }
+
+    if (loginButton) {
+      loginButton.textContent = isSignup
+        ? "I already have an account"
+        : "Create a new account";
+    }
+
+    setAuthStatus("");
+  }
+
+  loginButton?.addEventListener("click", () => {
+    setAuthMode(authMode === "signup" ? "login" : "signup");
+  });
+
+  // ============================================================
+  // CLAIM PENDING ANONYMOUS MESSAGES
+  // ============================================================
+
+  const CLAIM_STORAGE_KEY = "amora_pending_claim_tokens";
+
+  let claimProcessing = false;
+
+  function getPendingClaimTokens() {
+    try {
+      const stored = sessionStorage.getItem(CLAIM_STORAGE_KEY);
+
+      if (!stored) return [];
+
+      const tokens = JSON.parse(stored);
+
+      if (!Array.isArray(tokens)) return [];
+
+      return [...new Set(
+        tokens.filter((token) =>
+          typeof token === "string" &&
+          /^[a-f0-9]{64}$/.test(token)
+        )
+      )];
+    } catch (error) {
+      console.error("Could not read pending claim tokens:", error);
+      return [];
     }
   }
 
-  // Restore the dashboard when an existing session is found.
-  window.amoraSupabase.auth.getSession().then(({ data, error }) => {
+  function savePendingClaimTokens(tokens) {
+    try {
+      if (tokens.length === 0) {
+        sessionStorage.removeItem(CLAIM_STORAGE_KEY);
+      } else {
+        sessionStorage.setItem(
+          CLAIM_STORAGE_KEY,
+          JSON.stringify([...new Set(tokens)])
+        );
+      }
+    } catch (error) {
+      console.error("Could not save pending claim tokens:", error);
+    }
+  }
+
+  async function processPendingClaims() {
+    if (!supabase || claimProcessing) return;
+
+    const tokens = getPendingClaimTokens();
+
+    if (tokens.length === 0) return;
+
+    claimProcessing = true;
+
+    const remainingTokens = [...tokens];
+    let claimedCount = 0;
+    let lastError = "";
+
+    try {
+      for (const token of tokens) {
+        try {
+          const { data, error } = await supabase.rpc(
+            "claim_anonymous_message",
+            {
+              p_token: token
+            }
+          );
+
+          if (error) throw error;
+
+          if (
+            typeof data !== "string" ||
+            !/^[0-9a-f-]{36}$/i.test(data)
+          ) {
+            throw new Error(
+              "The server did not return a valid conversation ID."
+            );
+          }
+
+          const index = remainingTokens.indexOf(token);
+
+          if (index !== -1) {
+            remainingTokens.splice(index, 1);
+          }
+
+          claimedCount += 1;
+        } catch (error) {
+          console.error("Could not claim an anonymous message:", error);
+
+          lastError = getErrorMessage(
+            error,
+            "An anonymous message could not be claimed."
+          );
+
+          // Keep the token so a temporary failure can be retried.
+          // The database prevents successful tokens from being reused.
+        }
+      }
+
+      savePendingClaimTokens(remainingTokens);
+
+      if (claimedCount > 0) {
+        setStatus(
+          dashboardStatus,
+          claimedCount === 1
+            ? "Your anonymous message is now connected to a conversation! 💗"
+            : `${claimedCount} anonymous messages are now connected to conversations! 💗`
+        );
+      } else if (lastError && remainingTokens.length > 0) {
+        setStatus(
+          dashboardStatus,
+          `Your account is signed in, but a message could not be connected: ${lastError}`,
+          true
+        );
+      }
+    } finally {
+      claimProcessing = false;
+    }
+  }
+
+  // ============================================================
+  // DASHBOARD AND SESSION MANAGEMENT
+  // ============================================================
+
+  function showDashboard(user) {
+    if (user) {
+      if (dashboardEmail) {
+        dashboardEmail.textContent = user.email || "Email unavailable";
+      }
+
+      if (dashboardStatus && !dashboardStatus.textContent) {
+        dashboardStatus.textContent =
+          "You're signed in. Your Amora space is ready. 💗";
+      }
+
+      if (dashboardPanel) dashboardPanel.hidden = false;
+      if (authPanel) authPanel.hidden = true;
+    } else {
+      if (dashboardPanel) dashboardPanel.hidden = true;
+
+      // Do not force the authentication panel open on the public
+      // anonymous-message page.
+      if (authPanel && !params.has("anon")) {
+        authPanel.hidden = false;
+      }
+    }
+  }
+
+  async function refreshAuthenticatedUser() {
+    if (!supabase) return;
+
+    const { data, error } = await supabase.auth.getSession();
+
     if (error) {
       console.error("Could not restore session:", error.message);
       return;
     }
 
-    showDashboard(data.session?.user || null);
-  });
+    const user = data.session?.user || null;
 
-  // Keep the page in sync when the user signs in or out.
-  window.amoraSupabase.auth.onAuthStateChange((event, session) => {
-    showDashboard(session?.user || null);
-  });
+    showDashboard(user);
 
-  // Log out securely through Supabase.
-  logoutButton.addEventListener("click", async () => {
-    logoutButton.disabled = true;
-    dashboardStatus.textContent = "Logging out...";
-
-    const { error } = await window.amoraSupabase.auth.signOut();
-
-    if (error) {
-      dashboardStatus.textContent =
-        "Logout failed: " + error.message;
-      logoutButton.disabled = false;
-      return;
+    if (user) {
+      await loadAnonymousLink(user);
+      await processPendingClaims();
     }
+  }
 
-    showDashboard(null);
-    setAuthStatus("You've logged out successfully.");
-    logoutButton.disabled = false;
-  });
+  if (supabase) {
+    refreshAuthenticatedUser();
 
-  $("#surprise-form").addEventListener("submit", event => {
-    event.preventDefault();
-    const number = $("#number").value.trim();
-    const theirNumber = $("#their-number").value.trim();
-    const error = $("#form-error");
-    error.hidden = true;
-    if (!validatePhone(number)) {
-      error.textContent = "Enter a valid phone number, including the country code if possible.";
-      error.hidden = false;
-      $("#number").focus();
-      return;
-    }
-    if (theirNumber && !validatePhone(theirNumber)) {
-      error.textContent = "The optional second number doesn't look valid. Check it or leave it blank.";
-      error.hidden = false;
-      $("#their-number").focus();
-      return;
-    }
-    // Deliberately local-only: this safe preview never calls /api/pair or /api/status.
-    runQueue();
-  });
+    supabase.auth.onAuthStateChange((event, session) => {
+      showDashboard(session?.user || null);
 
-  $("#copy-code").addEventListener("click", async () => {
-    const code = $("#demo-code").textContent;
-    try {
-      await navigator.clipboard.writeText(code);
-      $("#copy-code").textContent = "Copied ✓";
-      showToast("Demo code copied");
-      setTimeout(() => { $("#copy-code").textContent = "Copy demo code"; }, 1800);
-    } catch (_) {
-      showToast(`Demo code: ${code}`);
-    }
-  });
-
-  $("#continue-reveal").addEventListener("click", reveal);
-  $("#read-again").addEventListener("click", typeLetter);
-
-  document.querySelectorAll("[data-footer]").forEach(link => {
-    link.addEventListener("click", event => {
-      event.preventDefault();
-      const topic = link.dataset.footer;
-      showToast(topic === "privacy"
-        ? "Demo only: no phone numbers or messages are submitted."
-        : "Demo only: no real delivery or account linking occurs.");
+      // Avoid running additional Supabase requests directly inside
+      // the auth callback.
+      if (session?.user) {
+        setTimeout(() => {
+          loadAnonymousLink(session.user);
+          processPendingClaims();
+        }, 0);
+      }
     });
+  } else {
+    console.error("Amora Supabase client is unavailable.");
+  }
+
+  if (authForm) {
+    authForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!supabase) {
+        setAuthStatus(
+          "Connection unavailable. Please refresh and try again.",
+          true
+        );
+        return;
+      }
+
+      const email = authEmail?.value.trim() || "";
+      const password = authPassword?.value || "";
+      const name = authName?.value.trim() || "";
+
+      if (authSubmit) authSubmit.disabled = true;
+      if (loginButton) loginButton.disabled = true;
+
+      setAuthStatus(
+        authMode === "signup"
+          ? "Creating your account..."
+          : "Signing you in..."
+      );
+
+      try {
+        let result;
+
+        if (authMode === "signup") {
+          result = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                name
+              }
+            }
+          });
+        } else {
+          result = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
+        }
+
+        if (result.error) throw result.error;
+
+        if (authMode === "signup") {
+          if (result.data.session) {
+            setAuthStatus(
+              "Account created successfully. Welcome to Amora! 💗"
+            );
+
+            showDashboard(result.data.user);
+
+            await loadAnonymousLink(result.data.user);
+            await processPendingClaims();
+          } else {
+            setAuthStatus(
+              "Account created. Check your email for the confirmation link. Your pending message will be connected after you confirm your email and log in."
+            );
+          }
+        } else {
+          setAuthStatus(
+            "Login successful. Welcome back to Amora! 💗"
+          );
+
+          showDashboard(result.data.user);
+
+          await loadAnonymousLink(result.data.user);
+          await processPendingClaims();
+        }
+      } catch (error) {
+        setAuthStatus(
+          getErrorMessage(
+            error,
+            "Something went wrong. Please try again."
+          ),
+          true
+        );
+      } finally {
+        if (authSubmit) authSubmit.disabled = false;
+        if (loginButton) loginButton.disabled = false;
+      }
+    });
+  }
+
+  setAuthMode("signup");
+
+  const requestedAuthMode = params.get("auth");
+
+  if (requestedAuthMode === "signup" || requestedAuthMode === "login") {
+    setAuthMode(requestedAuthMode);
+
+    if (authPanel) {
+      authPanel.hidden = false;
+
+      authPanel.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+  }
+
+  logoutButton?.addEventListener("click", async () => {
+    if (!supabase) return;
+
+    logoutButton.disabled = true;
+
+    setStatus(dashboardStatus, "Logging out...");
+
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) throw error;
+
+      showDashboard(null);
+      setAuthStatus("You've logged out successfully.");
+    } catch (error) {
+      setStatus(
+        dashboardStatus,
+        `Logout failed: ${error.message}`,
+        true
+      );
+    } finally {
+      logoutButton.disabled = false;
+    }
   });
 
-  // Gentle simulated counters, clearly identified as illustrative demo content.
-  renderStats();
-  renderActivity();
-  renderTestimonials();
-  renderFaq();
-  setInterval(() => {
-    stats.sentToday = Number(stats.sentToday || 2184) + Math.floor(Math.random() * 4);
-    stats.online = Math.max(1200, Number(stats.online || 1247) + Math.floor(Math.random() * 7) - 3);
-    stats.couples = Number(stats.couples || 41300) + (Math.random() > 0.6 ? 1 : 0);
-    renderStats();
-  }, 3000);
-
-  const activityNames = [
-    { from: "Nneka", to: "Dami", city: "Port Harcourt", avatar: "🌸" },
-    { from: "Feyi", to: "Mira", city: "Lagos", avatar: "💌" },
-    { from: "Ife", to: "Tolu", city: "Abuja", avatar: "✨" },
-    { from: "Emeka", to: "Ada", city: "Enugu", avatar: "💗" }
-  ];
-  setInterval(() => {
-    const next = activityNames[Math.floor(Math.random() * activityNames.length)];
-    activity.unshift({ ...next, time: "just now" });
-    activity = activity.slice(0, 4);
-    renderActivity();
-  }, 5000);
-})();
-
   // ============================================================
-  // AMORA PERSONAL ANONYMOUS LINKS
+  // PERSONAL ANONYMOUS LINKS
   // ============================================================
 
-  const createLinkButton = document.getElementById(
-    "create-anonymous-link"
-  );
-  const copyLinkButton = document.getElementById(
-    "copy-anonymous-link"
-  );
-  const linkResult = document.getElementById(
-    "anonymous-link-result"
-  );
-  const linkUrlInput = document.getElementById(
-    "anonymous-link-url"
-  );
-  const linkStatus = document.getElementById(
-    "anonymous-link-status"
-  );
+  const createLinkButton = byId("create-anonymous-link");
+  const copyLinkButton = byId("copy-anonymous-link");
+  const linkResult = byId("anonymous-link-result");
+  const linkUrlInput = byId("anonymous-link-url");
+  const linkStatus = byId("anonymous-link-status");
 
   function displayAnonymousLink(slug) {
+    if (!linkUrlInput || !linkResult) return;
+
     const link = new URL(window.location.href);
+
     link.search = "";
     link.hash = "";
     link.searchParams.set("anon", slug);
@@ -566,13 +873,13 @@ if (
   }
 
   async function loadAnonymousLink(user) {
-    if (!user || !createLinkButton) return;
+    if (!user || !createLinkButton || !supabase) return;
 
-    linkStatus.textContent = "Checking your personal link...";
+    setStatus(linkStatus, "Checking your personal link...");
     createLinkButton.disabled = true;
 
     try {
-      const { data, error } = await window.amoraSupabase
+      const { data, error } = await supabase
         .from("anonymous_links")
         .select("slug, is_active")
         .eq("owner_id", user.id)
@@ -584,28 +891,41 @@ if (
 
       if (data && data.is_active) {
         displayAnonymousLink(data.slug);
-        linkStatus.textContent = "Your personal link is ready.";
+        setStatus(linkStatus, "Your personal link is ready.");
       } else {
-        linkResult.hidden = true;
-        linkStatus.textContent =
-          "You haven't created an active link yet.";
+        if (linkResult) linkResult.hidden = true;
+
+        setStatus(
+          linkStatus,
+          "You haven't created an active link yet."
+        );
       }
     } catch (error) {
       console.error("Could not load anonymous link:", error);
-      linkStatus.textContent =
-        "Could not load your link. Please refresh and try again.";
+
+      setStatus(
+        linkStatus,
+        "Could not load your link. Please refresh and try again.",
+        true
+      );
     } finally {
       createLinkButton.disabled = false;
     }
   }
 
-  createLinkButton.addEventListener("click", async () => {
+  createLinkButton?.addEventListener("click", async () => {
+    if (!supabase) {
+      setStatus(linkStatus, "Connection unavailable.", true);
+      return;
+    }
+
     createLinkButton.disabled = true;
-    linkStatus.textContent = "Creating your personal link...";
+
+    setStatus(linkStatus, "Creating your personal link...");
 
     try {
       const { data: sessionData, error: sessionError } =
-        await window.amoraSupabase.auth.getSession();
+        await supabase.auth.getSession();
 
       if (sessionError) throw sessionError;
 
@@ -615,33 +935,31 @@ if (
         throw new Error("Please log in before creating a link.");
       }
 
-      // Reuse an existing active link instead of creating duplicates.
-      const { data: existing, error: lookupError } =
-        await window.amoraSupabase
-          .from("anonymous_links")
-          .select("slug, is_active")
-          .eq("owner_id", user.id)
-          .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
+      const { data: existing, error: lookupError } = await supabase
+        .from("anonymous_links")
+        .select("slug, is_active")
+        .eq("owner_id", user.id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       if (lookupError) throw lookupError;
 
       if (existing) {
         displayAnonymousLink(existing.slug);
-        linkStatus.textContent = "Your existing link is ready.";
+        setStatus(linkStatus, "Your existing link is ready.");
         return;
       }
 
       const slug =
         "m-" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 
-      const { data, error } = await window.amoraSupabase
+      const { data, error } = await supabase
         .from("anonymous_links")
         .insert({
           owner_id: user.id,
-          slug: slug,
+          slug,
           is_active: true
         })
         .select("slug")
@@ -650,189 +968,361 @@ if (
       if (error) throw error;
 
       displayAnonymousLink(data.slug);
-      linkStatus.textContent =
-        "Your personal link has been created successfully! 💗";
+
+      setStatus(
+        linkStatus,
+        "Your personal link has been created successfully! 💗"
+      );
     } catch (error) {
       console.error("Could not create anonymous link:", error);
-      linkStatus.textContent =
-        error.message || "Could not create your link.";
+
+      setStatus(
+        linkStatus,
+        error.message || "Could not create your link.",
+        true
+      );
     } finally {
       createLinkButton.disabled = false;
     }
   });
 
-  copyLinkButton.addEventListener("click", async () => {
+  copyLinkButton?.addEventListener("click", async () => {
+    if (!linkUrlInput) return;
+
     try {
       await navigator.clipboard.writeText(linkUrlInput.value);
-      linkStatus.textContent = "Link copied! Share it with your friends.";
-    } catch (error) {
+
+      setStatus(
+        linkStatus,
+        "Link copied! Share it with your friends."
+      );
+    } catch (_) {
       linkUrlInput.focus();
       linkUrlInput.select();
-      linkStatus.textContent =
-        "Automatic copying failed. Copy the selected link manually.";
-    }
-  });
 
-  // Load the user's link whenever a valid session is found.
-  window.amoraSupabase.auth.getSession().then(({ data, error }) => {
-    if (error) {
-      console.error("Session lookup failed:", error.message);
-      return;
-    }
-
-    if (data.session?.user) {
-      loadAnonymousLink(data.session.user);
-    }
-  });
-
-  window.amoraSupabase.auth.onAuthStateChange((event, session) => {
-    if (session?.user) {
-      loadAnonymousLink(session.user);
-    } else if (linkResult) {
-      linkResult.hidden = true;
-      linkStatus.textContent = "";
+      setStatus(
+        linkStatus,
+        "Automatic copying failed. Copy the selected link manually."
+      );
     }
   });
 
   // ============================================================
-  // AMORA PUBLIC ANONYMOUS MESSAGE SUBMISSION
+  // PUBLIC ANONYMOUS MESSAGE SUBMISSION
   // ============================================================
 
-  const publicMessagePanel = document.getElementById(
-    "anonymous-message-panel"
-  );
-  const publicMessageForm = document.getElementById(
-    "anonymous-message-form"
-  );
-  const publicMessageText = document.getElementById(
-    "anonymous-message-text"
-  );
-  const publicMessageStatus = document.getElementById(
-    "anonymous-message-status"
-  );
-  const publicMessageButton = document.getElementById(
-    "send-anonymous-message"
-  );
+  const publicMessagePanel = byId("anonymous-message-panel");
+  const publicMessageForm = byId("anonymous-message-form");
+  const publicMessageText = byId("anonymous-message-text");
+  const publicMessageStatus = byId("anonymous-message-status");
+  const publicMessageButton = byId("send-anonymous-message");
 
-  const anonymousPageUrl = new URL(window.location.href);
-  const publicAnonymousSlug = anonymousPageUrl.searchParams.get("anon");
+  const publicAnonymousSlug = params.get("anon");
 
   if (publicAnonymousSlug && publicMessagePanel) {
-    // Show the public message page instead of the owner's dashboard.
     publicMessagePanel.hidden = false;
 
-    
-const elementsToHide = [
-  "auth-panel",
-  "dashboard-panel",
-  "form-panel"
-];
+    [
+      "auth-panel",
+      "dashboard-panel",
+      "form-panel"
+    ].forEach((id) => {
+      const element = byId(id);
+      if (element) element.hidden = true;
+    });
 
-elementsToHide.forEach((id) => {
-  const element = document.getElementById(id);
-  if (element) element.hidden = true;
-});
+    document.body.classList.add("anonymous-message-page");
 
-// Hide the rest of the homepage for anonymous message links.
-document.body.classList.add("anonymous-message-page");
+    document.querySelectorAll("body > *").forEach((element) => {
+      if (
+        element.id !== "anonymous-message-panel" &&
+        element.tagName !== "SCRIPT"
+      ) {
+        element.hidden = true;
+      }
+    });
 
-document.querySelectorAll("body > *").forEach((element) => {
-  if (
-    element.id !== "anonymous-message-panel" &&
-    element.tagName !== "SCRIPT"
-  ) {
-    element.hidden = true;
-  }
-});
+    publicMessagePanel.hidden = false;
 
-// Keep the anonymous message panel visible.
-publicMessagePanel.hidden = false;
-
-
-    publicMessageForm.addEventListener("submit", async (event) => {
+    publicMessageForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      const message = publicMessageText.value.trim();
+      if (!supabase) {
+        setStatus(
+          publicMessageStatus,
+          "Connection unavailable. Please try again later.",
+          true
+        );
+        return;
+      }
+
+      const message = publicMessageText?.value.trim() || "";
 
       if (!message) {
-        publicMessageStatus.textContent =
-          "Please write a message before sending.";
+        setStatus(
+          publicMessageStatus,
+          "Please write a message before sending.",
+          true
+        );
         return;
       }
 
       if (message.length > 2000) {
-        publicMessageStatus.textContent =
-          "Your message cannot exceed 2,000 characters.";
+        setStatus(
+          publicMessageStatus,
+          "Your message cannot exceed 2,000 characters.",
+          true
+        );
         return;
       }
 
-      publicMessageButton.disabled = true;
-      publicMessageStatus.textContent = "Sending your message...";
+      if (publicMessageButton) {
+        publicMessageButton.disabled = true;
+      }
+
+      setStatus(publicMessageStatus, "Sending your message...");
 
       try {
-        
-const { data: claimToken, error } =
-  await window.amoraSupabase.rpc(
-    "submit_anonymous_message",
-    {
-      p_slug: publicAnonymousSlug,
-      p_message: message
-    }
-  );
+        const { data: claimToken, error } = await supabase.rpc(
+          "submit_anonymous_message",
+          {
+            p_slug: publicAnonymousSlug,
+            p_message: message
+          }
+        );
 
-if (error) throw error;
+        if (error) throw error;
 
-if (typeof claimToken !== "string" || !/^[a-f0-9]{64}$/.test(claimToken)) {
-  throw new Error("The message was sent, but its claim token was not returned correctly.");
-}
+        if (
+          typeof claimToken !== "string" ||
+          !/^[a-f0-9]{64}$/.test(claimToken)
+        ) {
+          throw new Error(
+            "The message was sent, but the claim token was not returned correctly."
+          );
+        }
 
-const storageKey = "amora_pending_claim_tokens";
-const existingTokens = JSON.parse(
-  sessionStorage.getItem(storageKey) || "[]"
-);
+        // Store the token locally so the sender can claim the message
+        // after signing up or logging in. Never put it in a URL.
+        const tokens = getPendingClaimTokens();
 
-existingTokens.push(claimToken);
+        tokens.push(claimToken);
+        savePendingClaimTokens(tokens);
 
-sessionStorage.setItem(
-  storageKey,
-  JSON.stringify(existingTokens)
-);
+        if (publicMessageForm) publicMessageForm.reset();
 
+        const success = document.createElement("div");
+        success.className = "anonymous-success";
 
-        
-publicMessageForm.reset();
+        const heading = document.createElement("h3");
+        heading.textContent = "Message sent successfully! 💗";
 
-publicMessageStatus.innerHTML = `
-  <div class="anonymous-success">
-    <h3>Message sent successfully! 💗</h3>
-    <p>Your little note has been delivered anonymously.</p>
+        const description = document.createElement("p");
+        description.textContent =
+          "Your little note has been delivered anonymously.";
 
-    <div class="anonymous-signup-prompt">
-      <h4>Enjoying Amora? 💌</h4>
-      <p>
-        Create your own account to get your personal anonymous
-        message link, or log in if you already have an account.
-      </p>
+        const prompt = document.createElement("div");
+        prompt.className = "anonymous-signup-prompt";
 
-      <a class="primary-btn" href="${window.location.origin}/">
-        Create an account 💗
-      </a>
+        const promptHeading = document.createElement("h4");
+        promptHeading.textContent = "Enjoying Amora? 💌";
 
-      <p>
-        Already have an account?
-        <a class="primary-btn" href="${window.location.origin}/">Log in</a>
-      </p>
-    </div>
-  </div>
-`;
+        const promptText = document.createElement("p");
+        promptText.textContent =
+          "Create an account to claim your message and continue the conversation.";
 
+        const signupLink = document.createElement("a");
+        signupLink.className = "primary-btn";
+        signupLink.href = `${window.location.origin}/?auth=signup`;
+        signupLink.textContent = "Create an account 💗";
+
+        const loginText = document.createElement("p");
+        loginText.textContent = "Already have an account? ";
+
+        const loginLink = document.createElement("a");
+        loginLink.className = "primary-btn";
+        loginLink.href = `${window.location.origin}/?auth=login`;
+        loginLink.textContent = "Log in";
+
+        loginText.append(loginLink);
+
+        prompt.append(
+          promptHeading,
+          promptText,
+          signupLink,
+          loginText
+        );
+
+        success.append(heading, description, prompt);
+
+        if (publicMessageStatus) {
+          publicMessageStatus.replaceChildren(success);
+        }
       } catch (error) {
-        console.error("Anonymous message submission failed:", error);
+        console.error(
+          "Anonymous message submission failed:",
+          error
+        );
 
-        publicMessageStatus.textContent =
-          "We couldn't send your message. The link may be invalid or temporarily unavailable.";
+        setStatus(
+          publicMessageStatus,
+          getErrorMessage(
+            error,
+            "We couldn't send your message. The link may be invalid or temporarily unavailable."
+          ),
+          true
+        );
       } finally {
-        publicMessageButton.disabled = false;
+        if (publicMessageButton) {
+          publicMessageButton.disabled = false;
+        }
       }
     });
   }
+
+  // ============================================================
+  // EXISTING SURPRISE FORM AND DEMO CONTROLS
+  // ============================================================
+
+  $("#surprise-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const number = $("#number")?.value.trim() || "";
+    const theirNumber = $("#their-number")?.value.trim() || "";
+    const error = $("#form-error");
+
+    if (error) error.hidden = true;
+
+    if (!validatePhone(number)) {
+      if (error) {
+        error.textContent =
+          "Enter a valid phone number, including the country code if possible.";
+        error.hidden = false;
+      }
+
+      $("#number")?.focus();
+      return;
+    }
+
+    if (theirNumber && !validatePhone(theirNumber)) {
+      if (error) {
+        error.textContent =
+          "The optional second number doesn't look valid. Check it or leave it blank.";
+        error.hidden = false;
+      }
+
+      $("#their-number")?.focus();
+      return;
+    }
+
+    // This remains a local-only demo, not a real delivery system.
+    runQueue();
+  });
+
+  $("#copy-code")?.addEventListener("click", async () => {
+    const code = $("#demo-code")?.textContent || "";
+    const button = $("#copy-code");
+
+    try {
+      await navigator.clipboard.writeText(code);
+
+      if (button) {
+        button.textContent = "Copied ✓";
+
+        setTimeout(() => {
+          button.textContent = "Copy demo code";
+        }, 1800);
+      }
+
+      showToast("Demo code copied");
+    } catch (_) {
+      showToast(`Demo code: ${code}`);
+    }
+  });
+
+  $("#continue-reveal")?.addEventListener("click", reveal);
+  $("#read-again")?.addEventListener("click", typeLetter);
+
+  document.querySelectorAll("[data-footer]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+
+      const topic = link.dataset.footer;
+
+      showToast(
+        topic === "privacy"
+          ? "Demo only: no phone numbers or messages are submitted by this demo."
+          : "Demo only: no real delivery or account linking occurs in this demo."
+      );
+    });
+  });
+
+  // ============================================================
+  // SIMULATED LANDING PAGE ACTIVITY
+  // ============================================================
+
+  renderStats();
+  renderActivity();
+  renderTestimonials();
+  renderFaq();
+
+  setInterval(() => {
+    stats.sentToday =
+      Number(stats.sentToday || 2184) +
+      Math.floor(Math.random() * 4);
+
+    stats.online = Math.max(
+      1200,
+      Number(stats.online || 1247) +
+        Math.floor(Math.random() * 7) - 3
+    );
+
+    stats.couples =
+      Number(stats.couples || 41300) +
+      (Math.random() > 0.6 ? 1 : 0);
+
+    renderStats();
+  }, 3000);
+
+  const activityNames = [
+    {
+      from: "Nneka",
+      to: "Dami",
+      city: "Port Harcourt",
+      avatar: "🌸"
+    },
+    {
+      from: "Feyi",
+      to: "Mira",
+      city: "Lagos",
+      avatar: "💌"
+    },
+    {
+      from: "Ife",
+      to: "Tolu",
+      city: "Abuja",
+      avatar: "✨"
+    },
+    {
+      from: "Emeka",
+      to: "Ada",
+      city: "Enugu",
+      avatar: "💗"
+    }
+  ];
+
+  setInterval(() => {
+    const next =
+      activityNames[Math.floor(Math.random() * activityNames.length)];
+
+    activity.unshift({
+      ...next,
+      time: "just now"
+    });
+
+    activity = activity.slice(0, 4);
+
+    renderActivity();
+  }, 5000);
+
+})();
