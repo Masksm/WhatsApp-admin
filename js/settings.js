@@ -56,6 +56,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
   const traitLabels={hobbies:"Hobbies",skills:"Skills",interests:"Interested in",vibe:"Your kind of vibe",likes:"Likes",dislikes:"Dislikes",zodiac:"Zodiac sign (optional)",gender:"Gender (optional)"};
   const traitFields=byId("settings-traits-fields"), traitStatus=byId("settings-traits-status"), traitSave=byId("settings-save-traits");
+  const traitDialog=byId("settings-traits-dialog"), traitOpen=byId("settings-open-traits");
+  const closeTraitDialog=()=>{if(traitDialog)traitDialog.hidden=true;document.body.classList.remove("traits-dialog-open");};
+  const openTraitDialog=()=>{if(traitDialog){traitDialog.hidden=false;document.body.classList.add("traits-dialog-open");byId("settings-close-traits")?.focus();}};
+  traitOpen?.addEventListener("click",openTraitDialog);
+  byId("settings-close-traits")?.addEventListener("click",closeTraitDialog);
+  byId("settings-cancel-traits")?.addEventListener("click",closeTraitDialog);
+  traitDialog?.addEventListener("click",event=>{if(event.target===traitDialog)closeTraitDialog();});
+  document.addEventListener("keydown",event=>{if(event.key==="Escape"&&traitDialog&&!traitDialog.hidden)closeTraitDialog();});
   const traitNode=(tag,cls,value)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(value!==undefined)el.textContent=value;return el;};
   function renderTraitEditor(traits){
     traitFields.replaceChildren();
@@ -76,7 +84,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   traitSave?.addEventListener("click",async()=>{
     if(!user)return;traitSave.disabled=true;traitStatus.classList.remove("is-error");traitStatus.textContent="Saving your choices…";
-    try{const public_traits={};Object.entries(traitOptions).forEach(([category,options])=>{const values=Array.from(traitFields.querySelectorAll('[name="trait-'+category+'"]:checked')).map(el=>el.value).filter(v=>options.includes(v));if(values.length)public_traits[category]=category==="zodiac"||category==="gender"?values[0]:values.slice(0,8);});const {error}=await supabase.from("profiles").update({public_traits}).eq("id",user.id);if(error)throw error;traitStatus.textContent="Your public traits are saved.";}
+    try{const public_traits={};Object.entries(traitOptions).forEach(([category,options])=>{const values=Array.from(traitFields.querySelectorAll('[name="trait-'+category+'"]:checked')).map(el=>el.value).filter(v=>options.includes(v));if(values.length)public_traits[category]=category==="zodiac"||category==="gender"?values[0]:values.slice(0,8);});const {error}=await supabase.from("profiles").update({public_traits}).eq("id",user.id);if(error)throw error;traitStatus.textContent="Your public traits are saved.";closeTraitDialog();}
     catch(error){traitStatus.textContent=error.message||"Could not save your choices.";traitStatus.classList.add("is-error");}
     finally{traitSave.disabled=false;}
   });
