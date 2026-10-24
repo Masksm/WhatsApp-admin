@@ -93,18 +93,23 @@ function showSection(sectionToShow) {
       const email = resetEmail.value.trim();
 
       try {
-        // Keep the existing allowed callback URL; auth.js recognizes recovery links
-        // and prevents its normal logged-in redirect from hiding the new-password form.
-        const redirectTo = window.location.origin + window.location.pathname;
+        const { data, error } = await supabase.functions.invoke(
+          "auth-email-request",
+          { body: { action: "recovery", email } }
+        );
 
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: redirectTo
-        });
-
-        if (error) throw error;
+        if (error) {
+          let message = error.message || "Could not send the recovery email.";
+          try {
+            const responseBody = await error.context?.json();
+            if (responseBody?.error) message = responseBody.error;
+          } catch {}
+          throw new Error(message);
+        }
+        if (data?.error) throw new Error(data.error);
 
         resetStatus.textContent =
-          "If an account exists for that email, a recovery link will be sent. Check your inbox and spam folder.";
+          data?.message || "If an account exists for that email, a recovery link will be sent. Check your inbox and spam folder.";
       } catch (error) {
         console.error("Password recovery error:", error);
         resetStatus.textContent =
