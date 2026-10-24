@@ -24,3 +24,9 @@
 .desktop-header-account-actions{margin-left:auto}
 @media(min-width:721px){.mobile-topbar .header-account-actions{display:none}}
 @media(max-width:720px){.desktop-header-account-actions{display:none}.mobile-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px}.settings-logout{font-size:.72rem;padding:8px 10px}}
+
+
+/* Clear, compact delete control for the owner's anonymous posts */
+.anonymous-post-delete{display:inline-grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid #ff6b8a55;border-radius:12px;background:#ff6b8a12;color:#ff8da5;font-size:1rem;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+.anonymous-post-delete:hover{background:#ff6b8a24;border-color:#ff6b8a99;transform:translateY(-1px)}
+.anonymous-post-delete:focus-visible{outline:2px solid #ff8da5;outline-offset:3px}
