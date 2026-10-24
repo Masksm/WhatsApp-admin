@@ -58,3 +58,15 @@
 @keyframes composer-arrive{from{transform:translateY(18px);opacity:.7}to{transform:translateY(0);opacity:1}}
 .composer-dialog .composer{padding:18px 20px 16px}.composer-large-text{min-height:210px;padding-top:15px;font-size:1.25rem}.composer-media-tools-bottom{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:8px 0 15px;padding:0;border:0;border-radius:0;background:transparent}.composer-media-icon{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border:0;border-radius:50%;background:var(--surface2,#26182e);color:#62c98b;font-size:1.45rem;cursor:pointer}.composer-media-icon:hover{background:#62c98b20}.composer-media-icon:disabled{opacity:.38;cursor:not-allowed}.composer-media-icon input{display:none}.composer-media-icon span{line-height:1}.composer-anonymity-options{border-top:1px solid var(--line);padding-top:14px;margin-top:4px}.composer-publish-button{margin-top:0}
 @media(max-width:720px){.composer-dialog{width:calc(100% - 16px);max-height:88dvh;transform:translateY(36px) scale(.98)}.composer-dialog[open]{transform:translateY(0) scale(1)}.composer-dialog .composer{padding:14px}.composer-large-text{min-height:190px;font-size:1.1rem}.composer-media-tools-bottom{gap:8px}.composer-media-icon{width:40px;height:40px}}
+
+/* Inline expansion: the composer grows directly from the feed */
+.composer-inline-panel{display:block;max-height:0;opacity:0;overflow:hidden;transform:translateY(-8px) scale(.985);transform-origin:top center;transition:max-height .32s ease,opacity .22s ease,transform .28s cubic-bezier(.2,.8,.2,1);margin:0 0 0;pointer-events:none}
+.composer-inline-panel[hidden]{display:none}
+.composer-inline-panel.is-expanded{max-height:1000px;opacity:1;transform:translateY(0) scale(1);margin:0 0 18px;overflow:visible;pointer-events:auto}
+.composer-inline-panel .composer{padding:18px 20px 16px;border:1px solid var(--line);border-radius:16px;background:var(--surface,#1a1020)}
+.composer-inline-panel .composer-dialog-header{padding-bottom:12px}
+.composer-inline-panel .composer-close{width:32px;height:32px}
+.composer-inline-panel .composer-large-text{min-height:170px}
+.feed-quick-composer[aria-expanded="true"]{border-color:#ff79b966;border-bottom-left-radius:10px;border-bottom-right-radius:10px;margin-bottom:8px}
+.feed-quick-composer[aria-expanded="true"] .quick-composer-prompt{background:var(--surface,#1a1020);color:var(--text)}
+@media(max-width:720px){.composer-inline-panel.is-expanded{margin-bottom:14px}.composer-inline-panel .composer{padding:14px}.composer-inline-panel .composer-large-text{min-height:145px}}
