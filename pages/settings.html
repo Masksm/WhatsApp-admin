@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#160d1c">
   <title>Settings · Amora</title>
+  <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
   <link rel="stylesheet" href="/css/feed.css">
   <link rel="stylesheet" href="/css/settings.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -54,7 +55,27 @@
           </section>
           <section class="settings-group" id="preferences">
             <p class="eyebrow">YOUR EXPERIENCE</p><h2>Preferences</h2>
-            <article class="settings-item card"><span class="settings-icon">◐</span><div><h3>Appearance</h3><p>Amora currently uses its dark theme. More appearance controls can be added later.</p></div></article>
+            <article class="settings-item card settings-appearance-card">
+              <button class="settings-traits-trigger" id="settings-open-appearance" type="button" aria-haspopup="dialog" aria-controls="settings-appearance-dialog">
+                <span class="settings-icon">◐</span>
+                <span class="settings-traits-trigger-copy"><strong>Appearance</strong><small id="settings-appearance-summary">Choose light mode, dark mode, or follow your device settings.</small></span>
+                <span class="settings-traits-trigger-arrow" aria-hidden="true">↗</span>
+              </button>
+            </article>
+            <div class="settings-traits-backdrop" id="settings-appearance-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-appearance-title" hidden>
+              <section class="settings-traits-modal settings-appearance-modal">
+                <button class="settings-traits-close" id="settings-close-appearance" type="button" aria-label="Close appearance settings">×</button>
+                <p class="eyebrow">YOUR EXPERIENCE</p>
+                <h3 id="settings-appearance-title">Appearance</h3>
+                <p class="settings-traits-privacy">Choose how Amora looks on this device.</p>
+                <div class="appearance-options">
+                  <button class="appearance-option" type="button" data-appearance="light"><span class="appearance-preview appearance-preview-light">☀</span><span><strong>Light mode</strong><small>Bright background and dark text</small></span><span class="appearance-check" aria-hidden="true">✓</span></button>
+                  <button class="appearance-option" type="button" data-appearance="dark"><span class="appearance-preview appearance-preview-dark">☾</span><span><strong>Dark mode</strong><small>Dark background and light text</small></span><span class="appearance-check" aria-hidden="true">✓</span></button>
+                  <button class="appearance-option" type="button" data-appearance="system"><span class="appearance-preview appearance-preview-system">◐</span><span><strong>System default</strong><small>Follow your device appearance setting</small></span><span class="appearance-check" aria-hidden="true">✓</span></button>
+                </div>
+                <p class="settings-status" id="settings-appearance-status" role="status" aria-live="polite"></p>
+              </section>
+            </div>
             <article class="settings-item card"><span class="settings-icon">♧</span><div><h3>Notifications</h3><p>Notification preferences are not available yet.</p></div></article>
             <article class="settings-item card"><span class="settings-icon">文</span><div><h3>Language and region</h3><p>Amora currently uses the language set by the website.</p></div></article>
             <article class="settings-traits-card card">
