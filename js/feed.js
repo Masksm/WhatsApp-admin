@@ -420,6 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const item = document.createElement("div");
     item.className = "comment-item";
     item.id = "comment-" + comment.id;
+    item.dataset.commentId = comment.id;
     const body = document.createElement("div");
     body.className = "comment-body";
     const head = document.createElement("div");
@@ -1120,5 +1121,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-  loadFeed().then(restoreHomeState);
+  async function openNotificationTarget() {
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get("post");
+    const commentId = params.get("comment");
+    const isUuid = value => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+    if (!isUuid(postId) || (commentId && !isUuid(commentId))) return;
+    try {
+      let post = posts.find(item => item.id === postId);
+      if (!post) {
+        const { data, error } = await supabase.from("posts").select("id,author_id,content,media_urls,visibility,is_anonymous,force_anonymous_comments,created_at").eq("id", postId).maybeSingle();
+        if (error) throw error;
+        post = data;
+      }
+      if (!post) { setStatus("That post is unavailable or is no longer accessible.", true); return; }
+      if (!posts.some(item => item.id === post.id)) posts.unshift(post);
+      activeFeed = "for-you";
+      feedTabs.forEach(tab => { const selected = tab.dataset.feed === activeFeed; tab.classList.toggle("active", selected); tab.setAttribute("aria-selected", String(selected)); });
+      await loadPublicProfiles([post.author_id].filter(Boolean));
+      await renderFeed();
+      const article = feedList.querySelector('[data-post-id="' + postId + '"]');
+      if (!article) { setStatus("That post could not be shown in this feed.", true); return; }
+      article.classList.add("notification-target-highlight");
+      article.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (commentId) {
+        await openCommentsDialog(post);
+        const findComment = rows => { for (const row of rows || []) { if (row.id === commentId) return row; const nested = findComment(row.replies); if (nested) return nested; } return null; };
+        const target = findComment(await loadComments(post.id));
+        if (!target) setStatus("The post is open, but that comment is unavailable.", true);
+        else {
+          const targetNode = commentsDialog.querySelector('[data-comment-id="' + commentId + '"]');
+          if (targetNode) { targetNode.classList.add("notification-target-highlight"); targetNode.scrollIntoView({ behavior: "smooth", block: "center" }); }
+          if (target.parent_comment) commentsDialog.querySelector('[data-comment-id="' + target.parent_comment.id + '"]')?.classList.add("notification-target-highlight");
+        }
+      }
+      const cleanUrl = new URL(window.location.href); cleanUrl.searchParams.delete("post"); cleanUrl.searchParams.delete("comment");
+      window.history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+    } catch (error) { await logClientError("open_notification_target", error); setStatus("Could not open that notification post. It may have been deleted or access may be restricted.", true); }
+  }
+
+  loadFeed().then(async () => { restoreHomeState(); await openNotificationTarget(); });
 });
