@@ -145,3 +145,31 @@
 .official-registration-value{font-size:2rem;font-weight:850;color:#8fc4ff}
 .profile-follow-button:disabled{opacity:.85;cursor:default}
 @media(max-width:560px){.official-support-email{margin:10px 14px 0;font-size:.74rem}}
+
+
+/* Match Amora's profile and the requested Facebook-style reference. */
+.profile-mobile-topbar{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.profile-mobile-topbar .profile-settings-button{margin-left:auto;width:42px;height:42px;border:1px solid var(--line);border-radius:50%;color:var(--text);background:var(--surface2);text-decoration:none}
+.profile-page .feed-main{color:var(--text)}
+.profile-page .profile-hero,.profile-page .profile-section{background:var(--surface);border-color:var(--line);color:var(--text)}
+.profile-page .profile-cover{background:radial-gradient(ellipse at 15% 20%,#7b2cff 0,transparent 38%),radial-gradient(ellipse at 72% 25%,#bc27ff 0,transparent 38%),linear-gradient(125deg,#08020d,#211039 48%,#09030f)}
+.profile-page .profile-hero h2,.profile-page .profile-stat strong,.profile-page .section-heading h2{color:var(--text)}
+.profile-page .profile-stat{border-right:1px solid var(--line)}
+.profile-page .profile-stat:last-child{border-right:0}
+:root[data-theme="dark"] .profile-page{--profile-line:#3e4042}
+:root[data-theme="dark"] .profile-page .profile-hero,
+:root[data-theme="dark"] .profile-page .profile-section{background:#242526;color:#f0f2f5}
+:root[data-theme="dark"] .profile-page .profile-cover{background:radial-gradient(ellipse at 15% 20%,#6c19c7 0,transparent 38%),radial-gradient(ellipse at 72% 25%,#8b20b9 0,transparent 38%),linear-gradient(125deg,#08090a,#19151f 48%,#08090a)}
+:root[data-theme="dark"] .profile-page .profile-message-button,
+:root[data-theme="dark"] .profile-page .profile-more-button{background:#3a3b3c;border-color:#4e4f50;color:#f0f2f5}
+:root[data-theme="light"] .profile-page{--profile-line:#d8dadf}
+:root[data-theme="light"] .profile-page .profile-hero,
+:root[data-theme="light"] .profile-page .profile-section{background:#fff;color:#242526}
+:root[data-theme="light"] .profile-page .profile-cover{background:radial-gradient(ellipse at 15% 20%,#7b2cff 0,transparent 38%),radial-gradient(ellipse at 72% 25%,#bc27ff 0,transparent 38%),linear-gradient(125deg,#180b28,#4a236b 48%,#160c20)}
+:root[data-theme="light"] .profile-page .profile-message-button,
+:root[data-theme="light"] .profile-page .profile-more-button{background:#e4e6eb;border-color:#d8dadf;color:#242526}
+:root[data-theme="light"] .profile-page .profile-stat>span:last-child,
+:root[data-theme="light"] .profile-page .section-description,
+:root[data-theme="light"] .profile-page .profile-private-note,
+:root[data-theme="light"] .profile-page .profile-post-content{color:#65676b}
+@media(max-width:560px){.profile-mobile-topbar{padding:12px 16px}.profile-page .profile-cover{height:145px}.profile-page .profile-hero{border-radius:0 0 16px 16px}.profile-page .profile-stats{background:var(--surface);border-radius:12px}.profile-page .profile-stat{border-color:var(--profile-line)}}
