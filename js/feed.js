@@ -307,7 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (commentCache.has(postId)) return commentCache.get(postId);
     const { data, error } = await supabase
       .from("post_comments")
-      .select("id,post_id,parent_comment_id,author_id,content,is_anonymous,created_at")
+      .select("id,post_id,parent_comment_id,author_id,content,is_anonymous,created_at,edited_at")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
     if (error) throw error;
@@ -334,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
     rows.forEach((row) => {
       const item = byId.get(row.id);
       const parent = row.parent_comment_id ? byId.get(row.parent_comment_id) : null;
-      if (parent) parent.replies.push(item);
+      if (parent) { item.parent_comment = parent; parent.replies.push(item); }
       else roots.push(item);
     });
     commentCache.set(postId, roots);
@@ -404,6 +404,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function formatCommentTimestamp(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+    if (seconds < 60) return "now";
+    if (seconds < 3600) return Math.floor(seconds / 60) + "m";
+    if (seconds < 86400) return Math.floor(seconds / 3600) + "h";
+    if (seconds < 604800) return Math.floor(seconds / 86400) + "d";
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+
   function makeComment(comment, post, depth = 0) {
     const item = document.createElement("div");
     item.className = "comment-item";
@@ -426,10 +438,32 @@ document.addEventListener("DOMContentLoaded", () => {
       badge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block!important;width:12px!important;height:12px!important;fill:#fff!important;color:#fff!important"><path d="M9.2 16.2 4.9 12l-1.8 1.8 6.1 6.1L21 8.1l-1.8-1.8z" fill="#ffffff"/></svg>';
       author.append(badge);
     }
+    const timestamp = document.createElement("span");
+    timestamp.className = "comment-timestamp";
+    timestamp.textContent = formatCommentTimestamp(comment.created_at);
+    timestamp.title = comment.created_at ? new Date(comment.created_at).toLocaleString() : "";
+    head.append(author, timestamp);
     const text = document.createElement("p");
     text.textContent = comment.content;
-    head.append(author);
-    body.append(head, text);
+    body.append(head);
+    if (comment.parent_comment) {
+      const quoted = document.createElement("div");
+      quoted.className = "comment-reply-context";
+      const quoteAuthor = document.createElement("strong");
+      quoteAuthor.textContent = comment.parent_comment.is_anonymous || post.is_anonymous ? "Anonymous" : comment.parent_comment.author;
+      const quoteText = document.createElement("span");
+      quoteText.textContent = comment.parent_comment.content;
+      quoted.append(quoteAuthor, quoteText);
+      body.append(quoted);
+    }
+    body.append(text);
+    if (comment.edited_at) {
+      const edited = document.createElement("span");
+      edited.className = "comment-edited-label";
+      edited.textContent = "Edited";
+      edited.title = "Edited " + new Date(comment.edited_at).toLocaleString();
+      body.append(edited);
+    }
     const actions = document.createElement("div");
     actions.className = "comment-actions";
     const countLabel = document.createElement("span");
@@ -448,6 +482,63 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
     actions.append(likeButton, countLabel, shareButton);
+    if (currentUser && comment.author_id === currentUser.id && !comment.is_anonymous && !post.is_anonymous) {
+      const editButton = makeButton("Edit", "comment-reply-button comment-owner-action", async () => {
+        if (item.querySelector(":scope > .comment-edit-form")) return;
+        const editForm = document.createElement("form");
+        editForm.className = "comment-edit-form";
+        const editInput = document.createElement("textarea");
+        editInput.maxLength = 3000;
+        editInput.required = true;
+        editInput.value = comment.content;
+        editInput.setAttribute("aria-label", "Edit comment");
+        const save = document.createElement("button");
+        save.type = "submit";
+        save.textContent = "Save";
+        const cancel = makeButton("Cancel", "comment-reply-button", () => editForm.remove());
+        editForm.append(editInput, save, cancel);
+        editForm.addEventListener("submit", async event => {
+          event.preventDefault();
+          const content = editInput.value.trim();
+          if (!content) return;
+          save.disabled = true;
+          try {
+            const user = await requireUser();
+            const { data, error } = await supabase.from("post_comments")
+              .update({ content, edited_at: new Date().toISOString() })
+              .eq("id", comment.id).eq("author_id", user.id).eq("is_anonymous", false)
+              .select("id").maybeSingle();
+            if (error) throw error;
+            if (!data) throw new Error("Comment update was not permitted.");
+            commentCache.delete(post.id);
+            await refreshCommentsDialog();
+          } catch (error) {
+            await logClientError("edit_comment", error);
+            setStatus("Couldn't edit this comment. Check that you still own it and try again.", true);
+            save.disabled = false;
+          }
+        });
+        item.insertBefore(editForm, actions);
+        editInput.focus();
+      });
+      const deleteButton = makeButton("Delete", "comment-reply-button comment-owner-action", async () => {
+        if (!window.confirm("Delete this comment? This cannot be undone.")) return;
+        try {
+          const user = await requireUser();
+          const { data, error } = await supabase.from("post_comments").delete()
+            .eq("id", comment.id).eq("author_id", user.id).eq("is_anonymous", false)
+            .select("id").maybeSingle();
+          if (error) throw error;
+          if (!data) throw new Error("Comment deletion was not permitted.");
+          commentCache.delete(post.id);
+          await refreshCommentsDialog();
+        } catch (error) {
+          await logClientError("delete_comment", error);
+          setStatus("Couldn't delete this comment. It may have replies or deletion may be restricted.", true);
+        }
+      });
+      actions.append(editButton, deleteButton);
+    }
     const replyButton = makeButton("Reply", "comment-reply-button", () => {
       const old = item.querySelector(":scope > .reply-composer");
       if (old) { old.remove(); return; }
