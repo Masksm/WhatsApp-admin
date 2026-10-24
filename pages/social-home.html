@@ -8,10 +8,12 @@
   <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
   <link rel="stylesheet" href="/css/feed.css?v=home-feed-cache-2">
   <link rel="stylesheet" href="/css/home-enhancements.css?v=1">
+  <link rel="stylesheet" href="/css/stories.css?v=1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
   <script src="/js/moderator-nav.js?v=1" defer></script>
   <script src="/js/feed.js?v=home-feed-cache-2" defer></script>
+  <script src="/js/stories.js?v=1" defer></script>
 </head>
 <body class="amora-feed-page">
   <div class="feed-shell">
@@ -75,6 +77,18 @@
         </div>
       </section>
 
+      <section class="stories-section" aria-labelledby="stories-title">
+        <div class="stories-heading">
+          <div><span class="eyebrow">LITTLE MOMENTS</span><h2 id="stories-title">Stories</h2><p>Photos and short videos that disappear after 24 hours.</p></div>
+          <button id="story-create-button" class="story-create-button" type="button"><span aria-hidden="true">＋</span> Add story</button>
+        </div>
+        <div id="stories-row" class="stories-row" aria-label="Active stories" aria-live="polite">
+          <p class="stories-loading">Loading stories…</p>
+        </div>
+        <p id="stories-status" class="stories-status" role="status" aria-live="polite"></p>
+        <input id="story-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" hidden>
+      </section>
+
       <div class="feed-discovery-heading"><div><span class="eyebrow">YOUR WORLD</span><h2>Discover something real</h2></div><button id="refresh-feed" class="feed-refresh-button" type="button" aria-label="Refresh feed" title="Refresh feed">↻</button></div>
       <div class="feed-tabs" role="tablist" aria-label="Choose your feed">
         <button class="feed-tab active" role="tab" aria-selected="true" data-feed="for-you">For You</button>
@@ -107,6 +121,13 @@
     </aside>
   </div>
 
+  <div id="story-viewer" class="story-viewer" hidden role="dialog" aria-modal="true" aria-label="Story viewer">
+    <div id="story-viewer-progress" class="story-viewer-progress"></div>
+    <button id="story-viewer-close" class="story-viewer-close" type="button" aria-label="Close stories">×</button>
+    <button id="story-viewer-prev" class="story-viewer-nav story-viewer-prev" type="button" aria-label="Previous story">‹</button>
+    <div class="story-viewer-content"><div class="story-viewer-author"><span id="story-viewer-avatar" class="story-avatar">♡</span><strong id="story-viewer-name">Amora member</strong><small id="story-viewer-time"></small></div><div id="story-viewer-media" class="story-viewer-media"></div><p id="story-viewer-caption" class="story-viewer-caption"></p></div>
+    <button id="story-viewer-next" class="story-viewer-nav story-viewer-next" type="button" aria-label="Next story">›</button>
+  </div>
   <div id="media-lightbox" class="media-lightbox" hidden role="dialog" aria-modal="true" aria-label="Photo viewer"><button type="button" class="media-lightbox-close" aria-label="Close photo viewer">×</button><button type="button" class="media-lightbox-prev" aria-label="Previous photo">‹</button><img id="media-lightbox-image" alt="Expanded post photo"><button type="button" class="media-lightbox-next" aria-label="Next photo">›</button><p id="media-lightbox-counter"></p></div>
   <nav class="mobile-nav" aria-label="Mobile navigation">
     <a class="mobile-nav-link active" href="/pages/social-home.html" aria-label="Home"><span class="mobile-nav-icon">⌂</span><span class="mobile-nav-label">Home</span></a>
