@@ -399,7 +399,6 @@ document.addEventListener("DOMContentLoaded", () => {
     await renderPosts(posts || []);
   }
 
-  byId("save-profile-traits")?.addEventListener("click", saveProfileTraits);
   byId("profile-create-anonymous-link")?.addEventListener("click", createProfileAnonymousLink);
   byId("profile-copy-anonymous-link")?.addEventListener("click", copyProfileAnonymousLink);
 
