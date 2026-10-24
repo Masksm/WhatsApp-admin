@@ -542,7 +542,8 @@ document.addEventListener("DOMContentLoaded", () => {
           const anonymousToggle = document.createElement("input");
           anonymousToggle.type = "checkbox";
           anonymousToggle.name = "comment-anonymous";
-          anonymousLabel.append(anonymousToggle, document.createTextNode(" Reply anonymously"));
+          anonymousToggle.setAttribute("aria-label", "Comment anonymously");
+          anonymousLabel.append(anonymousToggle, document.createTextNode(" Comment anonymously"));
           form.append(input, anonymousLabel, send);
         } else form.append(input, send);
         form.addEventListener("submit", (event) => {
