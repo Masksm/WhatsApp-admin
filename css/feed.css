@@ -30,3 +30,22 @@
 .anonymous-post-delete{display:inline-grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid #ff6b8a55;border-radius:12px;background:#ff6b8a12;color:#ff8da5;font-size:1rem;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
 .anonymous-post-delete:hover{background:#ff6b8a24;border-color:#ff6b8a99;transform:translateY(-1px)}
 .anonymous-post-delete:focus-visible{outline:2px solid #ff8da5;outline-offset:3px}
+
+:root[data-theme="light"]{color-scheme:light;--bg:#f7f4f8;--surface:#fff;--surface2:#f0eaf3;--line:rgba(61,37,68,.13);--text:#2b2030;--muted:#776a7e;--pink:#b52d78;--pink2:#a62d70;--purple:#8052bd}
+:root[data-theme="light"] body.amora-feed-page{background:var(--bg);color:var(--text)}
+:root[data-theme="light"] .nav-link,:root[data-theme="light"] .tool-button,:root[data-theme="light"] .identity-toggle,:root[data-theme="light"] .post-action,:root[data-theme="light"] .comment-reply-button{color:#65576c}
+:root[data-theme="light"] .nav-link.active,:root[data-theme="light"] .nav-link:hover{color:var(--text)}
+:root[data-theme="light"] .sidebar-note p,:root[data-theme="light"] .settings-item p{color:#65576c}
+:root[data-theme="light"] .composer-top textarea,:root[data-theme="light"] .username-field input{color:var(--text)}
+:root[data-theme="light"] .composer-top textarea::placeholder{color:#93859a}
+:root[data-theme="light"] .feed-tab.active{color:var(--text)}
+:root[data-theme="light"] .welcome-card{background:linear-gradient(150deg,#f9eaf3,#fff 70%)}
+:root[data-theme="light"] .post-comments h3,:root[data-theme="light"] .comment-head strong{color:#49364f}
+:root[data-theme="light"] .comment-body{background:#f8f5fa;border-color:#e8dfea}
+:root[data-theme="light"] .comment-body p{color:#55465d}
+:root[data-theme="light"] .post-reply-composer input,:root[data-theme="light"] .reply-composer input,:root[data-theme="light"] .settings-username-form input,:root[data-theme="light"] .profile-comment-form input,:root[data-theme="light"] .anonymous-link-result input{background:#fff;color:var(--text);border-color:#ded3e3}
+:root[data-theme="light"] .mobile-nav{background:rgba(255,255,255,.95);border-top-color:#e6dce9}
+:root[data-theme="light"] .mobile-nav-link{color:#76657e}
+:root[data-theme="light"] .mobile-nav-link.active{color:var(--pink)}
+:root[data-theme="light"] .settings-traits-modal{background:#fff}
+@media(prefers-color-scheme:light){:root:not([data-theme]){color-scheme:light;--bg:#f7f4f8;--surface:#fff;--surface2:#f0eaf3;--line:rgba(61,37,68,.13);--text:#2b2030;--muted:#776a7e;--pink:#b52d78;--pink2:#a62d70;--purple:#8052bd}:root:not([data-theme]) .nav-link,:root:not([data-theme]) .tool-button,:root:not([data-theme]) .identity-toggle,:root:not([data-theme]) .post-action{color:#65576c}:root:not([data-theme]) .sidebar-note p,:root:not([data-theme]) .settings-item p{color:#65576c}:root:not([data-theme]) .composer-top textarea,:root:not([data-theme]) .username-field input{color:var(--text)}:root:not([data-theme]) .post-comments h3,:root:not([data-theme]) .comment-head strong{color:#49364f}:root:not([data-theme]) .comment-body{background:#f8f5fa;border-color:#e8dfea}:root:not([data-theme]) .comment-body p{color:#55465d}:root:not([data-theme]) .mobile-nav{background:rgba(255,255,255,.95);border-top-color:#e6dce9}:root:not([data-theme]) .mobile-nav-link{color:#76657e}:root:not([data-theme]) .settings-username-form input,:root:not([data-theme]) .profile-comment-form input,:root:not([data-theme]) .anonymous-link-result input{background:#fff;color:var(--text);border-color:#ded3e3}}
