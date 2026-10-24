@@ -32,27 +32,38 @@
       </header>
 
       <div class="feed-heading profile-heading">
-        <div><p class="eyebrow" id="profile-eyebrow">YOUR AMORA SPACE</p><h1 id="profile-page-title">Profile <span class="heading-heart">♡</span></h1></div>
+        <div><p class="eyebrow" id="profile-eyebrow">AMORA COMMUNITY</p><h1 id="profile-page-title">Profile</h1></div>
         <a class="icon-button profile-settings-button" id="profile-settings-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a>
       </div>
 
       <section class="profile-hero card">
-        <div class="profile-hero-glow"></div>
-        <div class="profile-avatar" id="profile-avatar">?</div>
-        <div class="profile-hero-copy">
-          <span class="profile-kicker" id="profile-kicker">AMORA IDENTITY</span>
-          <h2 id="profile-title">Loading your profile…</h2>
-          <p id="profile-handle" class="profile-handle">@loading</p>
-          <p class="profile-private-note" id="profile-private-note"><span>🔒</span> Your email and account details are private.</p>
+        <div class="profile-cover" aria-hidden="true"><span class="profile-cover-mark">♡</span></div>
+        <div class="profile-identity">
+          <div class="profile-avatar" id="profile-avatar">?</div>
+          <div class="profile-hero-copy">
+            <h2 id="profile-title">Loading your profile…</h2>
+            <p id="profile-handle" class="profile-handle">@loading</p>
+          </div>
         </div>
-        <span class="profile-heart-decoration">♡</span>
+        <div class="profile-action-row" id="profile-action-row">
+          <a class="profile-message-button" id="profile-message-button" href="/pages/messages.html">Message</a>
+          <button class="profile-follow-button" id="profile-follow-button" type="button">Follow</button>
+          <div class="profile-more-wrap">
+            <button class="profile-more-button" id="profile-more-button" type="button" aria-label="More profile actions" aria-expanded="false">•••</button>
+            <div class="profile-more-menu" id="profile-more-menu" hidden>
+              <button type="button" id="profile-report-button">Report account</button>
+              <button type="button" id="profile-block-button">Block account</button>
+            </div>
+          </div>
+        </div>
+        <p class="profile-private-note" id="profile-private-note">♡ Public profile. Private account details are not shown.</p>
       </section>
 
       <section class="profile-stats" aria-label="Profile activity">
-        <div class="profile-stat card"><span class="stat-icon">✎</span><strong id="post-count">—</strong><span>Posts</span></div>
-        <div class="profile-stat card"><span class="stat-icon">♡</span><strong id="follower-count">—</strong><span>Followers</span></div>
-        <div class="profile-stat card"><span class="stat-icon">♥</span><strong id="likes-count">—</strong><span>Likes</span></div>
-        <div class="profile-stat card"><span class="stat-icon">↗</span><strong id="following-count">—</strong><span>Following</span></div>
+        <div class="profile-stat"><strong id="following-count">—</strong><span>Following</span></div>
+        <div class="profile-stat"><strong id="follower-count">—</strong><span>Followers</span></div>
+        <div class="profile-stat"><strong id="likes-count">—</strong><span>Likes</span></div>
+        <div class="profile-stat"><strong id="post-count">—</strong><span>Identified posts</span></div>
       </section>
 
       <section class="profile-section card" id="owner-tools" hidden>
