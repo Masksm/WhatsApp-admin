@@ -29,14 +29,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const hiddenTokenStorageKey = "amora_hidden_post_delete_tokens";
 
   const composerDialog = document.getElementById("composer-dialog");
+  const quickComposer = document.querySelector(".feed-quick-composer");
+  const closeComposer = () => {
+    if (!composerDialog) return;
+    composerDialog.classList.remove("is-expanded");
+    if (quickComposer) quickComposer.setAttribute("aria-expanded", "false");
+    window.setTimeout(() => { composerDialog.hidden = true; }, 260);
+  };
   document.querySelectorAll("[data-focus-composer]").forEach((button) => {
+    button.setAttribute("aria-expanded", "false");
     button.addEventListener("click", () => {
-      if (composerDialog?.showModal) composerDialog.showModal();
-      window.setTimeout(() => textInput.focus(), 80);
+      if (!composerDialog) return;
+      composerDialog.hidden = false;
+      requestAnimationFrame(() => composerDialog.classList.add("is-expanded"));
+      button.setAttribute("aria-expanded", "true");
+      window.setTimeout(() => textInput.focus(), 180);
     });
   });
-  document.getElementById("composer-close")?.addEventListener("click", () => composerDialog?.close());
-  composerDialog?.addEventListener("click", (event) => { if (event.target === composerDialog) composerDialog.close(); });
+  document.getElementById("composer-close")?.addEventListener("click", closeComposer);
 
   function setStatus(message, isError = false) {
     composerStatus.textContent = message || "";
