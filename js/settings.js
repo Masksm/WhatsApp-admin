@@ -43,6 +43,44 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (error) { status(error.message || "Could not update username.", true); }
     finally { button.disabled = false; }
   });
+
+  const traitOptions = {
+    hobbies:["Reading","Gaming","Music","Cooking","Writing","Photography","Drawing","Sports","Gardening","Travel"],
+    skills:["Coding","Design","Problem solving","Storytelling","Teaching","Making things","Research"],
+    interests:["Science","Art","Technology","History","Nature","Psychology","Space","Fashion","Books","Movies"],
+    vibe:["Adventure","Indoor activities","Outdoor activities","Quiet moments","Social butterfly","Trying new things","Routine and comfort"],
+    likes:["Cats","Dogs","Coffee","Tea","Rainy days","Sunsets","Deep conversations","Comedy","Learning"],
+    dislikes:["Loud places","Crowds","Spoilers","Early mornings","Spicy food","Small talk"],
+    zodiac:["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"],
+    gender:["Woman","Man","Non-binary","Prefer not to say"]
+  };
+  const traitLabels={hobbies:"Hobbies",skills:"Skills",interests:"Interested in",vibe:"Your kind of vibe",likes:"Likes",dislikes:"Dislikes",zodiac:"Zodiac sign (optional)",gender:"Gender (optional)"};
+  const traitFields=byId("settings-traits-fields"), traitStatus=byId("settings-traits-status"), traitSave=byId("settings-save-traits");
+  const traitNode=(tag,cls,value)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(value!==undefined)el.textContent=value;return el;};
+  function renderTraitEditor(traits){
+    traitFields.replaceChildren();
+    Object.entries(traitOptions).forEach(([category,options])=>{
+      const raw=traits?.[category],chosen=Array.isArray(raw)?raw.filter(v=>options.includes(v)):(typeof raw==="string"&&options.includes(raw)?[raw]:[]);
+      const group=traitNode("fieldset","trait-editor-group");group.append(traitNode("legend","",traitLabels[category]));
+      const wrap=traitNode("div","trait-options");
+      options.forEach(value=>{const label=traitNode("label","trait-option"),input=document.createElement("input");input.type=category==="zodiac"||category==="gender"?"radio":"checkbox";input.name="trait-"+category;input.value=value;input.checked=chosen.includes(value);label.append(input,document.createTextNode(value));wrap.append(label);});
+      if(category==="zodiac"||category==="gender"){const label=traitNode("label","trait-option"),input=document.createElement("input");input.type="radio";input.name="trait-"+category;input.value="";input.checked=chosen.length===0;label.append(input,document.createTextNode("Prefer not to share"));wrap.append(label);}
+      group.append(wrap);traitFields.append(group);
+    });
+  }
+  async function loadTraitEditor(){
+    if(!user||!traitFields||!traitSave)return;
+    traitStatus.textContent="Loading saved choices…";
+    try{const {data,error}=await supabase.from("profiles").select("public_traits").eq("id",user.id).single();if(error)throw error;renderTraitEditor(data?.public_traits&&typeof data.public_traits==="object"?data.public_traits:{});traitStatus.textContent="";}
+    catch(error){traitStatus.textContent=error.message||"Could not load your choices.";traitStatus.classList.add("is-error");}
+  }
+  traitSave?.addEventListener("click",async()=>{
+    if(!user)return;traitSave.disabled=true;traitStatus.classList.remove("is-error");traitStatus.textContent="Saving your choices…";
+    try{const public_traits={};Object.entries(traitOptions).forEach(([category,options])=>{const values=Array.from(traitFields.querySelectorAll('[name="trait-'+category+'"]:checked')).map(el=>el.value).filter(v=>options.includes(v));if(values.length)public_traits[category]=category==="zodiac"||category==="gender"?values[0]:values.slice(0,8);});const {error}=await supabase.from("profiles").update({public_traits}).eq("id",user.id);if(error)throw error;traitStatus.textContent="Your public traits are saved.";}
+    catch(error){traitStatus.textContent=error.message||"Could not save your choices.";traitStatus.classList.add("is-error");}
+    finally{traitSave.disabled=false;}
+  });
+  if(user)await loadTraitEditor();
   byId("settings-logout").addEventListener("click", async () => {
     const button = byId("settings-logout"); button.disabled = true; button.textContent = "Logging out…";
     const { error } = await supabase.auth.signOut();
