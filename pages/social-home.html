@@ -40,15 +40,11 @@
           <label class="sr-only" for="post-text">What is on your mind?</label>
           <textarea class="composer-large-text" id="post-text" rows="6" maxlength="2000" placeholder="What’s on your mind?"></textarea>
           <div class="image-preview" id="image-preview" hidden></div>
-          <div class="composer-dialog-tools"><span class="composer-tools-label">Add to your post</span><div class="composer-media-tools">
-            <label class="composer-media-action" for="post-image"><span>▧</span><b>Photo</b></label><input id="post-image" type="file" accept="image/*" hidden>
-            <button class="composer-media-action" type="button" disabled title="Video posting is not available yet"><span>▹</span><b>Video</b></button>
-            <button class="composer-media-action" type="button" disabled title="More options coming soon"><span>☺</span><b>Feeling</b></button>
-            <button class="composer-media-action" type="button" disabled title="More options coming soon"><span>⌖</span><b>Location</b></button>
-          </div></div>
-          <div class="composer-anonymity-options">
-            <label class="identity-toggle"><input id="hide-identity" type="checkbox"><span class="toggle-track"></span><span>Make post anonymous</span><span class="info-dot" title="Your identity will be hidden on this post.">i</span></label>
-            <label class="identity-toggle"><input id="force-anonymous-comments" type="checkbox"><span class="toggle-track"></span><span>Make comments anonymous for everyone</span><span class="info-dot" title="When enabled, all comments and replies are anonymous. Otherwise each commenter can choose.">i</span></label>
+          <div class="composer-media-tools composer-media-tools-bottom" aria-label="Add to your post">
+            <label class="composer-media-icon" for="post-image" title="Add photo" aria-label="Add photo"><span aria-hidden="true">▧</span><input id="post-image" type="file" accept="image/*" hidden></label>
+            <button class="composer-media-icon" type="button" disabled title="Video posting is not available yet" aria-label="Add video"><span aria-hidden="true">▹</span></button>
+            <button class="composer-media-icon" type="button" disabled title="More options coming soon" aria-label="Add feeling"><span aria-hidden="true">☺</span></button>
+            <button class="composer-media-icon" type="button" disabled title="More options coming soon" aria-label="Add location"><span aria-hidden="true">⌖</span></button>
           </div>
           <button id="publish-post" class="primary-button composer-publish-button" type="button" disabled>Post</button><p id="composer-status" class="status-message" role="status"></p>
         </section>
