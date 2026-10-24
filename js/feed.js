@@ -419,10 +419,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!post.is_anonymous && !comment.is_anonymous && commentProfile?.is_official) {
       const badge = document.createElement("span");
       badge.className = "official-account-badge";
-      badge.textContent = "✓";
       badge.setAttribute("role", "img");
       badge.setAttribute("aria-label", "Verified official Amora account");
       badge.title = "Verified official Amora account";
+      badge.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.2 16.2 4.9 12l-1.8 1.8 6.1 6.1L21 8.1l-1.8-1.8z" fill="currentColor"/></svg>';
       author.append(badge);
     }
     const text = document.createElement("p");
@@ -622,10 +622,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!post.is_anonymous && publicProfile?.is_official) {
       const badge = document.createElement("span");
       badge.className = "official-account-badge";
-      badge.textContent = "✓";
       badge.setAttribute("role", "img");
       badge.setAttribute("aria-label", "Verified official Amora account");
       badge.title = "Verified official Amora account";
+      badge.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.2 16.2 4.9 12l-1.8 1.8 6.1 6.1L21 8.1l-1.8-1.8z" fill="currentColor"/></svg>';
       name.append(badge);
     }
     if (!post.is_anonymous && publicProfile?.username) {
