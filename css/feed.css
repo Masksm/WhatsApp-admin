@@ -320,3 +320,17 @@ body.comments-dialog-open{overflow:hidden}
 :root[data-theme="light"] .comments-dialog-form input[name="comment-content"]::placeholder{color:#625568!important;opacity:1}
 :root[data-theme="light"] .comment-head strong,:root[data-theme="light"] .comment-body p,:root[data-theme="light"] .comment-actions button,:root[data-theme="light"] .comment-reply-button{color:#34263d!important}
 :root[data-theme="light"] .post-stats,:root[data-theme="light"] .post-identity span,:root[data-theme="light"] .post-more{color:#625568!important}
+
+
+/* Keep primary post actions visible; place secondary actions in the More menu. */
+.post-actions{position:relative;align-items:center}
+.post-actions>.post-action{flex:1;min-width:0}
+.post-more-trigger{font-weight:700;white-space:nowrap}
+.post-more-menu[hidden]{display:none!important}
+.post-more-menu{position:absolute;right:0;bottom:calc(100% + 8px);z-index:80;width:min(230px,85vw);padding:6px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 12px 35px #0003;display:grid;gap:3px}
+.post-more-menu-item{display:flex;align-items:center;width:100%;min-height:42px;padding:10px 12px;border:0;border-radius:9px;background:transparent;color:var(--text);text-align:left;font-size:.82rem;cursor:pointer}
+.post-more-menu-item:hover,.post-more-menu-item:focus-visible{background:var(--surface2);color:var(--pink);outline:none}
+.post-more-menu-item.post-more-report{color:var(--pink)}
+:root[data-theme="light"] .post-more-menu-item{color:#34243b}
+:root[data-theme="light"] .post-more-menu-item.post-more-report{color:#a51d68}
+@media(prefers-color-scheme:light){:root:not([data-theme]) .post-more-menu-item{color:#34243b}:root:not([data-theme]) .post-more-menu-item.post-more-report{color:#a51d68}}
