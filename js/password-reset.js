@@ -93,7 +93,9 @@ function showSection(sectionToShow) {
       const email = resetEmail.value.trim();
 
       try {
-        const redirectTo = window.location.origin + "/pages/reset-password.html";
+        // Keep the existing allowed callback URL; auth.js recognizes recovery links
+        // and prevents its normal logged-in redirect from hiding the new-password form.
+        const redirectTo = window.location.origin + window.location.pathname;
 
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: redirectTo
