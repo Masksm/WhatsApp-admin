@@ -28,12 +28,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const repostCache = new Set();
   const hiddenTokenStorageKey = "amora_hidden_post_delete_tokens";
 
+  const composerDialog = document.getElementById("composer-dialog");
   document.querySelectorAll("[data-focus-composer]").forEach((button) => {
     button.addEventListener("click", () => {
-      composer.scrollIntoView({ behavior: "smooth", block: "center" });
-      window.setTimeout(() => textInput.focus(), 250);
+      if (composerDialog?.showModal) composerDialog.showModal();
+      window.setTimeout(() => textInput.focus(), 80);
     });
   });
+  document.getElementById("composer-close")?.addEventListener("click", () => composerDialog?.close());
+  composerDialog?.addEventListener("click", (event) => { if (event.target === composerDialog) composerDialog.close(); });
 
   function setStatus(message, isError = false) {
     composerStatus.textContent = message || "";
@@ -704,6 +707,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       currentUser = sessionData.user || null;
+      if (currentUser) {
+        const { data: ownProfile } = await supabase.from("profiles").select("display_name,username").eq("id", currentUser.id).maybeSingle();
+        const displayName = ownProfile?.display_name?.trim() || ownProfile?.username || "Your profile";
+        const initial = displayName.slice(0,1).toUpperCase();
+        const nameNode = document.getElementById("composer-display-name");
+        const avatarNode = document.getElementById("composer-user-avatar");
+        const quickAvatar = document.querySelector(".quick-composer-avatar");
+        if (nameNode) nameNode.textContent = displayName;
+        if (avatarNode) avatarNode.textContent = initial;
+        if (quickAvatar) quickAvatar.textContent = initial;
+      }
       if (!currentUser) {
         try { await supabase.auth.signOut({ scope: "local" }); } catch {}
         window.location.replace("/index.html");
