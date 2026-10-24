@@ -289,8 +289,22 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       const { error } = await supabase.from("post_comments").insert(payload);
       if (error) throw error;
+      input.value = "";
       commentCache.delete(post.id);
-      await renderFeed();
+      const comments = await loadComments(post.id);
+      const article = feedList.querySelector('[data-post-id="' + post.id + '"]');
+      if (article) {
+        const existingSection = article.querySelector(":scope > .post-comments");
+        const section = document.createElement("section");
+        section.className = "post-comments";
+        const title = document.createElement("h3");
+        title.textContent = "Conversation";
+        section.append(title);
+        comments.forEach(comment => section.append(makeComment(comment, post)));
+        if (existingSection) existingSection.replaceWith(section); else article.append(section);
+        const countLabel = article.querySelector(".post-stats span:last-child");
+        if (countLabel) countLabel.textContent = comments.length + (comments.length === 1 ? " comment" : " comments");
+      }
     } catch (error) {
       await logClientError("submit_comment", error);
       setStatus("Couldn't post your reply. Please try again.", true);
