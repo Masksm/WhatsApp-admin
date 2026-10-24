@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const feedList = document.getElementById("feed-list");
   const feedTabs = [...document.querySelectorAll("[data-feed]")];
   const homeStateKey = "amora_home_navigation_state";
+  const homeFeedCacheKey = "amora_home_feed_cache";
+  const homeFeedCacheMaxAge = 5 * 60 * 1000;
   const saveHomeState = () => {
     try {
       sessionStorage.setItem(homeStateKey, JSON.stringify({
@@ -76,6 +78,31 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentUser = null;
   let loading = false;
   let posts = [];
+  let restoredFeedCache = null;
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(homeFeedCacheKey) || "null");
+    if (cached && Array.isArray(cached.posts) && Date.now() - cached.savedAt < homeFeedCacheMaxAge) {
+      restoredFeedCache = cached;
+      posts = cached.posts;
+      activeFeed = cached.activeFeed || "for-you";
+      feedTabs.forEach(tab => {
+        const selected = tab.dataset.feed === activeFeed;
+        tab.classList.toggle("active", selected);
+        tab.setAttribute("aria-selected", String(selected));
+      });
+    } else {
+      sessionStorage.removeItem(homeFeedCacheKey);
+    }
+  } catch (_) {}
+  const saveHomeFeedCache = () => {
+    try {
+      sessionStorage.setItem(homeFeedCacheKey, JSON.stringify({
+        posts,
+        activeFeed,
+        savedAt: Date.now()
+      }));
+    } catch (_) {}
+  };
   const commentCache = new Map();
   const profileCache = new Map();
   const interactionCounts = new Map();
@@ -1059,14 +1086,22 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      let query = supabase.from("posts")
-        .select("id,author_id,content,media_urls,visibility,is_anonymous,force_anonymous_comments,created_at")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (activeFeed === "public") query = query.eq("visibility", "public");
-      const { data, error } = await query;
-      if (error) throw error;
-      posts = data || [];
+      const useCachedPosts = restoredFeedCache &&
+        restoredFeedCache.activeFeed === activeFeed &&
+        Date.now() - restoredFeedCache.savedAt < homeFeedCacheMaxAge;
+      if (useCachedPosts) {
+        posts = restoredFeedCache.posts;
+        restoredFeedCache = null;
+      } else {
+        let query = supabase.from("posts")
+          .select("id,author_id,content,media_urls,visibility,is_anonymous,force_anonymous_comments,created_at")
+          .order("created_at", { ascending: false })
+          .limit(50);
+        if (activeFeed === "public") query = query.eq("visibility", "public");
+        const { data, error } = await query;
+        if (error) throw error;
+        posts = data || [];
+      }
       if (currentUser && posts.length) {
         const { data: blocks, error: blockError } = await supabase
           .from("user_blocks")
@@ -1082,6 +1117,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await Promise.all([loadMyInteractions(), loadInteractionCounts()]);
       loading = false;
       await renderFeed();
+      saveHomeFeedCache();
     } catch (error) {
       await logClientError("load_feed", error);
       loading = false;
@@ -1106,6 +1142,7 @@ document.addEventListener("DOMContentLoaded", () => {
         item.classList.toggle("active", selected);
         item.setAttribute("aria-selected", String(selected));
       });
+      restoredFeedCache = null;
       await loadFeed();
     });
   });
@@ -1187,6 +1224,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const renderedPost = await renderPost(newPost);
       feedList.querySelector(".feed-empty")?.remove();
       feedList.prepend(renderedPost);
+      saveHomeFeedCache();
       if (composerDialog) {
         composerDialog.classList.remove("is-expanded");
         composerDialog.hidden = true;
