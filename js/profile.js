@@ -79,11 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderTraits(traits, isOwner) {
     const display = byId("profile-traits-display");
-    const editor = byId("profile-traits-editor");
-    const fields = byId("profile-traits-fields");
-    if (!display || !editor || !fields) return;
+    if (!display) return;
     display.replaceChildren();
-    fields.replaceChildren();
     const selected = traits && typeof traits === "object" ? traits : {};
     let count = 0;
     Object.entries(traitOptions).forEach(([category, options]) => {
@@ -99,60 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
         display.append(group);
         count += chosen.length;
       }
-      if (isOwner) {
-        const group = node("fieldset", "trait-editor-group");
-        group.append(node("legend", "", traitLabels[category]));
-        const wrap = node("div", "trait-options");
-        options.forEach((value) => {
-          const label = node("label", "trait-option");
-          const input = node("input");
-          input.type = category === "zodiac" || category === "gender" ? "radio" : "checkbox";
-          input.name = "trait-" + category; input.value = value; input.checked = chosen.includes(value);
-          label.append(input, document.createTextNode(value)); wrap.append(label);
-        });
-        if (category === "zodiac" || category === "gender") {
-          const label = node("label", "trait-option"); const input = node("input");
-          input.type = "radio"; input.name = "trait-" + category; input.value = ""; input.checked = chosen.length === 0;
-          label.append(input, document.createTextNode("Prefer not to share")); wrap.append(label);
-        }
-        group.append(wrap); fields.append(group);
-      }
+
     });
     if (!count) display.append(node("p", "profile-empty", isOwner ? "Choose any traits you want to share. Leaving everything blank is fine." : "This person has not shared any profile traits."));
-    editor.hidden = !isOwner;
-  }
-
-  function readTraitsFromEditor() {
-    const result = {};
-    Object.entries(traitOptions).forEach(([category, options]) => {
-      const values = Array.from(document.querySelectorAll('[name="trait-' + category + '"]:checked'))
-        .map((input) => input.value).filter((value) => options.includes(value));
-      if (values.length) result[category] = category === "zodiac" || category === "gender" ? values[0] : values.slice(0, 8);
-    });
-    return result;
-  }
-
-  async function loadProfileTraits(profile) {
-    const { data, error } = await supabase.rpc("get_public_profile_traits", { p_username: profile.username });
-    if (error) throw error;
-    const row = Array.isArray(data) ? data[0] : data;
-    profile.public_traits = row?.public_traits && typeof row.public_traits === "object" ? row.public_traits : {};
-    renderTraits(profile.public_traits, profile.id === currentUserId);
-  }
-
-  async function saveProfileTraits() {
-    if (viewedProfile?.id !== currentUserId || !user) return;
-    const button = byId("save-profile-traits"); const statusNode = byId("profile-traits-status");
-    button.disabled = true; statusNode.textContent = "Saving your choices…";
-    try {
-      const public_traits = readTraitsFromEditor();
-      const { error } = await supabase.from("profiles").update({ public_traits }).eq("id", user.id);
-      if (error) throw error;
-      viewedProfile.public_traits = public_traits; renderTraits(public_traits, true);
-      statusNode.textContent = "Your public traits are saved."; statusNode.classList.remove("is-error");
-    } catch (error) {
-      statusNode.textContent = error.message || "Could not save your traits."; statusNode.classList.add("is-error");
-    } finally { button.disabled = false; }
   }
 
   function setAnonymousLinkStatus(message, isError = false) {
