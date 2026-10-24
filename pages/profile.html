@@ -32,7 +32,8 @@
 
       <div class="feed-heading profile-heading">
         <div><p class="eyebrow" id="profile-eyebrow">YOUR AMORA SPACE</p><h1 id="profile-page-title">Profile <span class="heading-heart">♡</span></h1></div>
-        <button class="icon-button profile-settings-button" id="profile-settings-button" type="button" aria-label="Profile settings" title="Profile settings">⚙</button>
+        <a class="icon-button profile-settings-button" id="profile-settings-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a>
+        <button class="settings-logout profile-header-logout" id="profile-logout-button" type="button">Log out ↗</button>
       </div>
 
       <section class="profile-hero card">
@@ -81,8 +82,9 @@
 
       <section class="profile-section card" id="identity-settings" hidden>
         <div class="section-heading"><div><p class="eyebrow">MAKE IT YOURS</p><h2>Identity settings</h2></div><span class="section-symbol">✧</span></div>
-        <p class="section-description">Choose the name people see on your public posts. Do not use your real name if you want to stay anonymous.</p>
-        <form id="profile-form" class="profile-form">
+        <p class="section-description">Manage your username and account preferences on the dedicated settings page.</p>
+        <a class="primary-button" href="/pages/settings.html">Open settings ↗</a>
+        <form id="profile-form" class="profile-form" hidden>
           <label for="profile-username">Username</label>
           <div class="username-field"><span>@</span><input id="profile-username" name="username" type="text" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" autocomplete="nickname" placeholder="Choose a username" required></div>
           <p class="field-hint">3–30 letters, numbers, or underscores. Must be unique.</p>
