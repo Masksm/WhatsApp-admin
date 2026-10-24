@@ -132,3 +132,16 @@
 .profile-tools-heading{min-height:12px;margin-bottom:14px}
 
 .profile-post-meta-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.profile-delete-post{border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);padding:6px 11px;font-size:.78rem;font-weight:700;cursor:pointer}.profile-delete-post:hover{border-color:#e46c7d;color:#e46c7d}.profile-repost-label{font-size:.75rem;font-weight:700;color:var(--muted)}
+
+
+/* Official Amora identity */
+.official-account-badge{display:inline-grid;place-items:center;width:19px;height:19px;margin-left:7px;vertical-align:middle;border-radius:50%;background:#2388f5;color:#fff;font:900 13px/1 system-ui,sans-serif;box-shadow:0 0 0 2px #2388f522}
+.official-support-email{margin:12px 22px 0;padding:10px 12px;border:1px solid #2388f544;border-radius:10px;background:#2388f50c;color:var(--text,#fff);font-size:.8rem;overflow-wrap:anywhere}
+.official-support-email strong{color:#8fc4ff}
+.official-support-email a{color:#8fc4ff;text-decoration:none;font-weight:750}
+.official-support-email a:hover{text-decoration:underline}
+.official-registration-card{padding:18px 22px;margin-bottom:16px}
+.official-registration-card h2{margin:0 0 8px;font-size:1rem}
+.official-registration-value{font-size:2rem;font-weight:850;color:#8fc4ff}
+.profile-follow-button:disabled{opacity:.85;cursor:default}
+@media(max-width:560px){.official-support-email{margin:10px 14px 0;font-size:.74rem}}
