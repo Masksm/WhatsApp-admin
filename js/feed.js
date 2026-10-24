@@ -366,7 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const countLabel = article.querySelector(".post-stats span:last-child");
         if (countLabel) countLabel.textContent = comments.length + (comments.length === 1 ? " comment" : " comments");
         const trigger = article.querySelector(".post-comments-trigger");
-        if (trigger) trigger.textContent = "☏ Comments · " + comments.length;
+        if (trigger) trigger.textContent = "Comments · " + comments.length;
       }
       if (activeCommentsPost?.id === post.id) await refreshCommentsDialog();
     } catch (error) {
@@ -422,7 +422,8 @@ document.addEventListener("DOMContentLoaded", () => {
       badge.setAttribute("role", "img");
       badge.setAttribute("aria-label", "Verified official Amora account");
       badge.title = "Verified official Amora account";
-      badge.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.2 16.2 4.9 12l-1.8 1.8 6.1 6.1L21 8.1l-1.8-1.8z" fill="currentColor"/></svg>';
+      badge.style.cssText = "display:inline-flex!important;align-items:center!important;justify-content:center!important;width:18px!important;height:18px!important;min-width:18px!important;flex:0 0 18px!important;margin-left:6px!important;border-radius:50%!important;background:#1877f2!important;color:#ffffff!important;vertical-align:middle!important;overflow:hidden!important;box-sizing:border-box!important";
+      badge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block!important;width:12px!important;height:12px!important;fill:#fff!important;color:#fff!important"><path d="M9.2 16.2 4.9 12l-1.8 1.8 6.1 6.1L21 8.1l-1.8-1.8z" fill="#ffffff"/></svg>';
       author.append(badge);
     }
     const text = document.createElement("p");
@@ -550,7 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
     activeCommentsPost = post;
     const dialog = ensureCommentsDialog();
     const profile = post.author_id ? profileCache.get(post.author_id) : null;
-    dialog.querySelector(".comments-dialog-subtitle").textContent = (profile?.display_name || profile?.username || "Amora post") + " · Conversation";
+    dialog.querySelector(".comments-dialog-subtitle").textContent = (profile?.display_name || profile?.username || "Amora post");
     dialog.querySelector(".comments-dialog-post").textContent = post.content || "";
     const form = dialog.querySelector(".comments-dialog-form");
     form.elements.namedItem("comment-content").placeholder = post.is_anonymous || post.force_anonymous_comments ? "Reply anonymously…" : "Write a comment…";
@@ -741,36 +742,7 @@ document.addEventListener("DOMContentLoaded", () => {
           setStatus("Couldn't update your like. Please try again.", true);
         }
       }),
-      makeButton("☏ Comments · " + comments.length, "post-action post-comments-trigger", () => openCommentsDialog(post)),
-      makeButton("▢ Reply", "post-action", () => {
-        const old = article.querySelector(":scope > .post-reply-composer");
-        if (old) { old.remove(); return; }
-        const form = document.createElement("form");
-        form.className = "post-reply-composer";
-        const input = document.createElement("input");
-        input.maxLength = 3000;
-        input.placeholder = "Join the conversation…";
-        input.setAttribute("aria-label", "Write a reply");
-        const send = document.createElement("button");
-        send.type = "submit";
-        send.textContent = "Reply";
-        if (!post.force_anonymous_comments && !post.is_anonymous) {
-          const anonymousLabel = document.createElement("label");
-          anonymousLabel.className = "comment-anonymous-choice";
-          const anonymousToggle = document.createElement("input");
-          anonymousToggle.type = "checkbox";
-          anonymousToggle.name = "comment-anonymous";
-          anonymousToggle.setAttribute("aria-label", "Comment anonymously");
-          anonymousLabel.append(anonymousToggle, document.createTextNode(" Comment anonymously"));
-          form.append(input, anonymousLabel, send);
-        } else form.append(input, send);
-        form.addEventListener("submit", (event) => {
-          event.preventDefault();
-          addComment(post, null, input, form);
-        });
-        article.append(form);
-        input.focus();
-      }),
+      makeButton("Comments · " + comments.length, "post-action post-comments-trigger", () => openCommentsDialog(post)),
       makeButton(repostCache.has(post.id) ? "↻ Reposted" : "⟳ Repost", "post-action", async () => {
         try {
           await toggleRow("post_reposts", post.id, repostCache);
