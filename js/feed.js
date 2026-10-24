@@ -483,22 +483,30 @@ document.addEventListener("DOMContentLoaded", () => {
     identity.append(meta);
     header.append(avatar, identity);
     const ownedDeletionToken = getOwnedHiddenToken(post.id);
-    if (post.is_anonymous && ownedDeletionToken) {
-      const deleteButton = makeButton("🗑", "anonymous-post-delete", async () => {
-        if (!window.confirm("Delete this anonymous post permanently? This cannot be undone.")) return;
+    const ownsIdentifiedPost = Boolean(currentUser && post.author_id === currentUser.id && !post.is_anonymous);
+    if ((post.is_anonymous && ownedDeletionToken) || ownsIdentifiedPost) {
+      const deleteButton = makeButton("Delete", "post-delete-button", async () => {
+        if (!window.confirm("Delete this post permanently? This cannot be undone.")) return;
         try {
-          const { data, error } = await supabase.rpc("delete_hidden_post", { p_post_id: post.id, p_deletion_token: ownedDeletionToken });
-          if (error) throw error;
-          if (data !== true) throw new Error("The deletion token was not accepted for this account.");
-          const tokens = readHiddenTokens();
-          delete tokens[post.id];
-          localStorage.setItem(hiddenTokenStorageKey, JSON.stringify(tokens));
-          setStatus("Anonymous post deleted.");
-          await loadFeed();
-        } catch (error) { await logClientError("delete_hidden_post", error); setStatus("Couldn't delete this post. Please try again.", true); }
+          if (post.is_anonymous) {
+            const { data, error } = await supabase.rpc("delete_hidden_post", { p_post_id: post.id, p_deletion_token: ownedDeletionToken });
+            if (error) throw error;
+            if (data !== true) throw new Error("The deletion token was not accepted.");
+            const tokens = readHiddenTokens();
+            delete tokens[post.id];
+            localStorage.setItem(hiddenTokenStorageKey, JSON.stringify(tokens));
+          } else {
+            const { error } = await supabase.from("posts").delete().eq("id", post.id).eq("author_id", currentUser.id).eq("is_anonymous", false);
+            if (error) throw error;
+          }
+          posts = posts.filter(item => item.id !== post.id);
+          setStatus("Post deleted.");
+          article.remove();
+          if (!feedList.querySelector(".post-card")) await renderFeed();
+        } catch (error) { await logClientError("delete_post", error); setStatus("Couldn't delete this post. Please try again.", true); }
       });
-      deleteButton.setAttribute("aria-label", "Delete anonymous post");
-      deleteButton.title = "Delete your anonymous post";
+      deleteButton.setAttribute("aria-label", "Delete post");
+      deleteButton.title = "Delete your post";
       header.append(deleteButton);
     } else {
       if (post.author_id && currentUser && post.author_id !== currentUser.id) {
@@ -874,6 +882,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const renderedPost = await renderPost(newPost);
       feedList.querySelector(".feed-empty")?.remove();
       feedList.prepend(renderedPost);
+      if (composerDialog) {
+        composerDialog.classList.remove("is-expanded");
+        composerDialog.hidden = true;
+      }
+      if (quickComposer) quickComposer.setAttribute("aria-expanded", "false");
     } catch (error) {
       if (uploadedPath) {
         try { await supabase.storage.from("amora-post-images").remove([uploadedPath]); } catch {}
