@@ -72,3 +72,24 @@
 @media(max-width:720px){.profile-main{padding-top:0}.profile-heading{align-items:flex-start}.profile-back-link{display:none}.profile-hero{align-items:flex-start;gap:15px;padding:19px 15px;border-radius:17px}.profile-avatar{width:66px;height:66px;flex-basis:66px;border-radius:22px;font-size:1.8rem}.profile-hero h2{font-size:1.2rem}.profile-private-note{max-width:260px;font-size:.68rem}.profile-heart-decoration{right:6px;bottom:0;font-size:3.8rem}.profile-stats{gap:8px}.profile-stat{padding:14px 4px;border-radius:14px}.profile-stat strong{font-size:1.25rem}.profile-stat>span:last-child{font-size:.65rem}.profile-section{padding:17px 14px;border-radius:17px}.section-heading h2{font-size:1.12rem}.section-description{font-size:.75rem}.profile-account-actions{padding:17px 3px}.profile-account-actions p{max-width:220px;line-height:1.6}}
 
 .post-author-profile-link{color:inherit;text-decoration:none}.post-author-profile-link:hover{color:#ff9bc9;text-decoration:underline}
+
+/* Optional public profile traits and private profile tools */
+.profile-stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+.profile-section[hidden],.profile-traits-editor[hidden],.anonymous-link-result[hidden],#owner-tools[hidden]{display:none!important}
+.profile-traits-display{display:grid;gap:15px}
+.public-trait-group h3{font-size:.78rem;margin:0 0 8px;color:#c8b6d0}
+.public-trait-chips,.trait-options{display:flex;flex-wrap:wrap;gap:8px}
+.public-trait-chip{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;background:#f6a1d014;border:1px solid #f6a1d02e;color:#f5d8e8;font-size:.76rem}
+.trait-editor-group{border:1px solid var(--profile-line);border-radius:13px;padding:12px;margin:12px 0}
+.trait-editor-group legend{padding:0 7px;color:#f2c4df;font-size:.8rem;font-weight:750}
+.trait-option{display:inline-flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid var(--profile-line);border-radius:9px;font-size:.75rem;color:#d6c8dc;cursor:pointer}
+.trait-option input{accent-color:#f6a1d0}
+.traits-privacy-note,.section-description{font-size:.78rem;line-height:1.65;color:#b7a7bf}
+.profile-status.is-error{color:#ff9aaf}
+.anonymous-link-tools{display:grid;gap:10px}
+.anonymous-link-result{display:flex;gap:8px;flex-wrap:wrap}
+.anonymous-link-result input{min-width:0;flex:1;background:#100a15;color:#f5d8e8;border:1px solid var(--profile-line);border-radius:10px;padding:11px}
+.profile-post-meta-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.profile-delete-post{border:1px solid #ff789b45;border-radius:8px;background:#ff789b0d;color:#ff9ab8;padding:6px 9px;font-size:.7rem;cursor:pointer}
+.profile-delete-post:disabled{opacity:.5;cursor:wait}
+@media(max-width:680px){.profile-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.anonymous-link-result{flex-direction:column}.anonymous-link-result input{width:100%;box-sizing:border-box}}
