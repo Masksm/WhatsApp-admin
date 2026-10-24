@@ -105,3 +105,38 @@
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) body.amora-feed-page { color-scheme:light;--bg:#f0f2f5;--surface:#fff;--surface2:#e4e6eb;--line:#d8dadf;--text:#242526;--muted:#65676b;background:#f0f2f5!important;color:#242526!important; }
 }
+
+
+/* Hard override all notification surfaces using the shared saved appearance. */
+html[data-theme="dark"] body.amora-feed-page,
+html[data-theme="dark"] body.amora-feed-page .feed-shell,
+html[data-theme="dark"] body.amora-feed-page .feed-main {background:#18191a!important;color:#f0f2f5!important;color-scheme:dark}
+html[data-theme="dark"] .notifications-main .notifications-header p:not(.eyebrow),
+html[data-theme="dark"] .notifications-main .notification-copy span,
+html[data-theme="dark"] .notifications-main .notification-copy small,
+html[data-theme="dark"] .notifications-main .notification-loading,
+html[data-theme="dark"] .notifications-main .notifications-status {color:#b0b3b8!important}
+html[data-theme="dark"] .notifications-main .amora-notification {background:#242526!important;border:1px solid #3e4042!important;color:#f0f2f5!important}
+html[data-theme="dark"] .notifications-main .amora-notification.unread {background:#263442!important;border-color:#36516b!important}
+html[data-theme="dark"] .notifications-main .notification-symbol {background:#263f59!important;color:#4599ff!important}
+html[data-theme="dark"] .notifications-main .notifications-filters {border-color:#3e4042!important}
+html[data-theme="dark"] .notifications-main .notification-filter {color:#b0b3b8!important}
+html[data-theme="dark"] .notifications-main .notification-filter.active {color:#4599ff!important;border-color:#4599ff!important}
+html[data-theme="dark"] .notifications-main .secondary-button {background:#3a3b3c!important;color:#f0f2f5!important;border-color:#4e4f50!important}
+html[data-theme="light"] body.amora-feed-page,
+html[data-theme="light"] body.amora-feed-page .feed-shell,
+html[data-theme="light"] body.amora-feed-page .feed-main {background:#f0f2f5!important;color:#242526!important;color-scheme:light}
+html[data-theme="light"] .notifications-main .notifications-header p:not(.eyebrow),
+html[data-theme="light"] .notifications-main .notification-copy span,
+html[data-theme="light"] .notifications-main .notification-copy small,
+html[data-theme="light"] .notifications-main .notification-loading,
+html[data-theme="light"] .notifications-main .notifications-status {color:#65676b!important}
+html[data-theme="light"] .notifications-main .amora-notification {background:#fff!important;border:1px solid #d8dadf!important;color:#242526!important}
+html[data-theme="light"] .notifications-main .amora-notification.unread {background:#e7f3ff!important;border-color:#b7d9ff!important}
+html[data-theme="light"] .notifications-main .notification-symbol {background:#e7f3ff!important;color:#1877f2!important}
+html[data-theme="light"] .notifications-main .notifications-filters {border-color:#d8dadf!important}
+html[data-theme="light"] .notifications-main .notification-filter {color:#65676b!important}
+html[data-theme="light"] .notifications-main .notification-filter.active {color:#1877f2!important;border-color:#1877f2!important}
+html[data-theme="light"] .notifications-main .secondary-button {background:#e4e6eb!important;color:#242526!important;border-color:#d8dadf!important}
+@media(prefers-color-scheme:dark){html:not([data-theme]) body.amora-feed-page,html:not([data-theme]) body.amora-feed-page .feed-shell,html:not([data-theme]) body.amora-feed-page .feed-main{background:#18191a!important;color:#f0f2f5!important;color-scheme:dark}html:not([data-theme]) .notifications-main .amora-notification{background:#242526!important;color:#f0f2f5!important;border-color:#3e4042!important}html:not([data-theme]) .notifications-main .amora-notification.unread{background:#263442!important}html:not([data-theme]) .notifications-main .notification-symbol{background:#263f59!important;color:#4599ff!important}}
+@media(prefers-color-scheme:light){html:not([data-theme]) body.amora-feed-page,html:not([data-theme]) body.amora-feed-page .feed-shell,html:not([data-theme]) body.amora-feed-page .feed-main{background:#f0f2f5!important;color:#242526!important;color-scheme:light}html:not([data-theme]) .notifications-main .amora-notification{background:#fff!important;color:#242526!important;border-color:#d8dadf!important}html:not([data-theme]) .notifications-main .amora-notification.unread{background:#e7f3ff!important}html:not([data-theme]) .notifications-main .notification-symbol{background:#e7f3ff!important;color:#1877f2!important}}
