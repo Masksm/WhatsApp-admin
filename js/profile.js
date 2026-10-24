@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const postsContainer = byId("profile-posts");
   const settingsButton = byId("profile-settings-button");
   const settingsSection = byId("identity-settings");
+  const logoutButton = byId("profile-logout-button");
   const targetUsername = new URLSearchParams(window.location.search).get("username");
   let user = null;
   let viewedProfile = null;
@@ -457,14 +458,24 @@ document.addEventListener("DOMContentLoaded", () => {
   byId("profile-create-anonymous-link")?.addEventListener("click", createProfileAnonymousLink);
   byId("profile-copy-anonymous-link")?.addEventListener("click", copyProfileAnonymousLink);
 
-  settingsButton?.addEventListener("click", () => {
-    if (viewedProfile?.id !== currentUserId) {
-      showStatus("Settings are only available on your own profile.");
+  logoutButton?.addEventListener("click", async () => {
+    if (!supabase) return;
+    logoutButton.disabled = true;
+    logoutButton.textContent = "Logging out…";
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      logoutButton.disabled = false;
+      logoutButton.textContent = "Log out ↗";
+      showStatus(error.message || "Could not log out.", true);
       return;
     }
-    settingsSection.dataset.open = settingsSection.hidden ? "true" : "false";
-    settingsSection.hidden = settingsSection.dataset.open !== "true";
-    if (!settingsSection.hidden) settingsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.location.replace("/?auth=login");
+  });
+
+  settingsButton?.addEventListener("click", (event) => {
+    // Settings is now a dedicated page, not an expandable profile panel.
+    if (settingsButton.tagName !== "A") event.preventDefault();
+    window.location.href = "/pages/settings.html";
   });
 
   form?.addEventListener("submit", async (event) => {
