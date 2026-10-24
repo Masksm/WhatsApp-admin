@@ -165,9 +165,11 @@ document.addEventListener("DOMContentLoaded", () => {
     setText("profile-avatar", username.slice(0, 1).toUpperCase());
     setText("sidebar-avatar", username.slice(0, 1).toUpperCase());
     setText("sidebar-username", "@" + username);
-    setText("profile-page-title", isOwner ? "Your profile ♡" : "@" + username);
+    setText("profile-page-title", isOwner ? "Your profile" : "@" + username);
     setText("profile-eyebrow", isOwner ? "YOUR AMORA SPACE" : "AMORA COMMUNITY");
-    setText("profile-kicker", isOwner ? "YOUR AMORA IDENTITY" : "PUBLIC PROFILE");
+    byId("profile-action-row").hidden = isOwner;
+    byId("profile-private-note").hidden = isOwner;
+    byId("profile-more-button")?.setAttribute("aria-expanded", "false");
     setText("posts-section-title", isOwner ? "Your posts" : "Posts");
     setText("posts-section-description", isOwner
       ? "Your identified posts appear here. Anonymous posts stay separate."
@@ -398,6 +400,32 @@ document.addEventListener("DOMContentLoaded", () => {
     if (postsError) throw postsError;
     await renderPosts(posts || []);
   }
+
+  byId("profile-more-button")?.addEventListener("click", () => {
+    const menu = byId("profile-more-menu");
+    if (!menu) return;
+    menu.hidden = !menu.hidden;
+    byId("profile-more-button").setAttribute("aria-expanded", String(!menu.hidden));
+  });
+  document.addEventListener("click", event => {
+    const wrap = document.querySelector(".profile-more-wrap");
+    const menu = byId("profile-more-menu");
+    if (wrap && menu && !wrap.contains(event.target)) {
+      menu.hidden = true;
+      byId("profile-more-button")?.setAttribute("aria-expanded", "false");
+    }
+  });
+  byId("profile-follow-button")?.addEventListener("click", () => {
+    showStatus("Following is not connected yet. The profile layout is ready for the follow feature.");
+  });
+  byId("profile-report-button")?.addEventListener("click", () => {
+    showStatus("Account reporting is not connected yet.");
+    byId("profile-more-menu").hidden = true;
+  });
+  byId("profile-block-button")?.addEventListener("click", () => {
+    showStatus("Account blocking is not connected yet.");
+    byId("profile-more-menu").hidden = true;
+  });
 
   byId("profile-create-anonymous-link")?.addEventListener("click", createProfileAnonymousLink);
   byId("profile-copy-anonymous-link")?.addEventListener("click", copyProfileAnonymousLink);
