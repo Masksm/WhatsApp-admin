@@ -540,32 +540,11 @@ document.addEventListener("DOMContentLoaded", () => {
       actions.append(editButton, deleteButton);
     }
     const replyButton = makeButton("Reply", "comment-reply-button", () => {
-      const old = item.querySelector(":scope > .reply-composer");
-      if (old) { old.remove(); return; }
-      const form = document.createElement("form");
-      form.className = "reply-composer";
-      const input = document.createElement("input");
-      input.maxLength = 3000;
-      input.placeholder = "Write a reply…";
-      input.setAttribute("aria-label", "Write a reply");
-      const send = document.createElement("button");
-      send.type = "submit";
-      send.textContent = "Reply";
-      if (!post.force_anonymous_comments && !post.is_anonymous) {
-        const anonymousLabel = document.createElement("label");
-        anonymousLabel.className = "comment-anonymous-choice";
-        const anonymousToggle = document.createElement("input");
-        anonymousToggle.type = "checkbox";
-        anonymousToggle.name = "comment-anonymous";
-        anonymousLabel.append(anonymousToggle, document.createTextNode(" Reply anonymously"));
-        form.append(input, anonymousLabel, send);
-      } else form.append(input, send);
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        addComment(post, comment.id, input, form);
-      });
-      item.append(form);
-      input.focus();
+      if (activeCommentsPost?.id !== post.id || !commentsDialog || commentsDialog.hidden) {
+        openCommentsDialog(post).then(() => focusReplyComposer(comment, post));
+        return;
+      }
+      focusReplyComposer(comment, post);
     });
     actions.append(replyButton);
     item.append(body, actions);
@@ -596,6 +575,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let commentsDialog = null;
   let activeCommentsPost = null;
+  let activeReplyParentId = null;
 
   function ensureCommentsDialog() {
     if (commentsDialog) return commentsDialog;
@@ -612,6 +592,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="comments-dialog-post"></div>
         <div class="comments-dialog-list" aria-live="polite"></div>
         <form class="comments-dialog-form post-reply-composer">
+          <div class="comments-reply-context comment-reply-context" hidden></div>
           <input name="comment-content" maxlength="3000" placeholder="Write a comment…" aria-label="Write a comment" required>
           <label class="comment-anonymous-choice comments-dialog-anonymous"><input type="checkbox" name="comment-anonymous"> Comment anonymously</label>
           <button type="submit">Reply</button>
@@ -622,7 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
     commentsDialog.querySelector(".comments-dialog-form").addEventListener("submit", event => {
       event.preventDefault();
       if (!activeCommentsPost) return;
-      addComment(activeCommentsPost, null, event.currentTarget.elements.namedItem("comment-content"), event.currentTarget);
+      addComment(activeCommentsPost, activeReplyParentId, event.currentTarget.elements.namedItem("comment-content"), event.currentTarget);
     });
     commentsDialog.addEventListener("keydown", event => {
       if (event.key === "Escape") closeCommentsDialog();
@@ -644,6 +625,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const profile = post.author_id ? profileCache.get(post.author_id) : null;
     dialog.querySelector(".comments-dialog-subtitle").textContent = (profile?.display_name || profile?.username || "Amora post");
     dialog.querySelector(".comments-dialog-post").textContent = post.content || "";
+    activeReplyParentId = null;
+    const replyContext = dialog.querySelector(".comments-reply-context");
+    if (replyContext) { replyContext.hidden = true; replyContext.replaceChildren(); }
+    const composerInput = dialog.querySelector('[name="comment-content"]');
+    composerInput.placeholder = "Write a comment…";
+    dialog.querySelector('.comments-dialog-form button[type="submit"]').textContent = "Comment";
     const form = dialog.querySelector(".comments-dialog-form");
     form.elements.namedItem("comment-content").placeholder = post.is_anonymous || post.force_anonymous_comments ? "Reply anonymously…" : "Write a comment…";
     dialog.querySelector(".comments-dialog-anonymous").hidden = Boolean(post.is_anonymous || post.force_anonymous_comments);
@@ -652,6 +639,24 @@ document.addEventListener("DOMContentLoaded", () => {
     requestAnimationFrame(() => dialog.classList.add("is-open"));
     await refreshCommentsDialog();
     form.elements.namedItem("comment-content").focus({ preventScroll: true });
+  }
+
+  function focusReplyComposer(comment, post) {
+    if (!commentsDialog || activeCommentsPost?.id !== post.id) return;
+    activeReplyParentId = comment.id;
+    const context = commentsDialog.querySelector(".comments-reply-context");
+    context.replaceChildren();
+    const label = document.createElement("strong");
+    label.textContent = "Replying to " + (post.is_anonymous || comment.is_anonymous ? "Anonymous" : comment.author);
+    const quote = document.createElement("span");
+    quote.textContent = comment.content || "";
+    context.append(label, quote);
+    context.hidden = false;
+    const input = commentsDialog.querySelector('[name="comment-content"]');
+    input.placeholder = "Write a reply…";
+    commentsDialog.querySelector('.comments-dialog-form button[type="submit"]').textContent = "Reply";
+    input.focus({ preventScroll: true });
+    input.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
 
   async function refreshCommentsDialog() {
