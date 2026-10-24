@@ -1,1124 +1,280 @@
-"use strict";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+:root{color-scheme:dark;--bg:#100b14;--surface:#19121e;--surface2:#211727;--line:rgba(255,255,255,.085);--text:#fff7fc;--muted:#ad9eb4;--pink:#ff72b7;--pink2:#f6a1d0;--purple:#ad8aff;--radius:20px}
+*{box-sizing:border-box}body.amora-feed-page{margin:0;min-height:100vh;background:radial-gradient(ellipse at 48% -10%,rgba(149,76,166,.12),transparent 42%),var(--bg);color:var(--text);font-family:'DM Sans',sans-serif}a{color:inherit;text-decoration:none}button,textarea,input{font:inherit}button{color:inherit}.feed-shell{width:min(1380px,100%);margin:0 auto;display:grid;grid-template-columns:245px minmax(0,650px) 285px;gap:28px;padding:0 26px;justify-content:center}.feed-sidebar{height:100vh;position:sticky;top:0;padding:30px 0 20px;display:flex;flex-direction:column;border-right:1px solid var(--line);padding-right:22px}.feed-brand{display:inline-flex;align-items:center;gap:11px;width:max-content;font:800 1.65rem 'Manrope',sans-serif;letter-spacing:-.07em}.brand-mark{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#ff79b9,#a779ff);box-shadow:0 8px 28px #ed5aa52c;color:#fff;font:800 1.8rem Georgia,serif}.main-nav{display:grid;gap:8px;margin-top:46px}.nav-link{display:flex;align-items:center;gap:16px;padding:14px 16px;border:0;border-radius:14px;background:transparent;color:#c5b7ca;text-align:left;font-size:.94rem;cursor:pointer;transition:.2s}.nav-link:hover,.nav-link.active{background:#ff72b712;color:var(--text)}.nav-link.active{font-weight:700}.nav-link.active:before{content:"";width:3px;height:23px;border-radius:4px;background:var(--pink);position:absolute;left:0}.nav-icon{width:24px;text-align:center;font-size:1.35rem;color:var(--pink)}.sidebar-note{margin-top:auto;padding:18px;border:1px solid #ff72b71e;border-radius:17px;background:linear-gradient(145deg,#ff72b70d,#ad8aff0a)}.note-heart{font-size:1.7rem;color:var(--pink)}.sidebar-note p{margin:9px 0 0;color:#c5b5cc;font-size:.82rem;line-height:1.7}.sidebar-account{display:flex;align-items:center;gap:10px;padding:18px 4px 0;margin-top:18px;border-top:1px solid var(--line)}.sidebar-account strong,.sidebar-account small{display:block}.sidebar-account strong{font-size:.82rem}.sidebar-account small{margin-top:4px;color:var(--muted);font-size:.7rem}.more-dots{margin-left:auto;color:var(--muted);font-size:1.4rem}.avatar{flex:0 0 42px;width:42px;height:42px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(135deg,#ff82bf,#a980ff);font-weight:800;color:#fff}.avatar-you{background:linear-gradient(135deg,#30233a,#4d3458);border:1px solid #ff82bf66;color:#ffc0df;font-size:1.2rem}.feed-main{min-width:0;min-height:100vh;padding:35px 0 24px}.feed-heading{display:flex;align-items:center;justify-content:space-between;margin:3px 0 25px}.eyebrow{margin:0 0 8px;color:var(--pink);font-size:.63rem;font-weight:700;letter-spacing:.16em}.feed-heading h1{margin:0;font:800 2rem 'Manrope',sans-serif;letter-spacing:-.055em}.heading-heart{color:var(--pink);font-size:1.5rem}.icon-button{width:42px;height:42px;border:1px solid var(--line);border-radius:14px;background:#ffffff05;color:#ffc2e0;font-size:1.35rem;cursor:pointer}.card,.right-card{border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(145deg,#ffffff04,transparent 55%),var(--surface)}.composer{padding:19px 20px 15px}.composer-top{display:flex;align-items:flex-start;gap:13px}.composer-top textarea{flex:1;min-width:0;resize:vertical;min-height:58px;max-height:220px;padding:10px 0;border:0;outline:0;background:transparent;color:var(--text);font-size:.94rem;line-height:1.65}.composer-top textarea::placeholder{color:#897990}.composer-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:13px;border-top:1px solid var(--line)}.composer-tools{display:flex;align-items:center;gap:15px;flex-wrap:wrap}.tool-button{display:inline-flex;align-items:center;gap:7px;color:#e2c9df;font-size:.79rem;cursor:pointer}.tool-button span{color:var(--pink);font-size:1.2rem}.identity-toggle{display:inline-flex;align-items:center;gap:7px;color:#c9b8d0;font-size:.73rem;cursor:pointer}.identity-toggle input{position:absolute;opacity:0;width:1px;height:1px}.toggle-track{width:27px;height:16px;border-radius:99px;background:#55445e;position:relative;transition:.2s}.toggle-track:after{content:"";position:absolute;left:3px;top:3px;width:10px;height:10px;border-radius:50%;background:#d6c7dc;transition:.2s}.identity-toggle input:checked+.toggle-track{background:linear-gradient(90deg,#ff6eaf,#a87cff)}.identity-toggle input:checked+.toggle-track:after{left:14px;background:#fff}.identity-toggle input:focus-visible+.toggle-track{outline:2px solid #fff;outline-offset:3px}.info-dot{width:14px;height:14px;display:grid;place-items:center;border:1px solid #8e7a96;border-radius:50%;font-size:.58rem}.primary-button{min-height:39px;padding:0 16px;border:0;border-radius:12px;background:linear-gradient(105deg,#ff70b5,#ba83ff);box-shadow:0 6px 20px #d85ca32a;color:white;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:transform .15s,opacity .15s}.primary-button span{margin-left:7px}.primary-button:hover{transform:translateY(-1px)}.primary-button:disabled{opacity:.4;cursor:not-allowed;transform:none}.status-message{margin:8px 0 0;color:var(--pink2);font-size:.75rem}.status-message:empty{display:none}.image-preview{margin:12px 0 14px 55px;position:relative;max-width:320px}.image-preview img{display:block;width:100%;max-height:260px;object-fit:cover;border-radius:13px;border:1px solid var(--line)}.remove-image{position:absolute;right:8px;top:8px;width:30px;height:30px;border:0;border-radius:50%;background:#100b14d9;cursor:pointer}.feed-tabs{display:flex;gap:26px;margin:25px 0 0;border-bottom:1px solid var(--line)}.feed-tab{position:relative;padding:0 2px 15px;border:0;background:transparent;color:#98869f;font-size:.85rem;cursor:pointer}.feed-tab.active{color:#fff;font-weight:700}.feed-tab.active:after{position:absolute;right:0;bottom:-1px;left:0;height:3px;border-radius:4px;background:linear-gradient(90deg,var(--pink),var(--purple));content:""}.feed-list{display:grid;gap:13px;padding-top:15px}.feed-empty{padding:38px 25px;text-align:center}.empty-art{width:74px;height:74px;position:relative;display:grid;place-items:center;margin:0 auto 18px;border-radius:25px;background:linear-gradient(145deg,#ff72b71a,#ad8aff1c);color:var(--pink);font-size:2.5rem}.empty-art i,.empty-art b{position:absolute;font-style:normal;color:#b99bff;font-size:1rem}.empty-art i{right:3px;top:8px}.empty-art b{bottom:5px;left:8px}.feed-empty h2{margin:0;font:700 1.2rem 'Manrope',sans-serif}.feed-empty p{max-width:350px;margin:10px auto 20px;color:var(--muted);font-size:.85rem;line-height:1.7}.feed-footer{padding:25px 0;color:#7d6d85;text-align:center;font-size:.72rem}.feed-footer span{color:var(--pink)}.feed-rightbar{padding-top:104px}.welcome-card{position:relative;overflow:hidden;padding:23px;border:1px solid #ff72b71e;border-radius:22px;background:radial-gradient(ellipse at 100% 0%,#ad8aff1c,transparent 50%),linear-gradient(150deg,#ff72b70e,#19121e 70%)}.welcome-sparkle{position:absolute;right:20px;top:15px;color:#c7a6ff;font-size:1.5rem}.welcome-card h2{margin:14px 0;font:800 1.75rem/1.13 'Manrope',sans-serif;letter-spacing:-.06em}.welcome-card h2 span{color:var(--pink)}.welcome-card>p:last-child,.community-card p{margin:0;color:var(--muted);font-size:.82rem;line-height:1.75}.right-card{padding:20px;margin-top:17px}.community-card h3{display:flex;justify-content:space-between;margin:0 0 11px;font:700 .93rem 'Manrope',sans-serif}.community-card h3 span{color:var(--pink)}.community-avatars{display:flex;margin-top:17px}.mini-avatar{width:32px;height:32px;margin-right:-5px;border:2px solid var(--surface);border-radius:12px;display:grid;place-items:center;font-size:.8rem}.mini-avatar.pink{background:#6e3155;color:#ffc3e0}.mini-avatar.purple{background:#4d3a72;color:#e1d2ff}.mini-avatar.peach{background:#6b433c;color:#ffdbcb}.mini-avatar.muted{background:#302536;color:#b7a5bd}.legal-links{display:flex;flex-wrap:wrap;gap:8px;margin:20px 4px;color:#76677e;font-size:.68rem}.legal-links a:hover{color:var(--pink)}.mobile-topbar,.mobile-nav{display:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:1120px){.feed-shell{grid-template-columns:210px minmax(0,650px);gap:25px}.feed-rightbar{display:none}}
+@media(max-width:720px){body.amora-feed-page{background:var(--bg)}.feed-shell{display:block;padding:0 15px}.feed-sidebar{display:none}.feed-main{padding:0 0 94px}.mobile-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0 18px;border-bottom:1px solid var(--line)}.mobile-topbar .feed-brand{font-size:1.35rem}.mobile-topbar .brand-mark{width:34px;height:34px;border-radius:12px;font-size:1.5rem}.feed-heading{margin:22px 0 20px}.feed-heading h1{font-size:1.8rem}.desktop-notifications{display:none}.composer{padding:15px 13px 12px;border-radius:17px}.composer-top{gap:10px}.composer-top .avatar{width:37px;height:37px;flex-basis:37px;border-radius:13px}.composer-top textarea{font-size:.88rem}.composer-bottom{align-items:flex-start;flex-direction:column}.composer-tools{width:100%;justify-content:space-between;gap:8px}.primary-button#publish-post{align-self:flex-end;min-height:37px}.feed-tabs{gap:25px;margin-top:22px}.feed-tab{font-size:.82rem;padding-bottom:13px}.feed-list{padding-top:12px}.feed-empty{padding:32px 17px}.feed-footer{padding:18px 0}.mobile-nav{position:fixed;z-index:10;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:space-around;padding:10px 13px calc(10px + env(safe-area-inset-bottom));border-top:1px solid #ffffff12;background:#140e1aee;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}.mobile-nav-link{width:47px;height:43px;display:grid;place-items:center;border:0;border-radius:14px;background:transparent;color:#a995b0;font-size:1.5rem;cursor:pointer}.mobile-nav-link.active{color:var(--pink)}.mobile-nav-link.share-nav{width:49px;height:43px;border-radius:15px;background:linear-gradient(135deg,#ff70b5,#ad83ff);color:#fff;font-size:1.8rem;box-shadow:0 5px 20px #ff70b533}.image-preview{margin-left:46px}.identity-toggle{font-size:.69rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
-document.addEventListener("DOMContentLoaded", () => {
-  const composer = document.getElementById("composer");
-  const textInput = document.getElementById("post-text");
-  const imageInput = document.getElementById("post-image");
-  const imagePreview = document.getElementById("image-preview");
-  const hideIdentity = document.getElementById("hide-identity");
-  const forceAnonymousComments = document.getElementById("force-anonymous-comments");
-  const publishButton = document.getElementById("publish-post");
-  const composerStatus = document.getElementById("composer-status");
-  const feedList = document.getElementById("feed-list");
-  const feedTabs = [...document.querySelectorAll("[data-feed]")];
-  const homeStateKey = "amora_home_navigation_state";
-  const saveHomeState = () => {
-    try {
-      sessionStorage.setItem(homeStateKey, JSON.stringify({
-        scrollY: window.scrollY,
-        activeFeed: activeFeed,
-        savedAt: Date.now()
-      }));
-    } catch (_) {}
-  };
-  // Keep the current feed view when navigating away and back in this tab.
-  document.querySelectorAll('a[href="/pages/social-home.html"]').forEach((link) => {
-    link.addEventListener("click", (event) => {
-      const target = new URL(link.href, window.location.href);
-      if (target.pathname === window.location.pathname && !target.search && !target.hash) {
-        event.preventDefault();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        return;
-      }
-      if (target.pathname !== window.location.pathname) saveHomeState();
-    });
-  });
-  window.addEventListener("pagehide", saveHomeState);
-  const restoreHomeState = () => {
-    try {
-      const raw = sessionStorage.getItem(homeStateKey);
-      if (!raw) return;
-      const state = JSON.parse(raw);
-      if (!state || Date.now() - state.savedAt > 30 * 60 * 1000) {
-        sessionStorage.removeItem(homeStateKey);
-        return;
-      }
-      if (state.activeFeed && feedTabs.some(tab => tab.dataset.feed === state.activeFeed)) {
-        activeFeed = state.activeFeed;
-        feedTabs.forEach(tab => {
-          const selected = tab.dataset.feed === activeFeed;
-          tab.classList.toggle("active", selected);
-          tab.setAttribute("aria-selected", String(selected));
-        });
-      }
-      requestAnimationFrame(() => window.scrollTo({ top: Number(state.scrollY) || 0, behavior: "instant" }));
-    } catch (_) {}
-  };
 
-  const supabase = window.amoraSupabase || null;
+/* Feed cards and conversation threads */
+.post-card{padding:19px 20px 13px;min-width:0}.post-header{display:flex;align-items:center;gap:12px}.post-avatar{width:43px;height:43px;flex-basis:43px;border-radius:15px}.avatar-anonymous{background:linear-gradient(135deg,#593253,#3b2d59);color:#ffc1e1}.post-identity{min-width:0;display:grid;gap:4px}.post-identity strong{font-size:.86rem}.post-identity span{font-size:.7rem;color:var(--muted)}.post-more{margin-left:auto;color:#9b8aa3;font-size:1.3rem;letter-spacing:2px}.post-content{margin:16px 0 17px;font-size:.9rem;line-height:1.8;overflow-wrap:anywhere}.post-image{display:block;width:100%;max-height:480px;object-fit:cover;border-radius:15px;margin:0 0 15px;border:1px solid var(--line)}.post-stats{display:flex;gap:14px;flex-wrap:wrap;padding:11px 0;color:#9c8ba5;font-size:.69rem}.post-actions{display:flex;justify-content:space-between;gap:5px;padding:9px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.post-action{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:8px 6px;border:0;border-radius:9px;background:transparent;color:#b7a6c0;font-size:.72rem;cursor:pointer}.post-action:hover,.post-action.is-active{background:#ff72b711;color:var(--pink)}.post-action.is-active{font-weight:700}.post-comments{padding-top:14px}.post-comments h3{margin:0 0 12px;font-size:.79rem;color:#e8d7ec}.comment-item{min-width:0;margin-top:12px}.comment-body{padding:11px 12px;border:1px solid #ffffff0a;border-radius:12px;background:#ffffff03}.comment-head strong{font-size:.73rem;color:#f2dceb}.comment-body p{margin:6px 0 0;color:#d0c2d5;font-size:.78rem;line-height:1.65;overflow-wrap:anywhere}.comment-reply-button{margin:6px 0 0;padding:3px 8px;border:0;border-radius:7px;background:transparent;color:#ad9bb6;font-size:.68rem;cursor:pointer}.comment-replies{margin:9px 0 0 13px;padding-left:12px;border-left:2px solid #ff72b729}.post-reply-composer,.reply-composer{display:flex;gap:8px;margin-top:12px}.post-reply-composer input,.reply-composer input{min-width:0;flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#100b14;color:var(--text);font-size:.78rem;outline:none}.post-reply-composer button,.reply-composer button{padding:0 13px;border:0;border-radius:10px;background:linear-gradient(105deg,#ff70b5,#ba83ff);color:#fff;font-size:.75rem;font-weight:700;cursor:pointer}.preview-feed-note{margin:2px 3px 10px;color:#887791;font-size:.68rem;line-height:1.6;text-align:center}
+@media(max-width:720px){.post-card{padding:15px 13px 11px;border-radius:17px}.post-content{font-size:.86rem}.post-actions{gap:1px}.post-action{font-size:.66rem;padding:8px 3px;gap:3px}.post-stats{gap:10px;font-size:.65rem}.comment-replies{margin-left:7px;padding-left:8px}.post-reply-composer,.reply-composer{gap:6px}.post-reply-composer button,.reply-composer button{padding:0 10px}}
 
-  if (!composer || !textInput || !feedList || !publishButton) {
-    console.error("[Amora] Home initialization stopped: required feed elements are missing.", {
-      composer: !!composer, textInput: !!textInput, feedList: !!feedList, publishButton: !!publishButton
-    });
-    if (feedList) {
-      feedList.replaceChildren();
-      const message = document.createElement("p");
-      message.className = "feed-empty card";
-      message.textContent = "The feed could not start. Refresh the page; if this continues, the page scripts are out of sync.";
-      feedList.append(message);
-    }
-    return;
+/* Comment-level likes, shares, and anonymous reply choices */
+.comment-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:7px 0 0}
+.comment-action{border:1px solid var(--line);border-radius:9px;background:#ffffff05;color:#cdbbd3;padding:6px 9px;font-size:.7rem;cursor:pointer}
+.comment-action.is-active{color:var(--pink);border-color:#ff72b74d}
+.comment-like-count{color:var(--muted);font-size:.68rem}
+.comment-anonymous-choice{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:.72rem;white-space:nowrap}
+.comment-anonymous-choice input{accent-color:var(--pink)}
+@media(max-width:720px){.composer-tools{align-items:flex-start}.identity-toggle{flex-wrap:wrap}}
+
+.header-account-actions{display:flex;align-items:center;gap:8px}
+.header-account-actions .icon-button{display:grid;place-items:center;text-decoration:none}
+.desktop-header-account-actions{margin-left:auto}
+@media(min-width:721px){.mobile-topbar .header-account-actions{display:none}}
+@media(max-width:720px){.desktop-header-account-actions{display:none}.mobile-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px}.settings-logout{font-size:.72rem;padding:8px 10px}}
+
+
+/* Clear, compact delete control for the owner's anonymous posts */
+.anonymous-post-delete{display:inline-grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid #ff6b8a55;border-radius:12px;background:#ff6b8a12;color:#ff8da5;font-size:1rem;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+.anonymous-post-delete:hover{background:#ff6b8a24;border-color:#ff6b8a99;transform:translateY(-1px)}
+.anonymous-post-delete:focus-visible{outline:2px solid #ff8da5;outline-offset:3px}
+
+:root[data-theme="light"]{color-scheme:light;--bg:#f7f4f8;--surface:#fff;--surface2:#f0eaf3;--line:rgba(61,37,68,.13);--text:#2b2030;--muted:#776a7e;--pink:#b52d78;--pink2:#a62d70;--purple:#8052bd}
+:root[data-theme="light"] body.amora-feed-page{background:var(--bg);color:var(--text)}
+:root[data-theme="light"] .nav-link,:root[data-theme="light"] .tool-button,:root[data-theme="light"] .identity-toggle,:root[data-theme="light"] .post-action,:root[data-theme="light"] .comment-reply-button{color:#65576c}
+:root[data-theme="light"] .nav-link.active,:root[data-theme="light"] .nav-link:hover{color:var(--text)}
+:root[data-theme="light"] .sidebar-note p,:root[data-theme="light"] .settings-item p{color:#65576c}
+:root[data-theme="light"] .composer-top textarea,:root[data-theme="light"] .username-field input{color:var(--text)}
+:root[data-theme="light"] .composer-top textarea::placeholder{color:#93859a}
+:root[data-theme="light"] .feed-tab.active{color:var(--text)}
+:root[data-theme="light"] .welcome-card{background:linear-gradient(150deg,#f9eaf3,#fff 70%)}
+:root[data-theme="light"] .post-comments h3,:root[data-theme="light"] .comment-head strong{color:#49364f}
+:root[data-theme="light"] .comment-body{background:#f8f5fa;border-color:#e8dfea}
+:root[data-theme="light"] .comment-body p{color:#55465d}
+:root[data-theme="light"] .post-reply-composer input,:root[data-theme="light"] .reply-composer input,:root[data-theme="light"] .settings-username-form input,:root[data-theme="light"] .profile-comment-form input,:root[data-theme="light"] .anonymous-link-result input{background:#fff;color:var(--text);border-color:#ded3e3}
+:root[data-theme="light"] .mobile-nav{background:rgba(255,255,255,.95);border-top-color:#e6dce9}
+:root[data-theme="light"] .mobile-nav-link{color:#76657e}
+:root[data-theme="light"] .mobile-nav-link.active{color:var(--pink)}
+:root[data-theme="light"] .settings-traits-modal{background:#fff}
+@media(prefers-color-scheme:light){:root:not([data-theme]){color-scheme:light;--bg:#f7f4f8;--surface:#fff;--surface2:#f0eaf3;--line:rgba(61,37,68,.13);--text:#2b2030;--muted:#776a7e;--pink:#b52d78;--pink2:#a62d70;--purple:#8052bd}:root:not([data-theme]) .nav-link,:root:not([data-theme]) .tool-button,:root:not([data-theme]) .identity-toggle,:root:not([data-theme]) .post-action{color:#65576c}:root:not([data-theme]) .sidebar-note p,:root:not([data-theme]) .settings-item p{color:#65576c}:root:not([data-theme]) .composer-top textarea,:root:not([data-theme]) .username-field input{color:var(--text)}:root:not([data-theme]) .post-comments h3,:root:not([data-theme]) .comment-head strong{color:#49364f}:root:not([data-theme]) .comment-body{background:#f8f5fa;border-color:#e8dfea}:root:not([data-theme]) .comment-body p{color:#55465d}:root:not([data-theme]) .mobile-nav{background:rgba(255,255,255,.95);border-top-color:#e6dce9}:root:not([data-theme]) .mobile-nav-link{color:#76657e}:root:not([data-theme]) .settings-username-form input,:root:not([data-theme]) .profile-comment-form input,:root:not([data-theme]) .anonymous-link-result input{background:#fff;color:var(--text);border-color:#ded3e3}}
+
+.feed-tools-heading{min-height:12px;margin-bottom:14px}.feed-quick-composer{width:100%;display:flex;align-items:center;gap:12px;padding:14px 15px;margin:0 0 18px;text-align:left;cursor:pointer;color:var(--text);transition:border-color .18s,transform .18s}.feed-quick-composer:hover{border-color:#ff79b966;transform:translateY(-1px)}.quick-composer-avatar{width:42px;height:42px;flex-basis:42px;border-radius:50%}.quick-composer-prompt{flex:1;min-width:0;border:1px solid var(--line);border-radius:24px;padding:12px 16px;color:var(--muted);font-size:.9rem}.quick-composer-photo{font-size:1.35rem;color:#68c88b;padding:0 5px}.composer-dialog{width:min(560px,calc(100% - 24px));max-height:min(88dvh,760px);padding:0;border:1px solid var(--line);border-radius:18px;background:var(--surface,#1a1020);color:var(--text);box-shadow:0 24px 90px #0009;overflow:auto}.composer-dialog::backdrop{background:#08050bd1;backdrop-filter:blur(5px)}.composer-dialog .composer{padding:18px 20px 16px;border:0;border-radius:18px;background:var(--surface,#1a1020)}.composer-dialog-header{display:flex;align-items:center;justify-content:center;position:relative;padding:0 0 14px;border-bottom:1px solid var(--line)}.composer-dialog-header h2{font-size:1.1rem;margin:0;font-weight:800}.composer-close{position:absolute;right:0;top:-3px;width:34px;height:34px;border:0;border-radius:50%;background:var(--surface2,#2b1d32);font-size:1.5rem;line-height:1;cursor:pointer}.composer-profile-line{display:flex;align-items:center;gap:10px;margin:17px 0 10px;font-size:.9rem}.composer-profile-line .avatar{border-radius:50%;width:42px;height:42px;flex-basis:42px}.composer-large-text{display:block;width:100%;min-height:175px;resize:vertical;padding:8px 2px 18px;border:0;outline:0;background:transparent;color:var(--text);font-size:1.22rem;line-height:1.5}.composer-large-text::placeholder{color:var(--muted)}.composer-dialog-tools{border:1px solid var(--line);border-radius:13px;padding:12px;margin:6px 0 13px}.composer-tools-label{display:block;margin-bottom:10px;font-size:.78rem;font-weight:800}.composer-media-tools{display:flex;flex-wrap:wrap;gap:8px}.composer-media-action{display:inline-flex;align-items:center;gap:7px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--surface2,#26182e);color:var(--text);font-size:.75rem;cursor:pointer}.composer-media-action span{font-size:1.15rem;color:#62c98b}.composer-media-action:disabled{opacity:.45;cursor:not-allowed}.composer-anonymity-options{display:grid;gap:12px;padding:5px 2px 15px}.composer-anonymity-options .identity-toggle{font-size:.78rem;color:var(--text)}.composer-publish-button{width:100%;min-height:43px}.composer-dialog .status-message{margin-top:10px}.mobile-nav-link{display:flex;align-items:center;justify-content:center;gap:5px}.mobile-nav-icon{font-size:1.2rem;line-height:1}.mobile-nav-label{font-size:.68rem;font-weight:650;line-height:1}.mobile-nav-link.active .mobile-nav-label{color:var(--pink)}.mobile-nav-link.active{background:#ff72b712}@media(max-width:720px){.feed-main{padding-top:15px}.feed-tools-heading{display:none}.feed-quick-composer{padding:11px 12px;margin-bottom:13px}.quick-composer-avatar{width:38px;height:38px;flex-basis:38px}.quick-composer-prompt{padding:10px 13px;font-size:.82rem}.composer-dialog{width:calc(100% - 16px);max-height:90dvh;border-radius:16px}.composer-dialog .composer{padding:14px}.composer-large-text{min-height:150px;font-size:1.1rem}.composer-media-action{padding:8px}.mobile-nav{height:64px;padding-bottom:env(safe-area-inset-bottom,0px)}.mobile-nav-link{flex-direction:column;gap:3px}.mobile-nav-label{font-size:.62rem}}
+
+/* Refined feed-native composer */
+.feed-quick-composer{border-radius:16px;min-height:72px}.quick-composer-prompt{border:0;border-radius:24px;background:var(--surface2,#26182e);text-align:left}.quick-composer-photo{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#62c98b18;color:#62c98b;font-size:1.6rem}
+.composer-dialog{position:fixed;inset:0;margin:auto;transform:translateY(24px) scale(.97);opacity:0;transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .2s ease;overscroll-behavior:contain}.composer-dialog[open]{transform:translateY(0) scale(1);opacity:1}.composer-dialog[open] .composer{animation:composer-arrive .28s cubic-bezier(.2,.8,.2,1) both}.composer-dialog::backdrop{background:rgb(8 5 11 / 0%);transition:background .24s ease;backdrop-filter:blur(0)}.composer-dialog[open]::backdrop{background:rgb(8 5 11 / 62%);backdrop-filter:blur(3px)}
+@keyframes composer-arrive{from{transform:translateY(18px);opacity:.7}to{transform:translateY(0);opacity:1}}
+.composer-dialog .composer{padding:18px 20px 16px}.composer-large-text{min-height:210px;padding-top:15px;font-size:1.25rem}.composer-media-tools-bottom{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:8px 0 15px;padding:0;border:0;border-radius:0;background:transparent}.composer-media-icon{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border:0;border-radius:50%;background:var(--surface2,#26182e);color:#62c98b;font-size:1.45rem;cursor:pointer}.composer-media-icon:hover{background:#62c98b20}.composer-media-icon:disabled{opacity:.38;cursor:not-allowed}.composer-media-icon input{display:none}.composer-media-icon span{line-height:1}.composer-anonymity-options{border-top:1px solid var(--line);padding-top:14px;margin-top:4px}.composer-publish-button{margin-top:0}
+@media(max-width:720px){.composer-dialog{width:calc(100% - 16px);max-height:88dvh;transform:translateY(36px) scale(.98)}.composer-dialog[open]{transform:translateY(0) scale(1)}.composer-dialog .composer{padding:14px}.composer-large-text{min-height:190px;font-size:1.1rem}.composer-media-tools-bottom{gap:8px}.composer-media-icon{width:40px;height:40px}}
+
+/* Inline expansion: the composer grows directly from the feed */
+.composer-inline-panel{display:block;max-height:0;opacity:0;overflow:hidden;transform:translateY(-8px) scale(.985);transform-origin:top center;transition:max-height .32s ease,opacity .22s ease,transform .28s cubic-bezier(.2,.8,.2,1);margin:0 0 0;pointer-events:none}
+.composer-inline-panel[hidden]{display:none}
+.composer-inline-panel.is-expanded{max-height:1000px;opacity:1;transform:translateY(0) scale(1);margin:0 0 18px;overflow:visible;pointer-events:auto}
+.composer-inline-panel .composer{padding:18px 20px 16px;border:1px solid var(--line);border-radius:16px;background:var(--surface,#1a1020)}
+.composer-inline-panel .composer-dialog-header{padding-bottom:12px}
+.composer-inline-panel .composer-close{width:32px;height:32px}
+.composer-inline-panel .composer-large-text{min-height:170px}
+.feed-quick-composer[aria-expanded="true"]{border-color:#ff79b966;border-bottom-left-radius:10px;border-bottom-right-radius:10px;margin-bottom:8px}
+.feed-quick-composer[aria-expanded="true"] .quick-composer-prompt{background:var(--surface,#1a1020);color:var(--text)}
+@media(max-width:720px){.composer-inline-panel.is-expanded{margin-bottom:14px}.composer-inline-panel .composer{padding:14px}.composer-inline-panel .composer-large-text{min-height:145px}}
+
+/* Full-screen, native-feeling post creation experience */
+.composer-inline-panel[hidden]{display:none}
+.composer-inline-panel.is-expanded{position:fixed;inset:0;z-index:1000;display:block;width:100%;height:100%;height:100dvh;max-height:none;margin:0;padding:0;overflow:hidden;opacity:1;transform:none;border:0;border-radius:0;background:var(--page-bg,#171719);pointer-events:auto}
+.composer-screen{height:100%;height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--page-bg,#171719);color:var(--text);padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.composer-screen-header{height:64px;min-height:64px;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;padding:0 16px;border-bottom:1px solid var(--line)}
+.composer-screen-header h2{margin:0;text-align:center;font-size:1.15rem;font-weight:750}
+.composer-screen-header .composer-close,.composer-more{position:static;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:transparent;color:var(--text);font-size:2rem;line-height:1}
+.composer-more{font-size:1.3rem;letter-spacing:2px;justify-self:end}.composer-more:disabled{opacity:.75}
+.composer-screen-profile{display:flex;align-items:center;gap:14px;padding:24px 22px 18px;font-size:1.05rem}
+.composer-screen-profile .avatar{width:54px;height:54px;flex-basis:54px;border-radius:50%;font-size:1.1rem}
+.composer-chip-row{display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;padding:0 22px 14px}.composer-chip-row::-webkit-scrollbar{display:none}
+.composer-chip{white-space:nowrap;display:inline-flex;align-items:center;gap:9px;padding:10px 15px;border:1px solid var(--line);border-radius:24px;background:var(--surface2,#303034);color:var(--text);font-size:.9rem;font-weight:600}.composer-chip span{font-size:1.1rem}.composer-chip:disabled{opacity:.9}
+.composer-screen .composer-large-text{flex:0 1 auto;width:100%;min-height:160px;max-height:44%;resize:none;padding:28px 22px 18px;border:0;border-radius:0;background:transparent;color:var(--text);font-size:1.22rem;line-height:1.5;outline:0}
+.composer-screen .composer-large-text::placeholder{color:var(--muted)}
+.composer-screen-preview{margin:0 20px 12px;max-height:30%;overflow:auto}
+.composer-screen-spacer{flex:1;min-height:12px}
+.composer-screen-bottom{margin-top:auto;border-top:1px solid var(--line);padding:14px 18px calc(14px + env(safe-area-inset-bottom,0px));background:var(--surface,#1b1b1e)}
+.composer-bottom-media{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 14px}
+.composer-bottom-media-item{min-width:0;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);border-radius:13px;background:var(--surface2,#303034);color:var(--text);cursor:pointer}
+.composer-bottom-media-item span{font-size:1.45rem;font-weight:700}.composer-bottom-media-item small{font-size:.75rem;font-weight:650}.composer-bottom-media-item:disabled{opacity:.75;cursor:not-allowed}
+.composer-anonymity-options{display:flex;flex-wrap:wrap;align-items:center;gap:10px;border-top:1px solid var(--line);padding:14px 0;margin:0 0 12px}
+.composer-anonymity-options .identity-toggle{display:inline-flex;align-items:center;gap:7px;padding:9px 12px;border-radius:24px;background:var(--surface2,#303034);font-size:.78rem;white-space:nowrap}
+.composer-publish-button{width:100%;min-height:46px;margin:0}.composer-screen-bottom .status-message{margin:8px 0 0}
+.feed-quick-composer[aria-expanded="true"]{border-color:#ff79b966}
+@media(min-width:721px){.composer-inline-panel.is-expanded{inset:0;display:flex;align-items:stretch;justify-content:center;background:var(--page-bg,#171719)}.composer-screen{width:min(100%,760px);border-left:1px solid var(--line);border-right:1px solid var(--line);box-shadow:0 0 60px #0002}.composer-screen .composer-large-text{max-height:unset;flex:1}}
+@media(max-width:720px){.composer-screen-header{height:62px;min-height:62px;padding:0 12px}.composer-screen-profile{padding:20px 22px 16px;font-size:1rem}.composer-screen-profile .avatar{width:56px;height:56px;flex-basis:56px}.composer-chip-row{padding-left:22px;padding-right:22px}.composer-screen .composer-large-text{min-height:140px;max-height:40%;padding:28px 22px 16px;font-size:1.15rem}.composer-screen-bottom{padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px))}.composer-bottom-media{gap:8px}.composer-bottom-media-item{min-height:65px}.composer-anonymity-options{gap:7px}.composer-anonymity-options .identity-toggle{padding:8px 10px;font-size:.72rem}}
+
+.post-header{position:relative}.post-delete-button{margin-left:auto;flex:0 0 auto;align-self:flex-start;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);padding:6px 11px;font-size:.78rem;font-weight:700;cursor:pointer}.post-delete-button:hover{border-color:#e46c7d;color:#e46c7d}.post-delete-button:disabled{opacity:.5;cursor:wait}
+
+
+/* Official Amora verification mark: reused in feed posts and comment threads. */
+.official-account-badge{display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px;width:18px;height:18px;margin-left:6px;vertical-align:middle;border-radius:50%;background:#1877f2!important;color:#fff!important;fill:#fff;font-size:12px;line-height:1;box-shadow:0 0 0 1px #ffffff22;transform:translateY(-1px);overflow:hidden}
+.official-account-badge svg{display:block;width:12px;height:12px;fill:currentColor}
+.post-author-name .official-account-badge,.comment-author-name .official-account-badge{margin-left:6px}
+
+
+/* Modal comments: keep long threads inside their own scrollable view. */
+.comments-dialog[hidden]{display:none!important}
+.comments-dialog{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .18s ease}
+.comments-dialog.is-open{opacity:1}
+.comments-dialog-backdrop{position:absolute;inset:0;background:rgba(8,5,12,.72);backdrop-filter:blur(7px)}
+.comments-dialog-panel{position:relative;z-index:1;display:flex;flex-direction:column;width:min(100%,650px);max-height:min(88dvh,900px);min-height:min(420px,72dvh);overflow:hidden;border:1px solid var(--line,#ffffff1a);border-radius:22px;background:var(--surface,#1b1b1e);box-shadow:0 24px 90px #0008;transform:translateY(18px) scale(.985);transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+.comments-dialog.is-open .comments-dialog-panel{transform:translateY(0) scale(1)}
+.comments-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 19px;border-bottom:1px solid var(--line,#ffffff14)}
+.comments-dialog-header h2{margin:0;color:var(--text,#fff);font-size:1.05rem}
+.comments-dialog-subtitle{margin:4px 0 0;color:var(--muted,#b7aabe);font-size:.76rem}
+.comments-dialog-close{display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:50%;background:#ffffff0c;color:var(--text,#fff);font-size:1.65rem;cursor:pointer}
+.comments-dialog-post{padding:12px 19px;border-bottom:1px solid var(--line,#ffffff12);color:var(--muted,#cbbdd1);font-size:.82rem;line-height:1.55;overflow-wrap:anywhere;max-height:100px;overflow:auto;white-space:pre-wrap}
+.comments-dialog-list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px 18px 20px;scrollbar-gutter:stable}
+.comments-dialog-list .comment-item{margin-top:12px}
+.comments-dialog-list .comment-item:first-child{margin-top:0}
+.comments-dialog-empty{margin:30px auto;color:var(--muted,#b7aabe);font-size:.84rem;text-align:center}
+.comments-dialog-form{display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding:13px 16px calc(13px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line,#ffffff18);background:var(--surface,#1b1b1e)}
+.comments-dialog-form input[name="comment-content"]{flex:1 1 180px;min-width:0;padding:12px 14px;border:1px solid var(--line,#ffffff20);border-radius:13px;background:var(--surface2,#303034);color:var(--text,#fff);font-size:.85rem;outline:none}
+.comments-dialog-form input[name="comment-content"]:focus{border-color:#ff79b9}
+.comments-dialog-form button[type="submit"]{padding:11px 17px;border:0;border-radius:12px;background:linear-gradient(110deg,#ff70b5,#a77aff);color:#fff;font-weight:750;cursor:pointer}
+.comments-dialog-form button:disabled{opacity:.55;cursor:wait}
+.comments-dialog-anonymous{flex:1 0 100%;order:2}
+body.comments-dialog-open{overflow:hidden}
+@media(max-width:600px){.comments-dialog{padding:0;align-items:flex-end}.comments-dialog-panel{width:100%;height:min(88dvh,900px);max-height:92dvh;min-height:65dvh;border-radius:22px 22px 0 0;border-bottom:0;transform:translateY(30px)}.comments-dialog.is-open .comments-dialog-panel{transform:translateY(0)}.comments-dialog-header{padding:14px 16px}.comments-dialog-post{padding:10px 16px}.comments-dialog-list{padding:12px 14px 18px}.comments-dialog-form{padding:11px 12px calc(12px + env(safe-area-inset-bottom,0px))}}
+@media(prefers-reduced-motion:reduce){.comments-dialog,.comments-dialog-panel{transition:none}}
+
+
+/* Comment timestamps, ownership actions, edit form, and quoted reply context */
+.comment-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.comment-timestamp{color:var(--muted,#9f91a8);font-size:.68rem;font-weight:400}
+.comment-edited-label{display:inline-block;margin-top:5px;color:var(--muted,#9f91a8);font-size:.64rem;font-style:italic}
+.comment-owner-action{color:#d9b4ef}
+.comment-owner-action:hover{background:#ffffff0b}
+.comment-edit-form{display:flex;flex-wrap:wrap;gap:8px;margin:9px 0}
+.comment-edit-form textarea{flex:1 0 100%;min-height:78px;resize:vertical;padding:10px 12px;border:1px solid var(--line,#ffffff20);border-radius:10px;background:var(--surface2,#242027);color:var(--text,#fff);font:inherit;font-size:.8rem}
+.comment-edit-form button[type=submit]{padding:7px 13px;border:0;border-radius:9px;background:linear-gradient(105deg,#ff70b5,#ba83ff);color:#fff;font-weight:700;cursor:pointer}
+.comment-edit-form button:disabled{opacity:.55}
+.comment-reply-context{display:flex;flex-direction:column;gap:3px;margin:7px 0 8px;padding:7px 10px;border-left:3px solid #1877f2;border-radius:0 8px 8px 0;background:#1877f20d;color:var(--muted,#a99aaf);font-size:.69rem;line-height:1.45}
+.comment-reply-context strong{color:#9fc6ff;font-size:.68rem}
+.comment-reply-context span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.comment-reply-context+ p{margin-top:0}
+
+
+/* Visibility hardening for comment controls on mobile and desktop */
+.comment-head{display:flex!important;align-items:center!important;gap:7px!important;flex-wrap:wrap!important}
+.comment-timestamp{display:inline-block!important;color:#c8b8d1!important;font-size:12px!important;line-height:1.4!important;font-weight:500!important;opacity:1!important}
+.comment-edited-label{display:inline-block!important;color:#d7c5e4!important;font-size:11px!important;font-style:italic!important;opacity:1!important}
+.comment-actions .comment-owner-action{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:28px!important;padding:5px 9px!important;border:1px solid #b18bc755!important;border-radius:7px!important;background:#35253f!important;color:#f4dfff!important;font-size:12px!important;font-weight:600!important;opacity:1!important;visibility:visible!important}
+.comment-edit-form{display:flex!important;flex-wrap:wrap!important;gap:8px!important;margin:10px 0!important}
+.comment-edit-form textarea{display:block!important;min-height:80px!important;color:#fff!important;background:#211727!important}
+.comment-reply-context{display:flex!important;flex-direction:column!important;gap:3px!important;margin:8px 0!important;padding:8px 10px!important;border-left:3px solid #3988ff!important;border-radius:0 8px 8px 0!important;background:#1877f022!important;color:#e0e8f5!important;font-size:12px!important;line-height:1.4!important}
+.comment-reply-context strong{color:#9fc6ff!important;font-size:12px!important}
+
+.comments-dialog-form .comments-reply-context{order:-1;flex:1 0 100%;margin:0 0 2px;max-width:100%;padding:8px 11px}
+.comments-dialog-form .comments-reply-context[hidden]{display:none!important}
+
+
+/* Light-theme fixes for post composer and comments popups */
+:root[data-theme="light"] .composer-dialog,
+:root[data-theme="light"] .composer-dialog .composer,
+:root[data-theme="light"] .comments-dialog-panel,
+:root[data-theme="light"] .comments-dialog-form{
+  background:var(--surface,#fff)!important;
+  color:var(--text,#2b2030)!important;
+}
+:root[data-theme="light"] .composer-close,
+:root[data-theme="light"] .composer-media-action,
+:root[data-theme="light"] .composer-media-icon,
+:root[data-theme="light"] .comments-dialog-close{
+  background:var(--surface2,#f0eaf3)!important;
+  color:var(--text,#2b2030)!important;
+}
+:root[data-theme="light"] .composer-large-text,
+:root[data-theme="light"] .comments-dialog-header h2,
+:root[data-theme="light"] .comments-dialog-form input[name="comment-content"]{
+  color:var(--text,#2b2030)!important;
+}
+:root[data-theme="light"] .comments-dialog-form input[name="comment-content"]{
+  background:#fff!important;border-color:var(--line)!important;
+}
+:root[data-theme="light"] .comments-dialog-post,
+:root[data-theme="light"] .comments-dialog-subtitle,
+:root[data-theme="light"] .comments-dialog-empty{
+  color:var(--muted,#776a7e)!important;
+}
+:root[data-theme="light"] .comment-reply-context{
+  background:#eaf2ff!important;color:#46566c!important;
+}
+:root[data-theme="light"] .comment-reply-context strong{color:#2458a6!important}
+
+
+/* Ensure the full-screen create-post experience follows the selected appearance. */
+:root[data-theme="light"] .composer-inline-panel.is-expanded,
+:root[data-theme="light"] .composer-screen,
+:root[data-theme="light"] .composer-screen-bottom {
+  --page-bg: #f7f4f8;
+  background: #f7f4f8 !important;
+  color: #2b2030 !important;
+}
+:root[data-theme="light"] .composer-screen-header {
+  border-bottom-color: rgba(61,37,68,.13);
+}
+:root[data-theme="light"] .composer-screen-profile,
+:root[data-theme="light"] .composer-chip,
+:root[data-theme="light"] .composer-bottom-media-item,
+:root[data-theme="light"] .composer-anonymity-options .identity-toggle {
+  color: #2b2030;
+}
+:root[data-theme="light"] .composer-chip,
+:root[data-theme="light"] .composer-bottom-media-item,
+:root[data-theme="light"] .composer-anonymity-options .identity-toggle {
+  background: #f0eaf3;
+  border-color: rgba(61,37,68,.13);
+}
+:root[data-theme="light"] .composer-screen .composer-large-text {
+  background: transparent;
+  color: #2b2030;
+}
+:root[data-theme="light"] .composer-screen .composer-large-text::placeholder {
+  color: #776a7e;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .composer-inline-panel.is-expanded,
+  :root:not([data-theme]) .composer-screen,
+  :root:not([data-theme]) .composer-screen-bottom {
+    --page-bg: #f7f4f8;
+    background: #f7f4f8 !important;
+    color: #2b2030 !important;
   }
-
-  let selectedImage = null;
-  let activeFeed = "for-you";
-  let currentUser = null;
-  let loading = false;
-  let posts = [];
-  const commentCache = new Map();
-  const profileCache = new Map();
-  const interactionCounts = new Map();
-  const likeCache = new Set();
-  const bookmarkCache = new Set();
-  const repostCache = new Set();
-  const hiddenTokenStorageKey = "amora_hidden_post_delete_tokens";
-
-  const composerDialog = document.getElementById("composer-dialog");
-  const quickComposer = document.querySelector(".feed-quick-composer");
-  const closeComposer = () => {
-    if (!composerDialog) return;
-    composerDialog.classList.remove("is-expanded");
-    if (quickComposer) quickComposer.setAttribute("aria-expanded", "false");
-    window.setTimeout(() => { composerDialog.hidden = true; }, 260);
-  };
-  document.querySelectorAll("[data-focus-composer]").forEach((button) => {
-    button.setAttribute("aria-expanded", "false");
-    button.addEventListener("click", () => {
-      if (!composerDialog) return;
-      composerDialog.hidden = false;
-      requestAnimationFrame(() => composerDialog.classList.add("is-expanded"));
-      button.setAttribute("aria-expanded", "true");
-      window.setTimeout(() => textInput.focus(), 180);
-    });
-  });
-  document.getElementById("composer-close")?.addEventListener("click", closeComposer);
-
-  function setStatus(message, isError = false) {
-    composerStatus.textContent = message || "";
-    composerStatus.style.color = isError ? "#ff9aaa" : "";
+  :root:not([data-theme]) .composer-chip,
+  :root:not([data-theme]) .composer-bottom-media-item,
+  :root:not([data-theme]) .composer-anonymity-options .identity-toggle {
+    background: #f0eaf3;
+    color: #2b2030;
+    border-color: rgba(61,37,68,.13);
   }
+  :root:not([data-theme]) .composer-screen .composer-large-text { color: #2b2030; }
+  :root:not([data-theme]) .composer-screen .composer-large-text::placeholder { color: #776a7e; }
+}
 
-  function errorDetails(error) {
-    const rawMessage = String(error?.message || error || "Unknown error");
-    const message = rawMessage
-      .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email]")
-      .replace(/https?:\/\/\S+/gi, "[url]")
-      .replace(/\b[a-f0-9]{32,}\b/gi, "[redacted-token]")
-      .slice(0, 500);
-    return {
-      code: String(error?.code || error?.name || "CLIENT_ERROR").slice(0, 80),
-      message
-    };
-  }
-
-  async function logClientError(context, error) {
-    const details = errorDetails(error);
-    console.error("[Amora]", context, details.code, details.message);
-    if (!supabase) return;
-    try {
-      const { data } = await supabase.auth.getSession();
-      if (!data?.session) return;
-      await supabase.rpc("log_client_error", {
-        p_error_code: details.code,
-        p_context: context,
-        p_message: details.message
-      });
-    } catch (loggingError) {
-      console.error("[Amora] Error logger unavailable:", loggingError?.message || "unknown");
-    }
-  }
-
-  window.addEventListener("unhandledrejection", (event) => {
-    logClientError("unhandled_rejection", event.reason);
-  });
-  window.addEventListener("error", (event) => {
-    logClientError("window_error", event.error || event.message);
-  });
-
-  function updatePublishButton() {
-    publishButton.disabled = loading || (!textInput.value.trim() && !selectedImage);
-  }
-  textInput.addEventListener("input", updatePublishButton);
-
-  imageInput?.addEventListener("change", () => {
-    const file = imageInput.files?.[0] || null;
-    imagePreview?.replaceChildren();
-    if (!file) {
-      selectedImage = null;
-      if (imagePreview) imagePreview.hidden = true;
-      updatePublishButton();
-      return;
-    }
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-    if (!allowedTypes.includes(file.type)) {
-      selectedImage = null;
-      imageInput.value = "";
-      if (imagePreview) imagePreview.hidden = true;
-      setStatus("Choose a JPG, PNG, WebP, or GIF image.", true);
-      updatePublishButton();
-      return;
-    }
-    if (file.size > 8 * 1024 * 1024) {
-      selectedImage = null;
-      imageInput.value = "";
-      if (imagePreview) imagePreview.hidden = true;
-      setStatus("Images must be 8 MB or smaller.", true);
-      updatePublishButton();
-      return;
-    }
-    selectedImage = file;
-    if (imagePreview) {
-      imagePreview.hidden = false;
-      const img = document.createElement("img");
-      img.alt = "Selected image preview";
-      img.src = URL.createObjectURL(file);
-      img.onload = () => URL.revokeObjectURL(img.src);
-      imagePreview.append(img);
-    }
-    setStatus("");
-    updatePublishButton();
-  });
-
-  function readHiddenTokens() {
-    try {
-      const value = JSON.parse(localStorage.getItem(hiddenTokenStorageKey) || "{}");
-      return value && typeof value === "object" ? value : {};
-    } catch {
-      return {};
-    }
-  }
-
-  function saveHiddenToken(postId, token, ownerId) {
-    const tokens = readHiddenTokens();
-    tokens[postId] = { token, ownerId };
-    try { localStorage.setItem(hiddenTokenStorageKey, JSON.stringify(tokens)); } catch {}
-  }
-
-  function getOwnedHiddenToken(postId) {
-    const record = readHiddenTokens()[postId];
-    if (!record || typeof record !== "object" || typeof record.token !== "string") return null;
-    if (!currentUser || record.ownerId !== currentUser.id) return null;
-    return record.token;
-  }
-
-  function randomDeletionToken() {
-    const bytes = new Uint8Array(32);
-    crypto.getRandomValues(bytes);
-    return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-  }
-
-  function makeButton(label, className, action, active = false) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = className + (active ? " is-active" : "");
-    button.textContent = label;
-    button.addEventListener("click", action);
-    return button;
-  }
-
-  function timeAgo(value) {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "Recently";
-    const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
-    if (seconds < 60) return "Just now";
-    if (seconds < 3600) return Math.floor(seconds / 60) + "m ago";
-    if (seconds < 86400) return Math.floor(seconds / 3600) + "h ago";
-    if (seconds < 604800) return Math.floor(seconds / 86400) + "d ago";
-    return date.toLocaleDateString();
-  }
-
-  async function requireUser() {
-    if (!supabase) throw new Error("Supabase did not load. Refresh and try again.");
-    const { data, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    currentUser = data.user || null;
-    if (!currentUser) throw new Error("Log in to use this feature.");
-    return currentUser;
-  }
-
-  async function loadInteractionCounts() {
-    interactionCounts.clear();
-    if (!supabase || !posts.length) return;
-    const ids = posts.map((post) => post.id).slice(0, 50);
-    const { data, error } = await supabase.rpc("get_post_interaction_counts", { p_post_ids: ids });
-    if (error) {
-      await logClientError("load_interaction_counts", error);
-      return;
-    }
-    (data || []).forEach((row) => interactionCounts.set(row.post_id, {
-      likes: Number(row.likes_count || 0),
-      reposts: Number(row.reposts_count || 0),
-      comments: Number(row.comments_count || 0)
-    }));
-  }
-
-  async function loadMyInteractions() {
-    likeCache.clear();
-    bookmarkCache.clear();
-    repostCache.clear();
-    if (!currentUser || !posts.length) return;
-    const ids = posts.map((post) => post.id);
-    const [likes, bookmarks, reposts] = await Promise.all([
-      supabase.from("post_likes").select("post_id").eq("user_id", currentUser.id).in("post_id", ids),
-      supabase.from("post_bookmarks").select("post_id").eq("user_id", currentUser.id).in("post_id", ids),
-      supabase.from("post_reposts").select("post_id").eq("user_id", currentUser.id).in("post_id", ids)
-    ]);
-    if (!likes.error) likes.data.forEach((row) => likeCache.add(row.post_id));
-    if (!bookmarks.error) bookmarks.data.forEach((row) => bookmarkCache.add(row.post_id));
-    if (!reposts.error) reposts.data.forEach((row) => repostCache.add(row.post_id));
-  }
-
-  async function loadPublicProfiles(ids) {
-    const missing = [...new Set((ids || []).filter((id) => typeof id === "string" && id && !profileCache.has(id)))].slice(0, 200);
-    if (!missing.length || !supabase) return;
-    const { data, error } = await supabase.rpc("get_public_profiles", { p_user_ids: missing });
-    if (error) {
-      console.warn("Public profile lookup failed:", error.message);
-      missing.forEach((id) => profileCache.set(id, null));
-      return;
-    }
-    (data || []).forEach((profile) => profileCache.set(profile.id, profile));
-    missing.forEach((id) => {
-      if (!profileCache.has(id)) profileCache.set(id, null);
-    });
-  }
-
-  function profileLabel(userId) {
-    if (!userId) return "Amora member";
-    const profile = profileCache.get(userId);
-    if (!profile) return userId === currentUser?.id ? "You" : "Amora member";
-    if (profile.display_name?.trim()) return profile.display_name.trim();
-    if (profile.username?.trim()) return "@" + profile.username.trim();
-    return userId === currentUser?.id ? "You" : "Amora member";
-  }
-
-  async function loadComments(postId) {
-    if (commentCache.has(postId)) return commentCache.get(postId);
-    const { data, error } = await supabase
-      .from("post_comments")
-      .select("id,post_id,parent_comment_id,author_id,content,is_anonymous,created_at,edited_at")
-      .eq("post_id", postId)
-      .order("created_at", { ascending: true });
-    if (error) throw error;
-    const rows = data || [];
-    await loadPublicProfiles(rows.filter((row) => row.author_id).map((row) => row.author_id));
-    const ids = rows.map((row) => row.id);
-    const countsById = new Map();
-    if (ids.length) {
-      const { data: counts } = await supabase.rpc("get_comment_interaction_counts", { p_comment_ids: ids });
-      (counts || []).forEach((row) => countsById.set(row.comment_id, Number(row.likes_count || 0)));
-    }
-    const myLikes = new Set();
-    if (currentUser && ids.length) {
-      const { data: ownLikes } = await supabase.from("comment_likes")
-        .select("comment_id").eq("user_id", currentUser.id).in("comment_id", ids);
-      (ownLikes || []).forEach((row) => myLikes.add(row.comment_id));
-    }
-    const byId = new Map();
-    rows.forEach((row) => byId.set(row.id, {
-      ...row, author: row.is_anonymous ? "Anonymous" : profileLabel(row.author_id),
-      like_count: countsById.get(row.id) || 0, liked_by_me: myLikes.has(row.id), replies: []
-    }));
-    const roots = [];
-    rows.forEach((row) => {
-      const item = byId.get(row.id);
-      const parent = row.parent_comment_id ? byId.get(row.parent_comment_id) : null;
-      if (parent) { item.parent_comment = parent; parent.replies.push(item); }
-      else roots.push(item);
-    });
-    commentCache.set(postId, roots);
-    return roots;
-  }
-
-  async function addComment(post, parentId, input, form) {
-    const value = input.value.trim();
-    if (!value) return;
-    try {
-      const user = await requireUser();
-      form.querySelector("button[type=submit]").disabled = true;
-      const anonymousChoice = form.querySelector("[name=comment-anonymous]");
-      const isAnonymous = Boolean(post.is_anonymous || post.force_anonymous_comments || anonymousChoice?.checked);
-      const payload = {
-        post_id: post.id,
-        parent_comment_id: parentId || null,
-        author_id: isAnonymous ? null : user.id,
-        is_anonymous: isAnonymous,
-        content: value
-      };
-      const { error } = await supabase.from("post_comments").insert(payload);
-      if (error) throw error;
-      input.value = "";
-      commentCache.delete(post.id);
-      const comments = await loadComments(post.id);
-      const article = feedList.querySelector('[data-post-id="' + post.id + '"]');
-      if (article) {
-        const countLabel = article.querySelector(".post-stats span:last-child");
-        if (countLabel) countLabel.textContent = comments.length + (comments.length === 1 ? " comment" : " comments");
-        const trigger = article.querySelector(".post-comments-trigger");
-        if (trigger) trigger.textContent = "Comments · " + comments.length;
-      }
-      if (activeCommentsPost?.id === post.id) await refreshCommentsDialog();
-    } catch (error) {
-      await logClientError("submit_comment", error);
-      setStatus("Couldn't post your reply. Please try again.", true);
-    } finally {
-      const button = form.querySelector("button[type=submit]");
-      if (button) button.disabled = false;
-    }
-  }
-
-  async function toggleCommentLike(comment, button, countLabel) {
-    try {
-      const user = await requireUser();
-      const { data: existing, error: readError } = await supabase.from("comment_likes")
-        .select("comment_id").eq("comment_id", comment.id).eq("user_id", user.id).maybeSingle();
-      if (readError) throw readError;
-      if (existing) {
-        const { error } = await supabase.from("comment_likes").delete().eq("comment_id", comment.id).eq("user_id", user.id);
-        if (error) throw error;
-        comment.liked_by_me = false;
-        comment.like_count = Math.max(0, Number(comment.like_count || 0) - 1);
-      } else {
-        const { error } = await supabase.from("comment_likes").insert({ comment_id: comment.id, user_id: user.id });
-        if (error) throw error;
-        comment.liked_by_me = true;
-        comment.like_count = Number(comment.like_count || 0) + 1;
-      }
-      button.textContent = (comment.liked_by_me ? "♥ Liked" : "♡ Like") + " · " + comment.like_count;
-      button.classList.toggle("is-active", comment.liked_by_me);
-      countLabel.textContent = comment.like_count + (comment.like_count === 1 ? " like" : " likes");
-    } catch (error) {
-      await logClientError("toggle_comment_like", error);
-      setStatus("Couldn't update the comment like. Please try again.", true);
-    }
-  }
-
-  function formatCommentTimestamp(value) {
-    if (!value) return "";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
-    const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
-    if (seconds < 60) return "now";
-    if (seconds < 3600) return Math.floor(seconds / 60) + "m";
-    if (seconds < 86400) return Math.floor(seconds / 3600) + "h";
-    if (seconds < 604800) return Math.floor(seconds / 86400) + "d";
-    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  }
-
-  function makeComment(comment, post, depth = 0) {
-    const item = document.createElement("div");
-    item.className = "comment-item";
-    item.id = "comment-" + comment.id;
-    const body = document.createElement("div");
-    body.className = "comment-body";
-    const head = document.createElement("div");
-    head.className = "comment-head";
-    const author = document.createElement("strong");
-    author.className = "comment-author-name";
-    author.textContent = post.is_anonymous || comment.is_anonymous ? "Anonymous" : comment.author;
-    const commentProfile = comment.author_id ? profileCache.get(comment.author_id) : null;
-    if (!post.is_anonymous && !comment.is_anonymous && commentProfile?.is_official) {
-      const badge = document.createElement("span");
-      badge.className = "official-account-badge";
-      badge.setAttribute("role", "img");
-      badge.setAttribute("aria-label", "Verified official Amora account");
-      badge.title = "Verified official Amora account";
-      badge.style.cssText = "display:inline-flex!important;align-items:center!important;justify-content:center!important;width:18px!important;height:18px!important;min-width:18px!important;flex:0 0 18px!important;margin-left:6px!important;border-radius:50%!important;background:#1877f2!important;color:#ffffff!important;vertical-align:middle!important;overflow:hidden!important;box-sizing:border-box!important";
-      badge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block!important;width:12px!important;height:12px!important;fill:#fff!important;color:#fff!important"><path d="M9.2 16.2 4.9 12l-1.8 1.8 6.1 6.1L21 8.1l-1.8-1.8z" fill="#ffffff"/></svg>';
-      author.append(badge);
-    }
-    const timestamp = document.createElement("span");
-    timestamp.className = "comment-timestamp";
-    timestamp.textContent = formatCommentTimestamp(comment.created_at);
-    timestamp.title = comment.created_at ? new Date(comment.created_at).toLocaleString() : "";
-    head.append(author, timestamp);
-    const text = document.createElement("p");
-    text.textContent = comment.content;
-    body.append(head);
-    if (comment.parent_comment) {
-      const quoted = document.createElement("div");
-      quoted.className = "comment-reply-context";
-      const quoteAuthor = document.createElement("strong");
-      quoteAuthor.textContent = comment.parent_comment.is_anonymous || post.is_anonymous ? "Anonymous" : comment.parent_comment.author;
-      const quoteText = document.createElement("span");
-      quoteText.textContent = comment.parent_comment.content;
-      quoted.append(quoteAuthor, quoteText);
-      body.append(quoted);
-    }
-    body.append(text);
-    if (comment.edited_at) {
-      const edited = document.createElement("span");
-      edited.className = "comment-edited-label";
-      edited.textContent = "Edited";
-      edited.title = "Edited " + new Date(comment.edited_at).toLocaleString();
-      body.append(edited);
-    }
-    const actions = document.createElement("div");
-    actions.className = "comment-actions";
-    const countLabel = document.createElement("span");
-    countLabel.className = "comment-like-count";
-    countLabel.textContent = Number(comment.like_count || 0) + (Number(comment.like_count || 0) === 1 ? " like" : " likes");
-    let likeButton;
-    likeButton = makeButton((comment.liked_by_me ? "♥ Liked" : "♡ Like") + " · " + Number(comment.like_count || 0), "comment-action", () => toggleCommentLike(comment, likeButton, countLabel), comment.liked_by_me);
-    const shareButton = makeButton("↗ Share", "comment-action", async () => {
-      const shareUrl = window.location.origin + "/pages/social-home.html#comment-" + comment.id;
-      try {
-        if (navigator.share) await navigator.share({ title: "Amora comment", text: comment.content, url: shareUrl });
-        else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(shareUrl); setStatus("Comment link copied."); }
-        else setStatus(shareUrl);
-      } catch (error) {
-        if (error?.name !== "AbortError") setStatus("Couldn't share this comment.", true);
-      }
-    });
-    actions.append(likeButton, countLabel, shareButton);
-    if (currentUser && comment.author_id === currentUser.id && !comment.is_anonymous && !post.is_anonymous) {
-      const editButton = makeButton("Edit", "comment-reply-button comment-owner-action", async () => {
-        if (item.querySelector(":scope > .comment-edit-form")) return;
-        const editForm = document.createElement("form");
-        editForm.className = "comment-edit-form";
-        const editInput = document.createElement("textarea");
-        editInput.maxLength = 3000;
-        editInput.required = true;
-        editInput.value = comment.content;
-        editInput.setAttribute("aria-label", "Edit comment");
-        const save = document.createElement("button");
-        save.type = "submit";
-        save.textContent = "Save";
-        const cancel = makeButton("Cancel", "comment-reply-button", () => editForm.remove());
-        editForm.append(editInput, save, cancel);
-        editForm.addEventListener("submit", async event => {
-          event.preventDefault();
-          const content = editInput.value.trim();
-          if (!content) return;
-          save.disabled = true;
-          try {
-            const user = await requireUser();
-            const { data, error } = await supabase.from("post_comments")
-              .update({ content, edited_at: new Date().toISOString() })
-              .eq("id", comment.id).eq("author_id", user.id).eq("is_anonymous", false)
-              .select("id").maybeSingle();
-            if (error) throw error;
-            if (!data) throw new Error("Comment update was not permitted.");
-            commentCache.delete(post.id);
-            await refreshCommentsDialog();
-          } catch (error) {
-            await logClientError("edit_comment", error);
-            setStatus("Couldn't edit this comment. Check that you still own it and try again.", true);
-            save.disabled = false;
-          }
-        });
-        item.insertBefore(editForm, actions);
-        editInput.focus();
-      });
-      const deleteButton = makeButton("Delete", "comment-reply-button comment-owner-action", async () => {
-        if (!window.confirm("Delete this comment? Any replies beneath it will also be deleted. This cannot be undone.")) return;
-        try {
-          const user = await requireUser();
-          const { data, error } = await supabase.from("post_comments").delete()
-            .eq("id", comment.id).eq("author_id", user.id).eq("is_anonymous", false)
-            .select("id").maybeSingle();
-          if (error) throw error;
-          if (!data) throw new Error("Comment deletion was not permitted.");
-          commentCache.delete(post.id);
-          await refreshCommentsDialog();
-        } catch (error) {
-          await logClientError("delete_comment", error);
-          setStatus("Couldn't delete this comment. It may have replies or deletion may be restricted.", true);
-        }
-      });
-      actions.append(editButton, deleteButton);
-    }
-    const replyButton = makeButton("Reply", "comment-reply-button", () => {
-      if (activeCommentsPost?.id !== post.id || !commentsDialog || commentsDialog.hidden) {
-        openCommentsDialog(post).then(() => focusReplyComposer(comment, post));
-        return;
-      }
-      focusReplyComposer(comment, post);
-    });
-    actions.append(replyButton);
-    item.append(body, actions);
-    if (comment.replies?.length && depth < 8) {
-      const children = document.createElement("div");
-      children.className = "comment-replies";
-      comment.replies.forEach((reply) => children.append(makeComment(reply, post, depth + 1)));
-      item.append(children);
-    }
-    return item;
-  }
-
-  async function toggleRow(table, postId, cache, column = "post_id") {
-    const user = await requireUser();
-    const active = cache.has(postId);
-    if (active) {
-      const { error } = await supabase.from(table).delete().eq(column, postId).eq("user_id", user.id);
-      if (error) throw error;
-      cache.delete(postId);
-    } else {
-      const { error } = await supabase.from(table).insert({ [column]: postId, user_id: user.id });
-      if (error) throw error;
-      cache.add(postId);
-    }
-    await loadInteractionCounts();
-    await renderFeed();
-  }
-
-  let commentsDialog = null;
-  let activeCommentsPost = null;
-  let activeReplyParentId = null;
-
-  function ensureCommentsDialog() {
-    if (commentsDialog) return commentsDialog;
-    commentsDialog = document.createElement("div");
-    commentsDialog.className = "comments-dialog";
-    commentsDialog.hidden = true;
-    commentsDialog.innerHTML = `
-      <div class="comments-dialog-backdrop" data-comments-close></div>
-      <section class="comments-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="comments-dialog-title">
-        <header class="comments-dialog-header">
-          <div><h2 id="comments-dialog-title">Comments</h2><p class="comments-dialog-subtitle"></p></div>
-          <button type="button" class="comments-dialog-close" aria-label="Close comments" data-comments-close>×</button>
-        </header>
-        <div class="comments-dialog-post"></div>
-        <div class="comments-dialog-list" aria-live="polite"></div>
-        <form class="comments-dialog-form post-reply-composer">
-          <div class="comments-reply-context comment-reply-context" hidden></div>
-          <input name="comment-content" maxlength="3000" placeholder="Write a comment…" aria-label="Write a comment" required>
-          <label class="comment-anonymous-choice comments-dialog-anonymous"><input type="checkbox" name="comment-anonymous"> Comment anonymously</label>
-          <button type="submit">Reply</button>
-        </form>
-      </section>`;
-    document.body.append(commentsDialog);
-    commentsDialog.querySelectorAll("[data-comments-close]").forEach(button => button.addEventListener("click", closeCommentsDialog));
-    commentsDialog.querySelector(".comments-dialog-form").addEventListener("submit", event => {
-      event.preventDefault();
-      if (!activeCommentsPost) return;
-      addComment(activeCommentsPost, activeReplyParentId, event.currentTarget.elements.namedItem("comment-content"), event.currentTarget);
-    });
-    commentsDialog.addEventListener("keydown", event => {
-      if (event.key === "Escape") closeCommentsDialog();
-    });
-    return commentsDialog;
-  }
-
-  function closeCommentsDialog() {
-    if (!commentsDialog || commentsDialog.hidden) return;
-    commentsDialog.classList.remove("is-open");
-    document.body.classList.remove("comments-dialog-open");
-    window.setTimeout(() => { if (commentsDialog) commentsDialog.hidden = true; }, 200);
-    activeCommentsPost = null;
-  }
-
-  async function openCommentsDialog(post) {
-    activeCommentsPost = post;
-    const dialog = ensureCommentsDialog();
-    const profile = post.author_id ? profileCache.get(post.author_id) : null;
-    dialog.querySelector(".comments-dialog-subtitle").textContent = (profile?.display_name || profile?.username || "Amora post");
-    dialog.querySelector(".comments-dialog-post").textContent = post.content || "";
-    activeReplyParentId = null;
-    const replyContext = dialog.querySelector(".comments-reply-context");
-    if (replyContext) { replyContext.hidden = true; replyContext.replaceChildren(); }
-    const composerInput = dialog.querySelector('[name="comment-content"]');
-    composerInput.placeholder = "Write a comment…";
-    dialog.querySelector('.comments-dialog-form button[type="submit"]').textContent = "Comment";
-    const form = dialog.querySelector(".comments-dialog-form");
-    form.elements.namedItem("comment-content").placeholder = post.is_anonymous || post.force_anonymous_comments ? "Reply anonymously…" : "Write a comment…";
-    dialog.querySelector(".comments-dialog-anonymous").hidden = Boolean(post.is_anonymous || post.force_anonymous_comments);
-    dialog.hidden = false;
-    document.body.classList.add("comments-dialog-open");
-    requestAnimationFrame(() => dialog.classList.add("is-open"));
-    await refreshCommentsDialog();
-    form.elements.namedItem("comment-content").focus({ preventScroll: true });
-  }
-
-  function focusReplyComposer(comment, post) {
-    if (!commentsDialog || activeCommentsPost?.id !== post.id) return;
-    activeReplyParentId = comment.id;
-    const context = commentsDialog.querySelector(".comments-reply-context");
-    context.replaceChildren();
-    const label = document.createElement("strong");
-    label.textContent = "Replying to " + (post.is_anonymous || comment.is_anonymous ? "Anonymous" : comment.author);
-    const quote = document.createElement("span");
-    quote.textContent = comment.content || "";
-    context.append(label, quote);
-    context.hidden = false;
-    const input = commentsDialog.querySelector('[name="comment-content"]');
-    input.placeholder = "Write a reply…";
-    commentsDialog.querySelector('.comments-dialog-form button[type="submit"]').textContent = "Reply";
-    input.focus({ preventScroll: true });
-    input.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }
-
-  async function refreshCommentsDialog() {
-    if (!activeCommentsPost || !commentsDialog) return;
-    const post = activeCommentsPost;
-    const list = commentsDialog.querySelector(".comments-dialog-list");
-    list.replaceChildren();
-    const loadingNote = document.createElement("p");
-    loadingNote.className = "comments-dialog-empty";
-    loadingNote.textContent = "Loading conversation…";
-    list.append(loadingNote);
-    try {
-      const comments = await loadComments(post.id);
-      if (!activeCommentsPost || activeCommentsPost.id !== post.id) return;
-      const ids = [];
-      const collect = rows => (rows || []).forEach(row => { if (row.author_id && !row.is_anonymous) ids.push(row.author_id); collect(row.replies); });
-      collect(comments);
-      await loadPublicProfiles(ids);
-      list.replaceChildren();
-      if (!comments.length) {
-        const empty = document.createElement("p");
-        empty.className = "comments-dialog-empty";
-        empty.textContent = "No comments yet. Start the conversation.";
-        list.append(empty);
-      } else comments.forEach(comment => list.append(makeComment(comment, post)));
-      commentsDialog.querySelector("#comments-dialog-title").textContent = "Comments (" + comments.length + ")";
-      const article = feedList.querySelector('[data-post-id="' + post.id + '"]');
-      const countLabel = article?.querySelector(".post-stats span:last-child");
-      if (countLabel) countLabel.textContent = comments.length + (comments.length === 1 ? " comment" : " comments");
-      const trigger = article?.querySelector(".post-comments-trigger");
-      if (trigger) trigger.textContent = "☏ Comments · " + comments.length;
-    } catch (error) {
-      await logClientError("refresh_comments_dialog", error);
-      list.replaceChildren();
-      const message = document.createElement("p");
-      message.className = "comments-dialog-empty";
-      message.textContent = "Couldn't load comments. Close and try again.";
-      list.append(message);
-    }
-  }
-
-  async function renderPost(post) {
-    const article = document.createElement("article");
-    article.className = "post-card card";
-    article.dataset.postId = post.id;
-
-    const header = document.createElement("div");
-    header.className = "post-header";
-    const avatar = document.createElement("span");
-    avatar.className = "avatar post-avatar";
-    const publicProfile = post.author_id ? profileCache.get(post.author_id) : null;
-    const avatarLabel = publicProfile?.display_name?.trim() || publicProfile?.username?.trim() || "";
-    avatar.textContent = post.is_anonymous ? "♡" : (avatarLabel ? avatarLabel.slice(0, 1).toUpperCase() : "a");
-    if (post.is_anonymous) avatar.classList.add("avatar-anonymous");
-    const identity = document.createElement("div");
-    identity.className = "post-identity";
-    const name = document.createElement("strong");
-    name.className = "post-author-name";
-    name.textContent = post.is_anonymous ? "Anonymous" : profileLabel(post.author_id);
-    if (!post.is_anonymous && publicProfile?.is_official) {
-      const badge = document.createElement("span");
-      badge.className = "official-account-badge";
-      badge.setAttribute("role", "img");
-      badge.setAttribute("aria-label", "Verified official Amora account");
-      badge.title = "Verified official Amora account";
-      badge.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.2 16.2 4.9 12l-1.8 1.8 6.1 6.1L21 8.1l-1.8-1.8z" fill="currentColor"/></svg>';
-      name.append(badge);
-    }
-    if (!post.is_anonymous && publicProfile?.username) {
-      const profileLink = document.createElement("a");
-      profileLink.href = "/pages/profile.html?username=" + encodeURIComponent(publicProfile.username);
-      profileLink.className = "post-author-profile-link";
-      profileLink.append(name);
-      identity.append(profileLink);
-    } else {
-      identity.append(name);
-    }
-    const meta = document.createElement("span");
-    meta.textContent = timeAgo(post.created_at) + (post.visibility === "followers" ? " · Followers" : "");
-    identity.append(meta);
-    header.append(avatar, identity);
-    const ownedDeletionToken = getOwnedHiddenToken(post.id);
-    const ownsIdentifiedPost = Boolean(currentUser && post.author_id === currentUser.id && !post.is_anonymous);
-    if ((post.is_anonymous && ownedDeletionToken) || ownsIdentifiedPost) {
-      const deleteButton = makeButton("Delete", "post-delete-button", async () => {
-        if (!window.confirm("Delete this post permanently? This cannot be undone.")) return;
-        try {
-          if (post.is_anonymous) {
-            const { data, error } = await supabase.rpc("delete_hidden_post", { p_post_id: post.id, p_deletion_token: ownedDeletionToken });
-            if (error) throw error;
-            if (data !== true) throw new Error("The deletion token was not accepted.");
-            const tokens = readHiddenTokens();
-            delete tokens[post.id];
-            localStorage.setItem(hiddenTokenStorageKey, JSON.stringify(tokens));
-          } else {
-            const { error } = await supabase.from("posts").delete().eq("id", post.id).eq("author_id", currentUser.id).eq("is_anonymous", false);
-            if (error) throw error;
-          }
-          posts = posts.filter(item => item.id !== post.id);
-          setStatus("Post deleted.");
-          article.remove();
-          if (!feedList.querySelector(".post-card")) await renderFeed();
-        } catch (error) { await logClientError("delete_post", error); setStatus("Couldn't delete this post. Please try again.", true); }
-      });
-      deleteButton.setAttribute("aria-label", "Delete post");
-      deleteButton.title = "Delete your post";
-      header.append(deleteButton);
-    } else {
-      if (post.author_id && currentUser && post.author_id !== currentUser.id) {
-        header.append(makeButton("Block", "post-more", async () => {
-          const confirmed = window.confirm("Block this account? Their posts will be hidden from your feed.");
-          if (!confirmed) return;
-          try {
-            const { error } = await supabase.from("user_blocks").insert({
-              blocker_id: currentUser.id,
-              blocked_id: post.author_id
-            });
-            if (error && error.code !== "23505") throw error;
-            setStatus("Account blocked.");
-            await loadFeed();
-          } catch (error) {
-            await logClientError("block_account", error);
-            setStatus("Couldn't block this account. Please try again.", true);
-          }
-        }));
-      } else {
-        const more = document.createElement("span");
-        more.className = "post-more";
-        more.textContent = "♡";
-        more.setAttribute("aria-hidden", "true");
-        header.append(more);
-      }
-    }
-
-    const content = document.createElement("p");
-    content.className = "post-content";
-    content.textContent = post.content;
-    article.append(header, content);
-    (Array.isArray(post.media_urls) ? post.media_urls : []).slice(0, 4).forEach((url) => {
-      if (typeof url !== "string" || !url.startsWith("https://")) return;
-      const image = document.createElement("img");
-      image.className = "post-image";
-      image.src = url;
-      image.alt = "Image attached to post";
-      image.loading = "lazy";
-      article.append(image);
-    });
-
-    let comments = [];
-    try {
-      comments = await loadComments(post.id);
-    } catch (error) {
-      await logClientError("load_comments", error);
-      const unavailable = document.createElement("p");
-      unavailable.className = "post-comments-unavailable";
-      unavailable.textContent = "Conversation temporarily unavailable.";
-      article.append(unavailable);
-    }
-    const counts = interactionCounts.get(post.id) || { likes: 0, reposts: 0, comments: comments.length };
-    const stats = document.createElement("div");
-    stats.className = "post-stats";
-    const likesText = document.createElement("span");
-    likesText.textContent = counts.likes + (counts.likes === 1 ? " like" : " likes");
-    const repostsText = document.createElement("span");
-    repostsText.textContent = counts.reposts + (counts.reposts === 1 ? " repost" : " reposts");
-    const repliesText = document.createElement("span");
-    repliesText.textContent = counts.comments + (counts.comments === 1 ? " comment" : " comments");
-    stats.append(likesText, repostsText, repliesText);
-
-    const actions = document.createElement("div");
-    actions.className = "post-actions";
-    actions.append(
-      makeButton(likeCache.has(post.id) ? "♥ Liked" : "♡ Like", "post-action", async () => {
-        try {
-          await toggleRow("post_likes", post.id, likeCache);
-          setStatus(likeCache.has(post.id) ? "You liked this post." : "Like removed.");
-        } catch (error) {
-          await logClientError("toggle_post_like", error);
-          setStatus("Couldn't update your like. Please try again.", true);
-        }
-      }),
-      makeButton("Comments · " + comments.length, "post-action post-comments-trigger", () => openCommentsDialog(post)),
-      makeButton(repostCache.has(post.id) ? "↻ Reposted" : "⟳ Repost", "post-action", async () => {
-        try {
-          await toggleRow("post_reposts", post.id, repostCache);
-          setStatus(repostCache.has(post.id) ? "Post reposted to your activity." : "Repost removed.");
-        } catch (error) {
-          await logClientError("toggle_post_repost", error);
-          setStatus("Couldn't repost this. Please try again.", true);
-        }
-      }),
-      makeButton(bookmarkCache.has(post.id) ? "▣ Saved" : "▢ Save", "post-action", async () => {
-        try { await toggleRow("post_bookmarks", post.id, bookmarkCache); }
-        catch (error) { await logClientError("toggle_post_bookmark", error); setStatus("Couldn't save this post. Please try again.", true); }
-      }, bookmarkCache.has(post.id)),
-      makeButton("↗ Share", "post-action", async () => {
-        const shareUrl = window.location.origin + "/pages/social-home.html#post-" + post.id;
-        try {
-          if (navigator.share) await navigator.share({ title: "Amora post", text: post.content, url: shareUrl });
-          else if (navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(shareUrl);
-            setStatus("Post link copied.");
-          } else setStatus(shareUrl);
-        } catch (error) {
-          if (error?.name !== "AbortError") { await logClientError("share_post", error); setStatus("Couldn't share this post. Please try again.", true); }
-        }
-      }),
-      makeButton("⚑ Report", "post-action", async () => {
-        try {
-          const user = await requireUser();
-          const reason = window.prompt("Why are you reporting this post? (1–1000 characters)");
-          if (reason === null) return;
-          const trimmedReason = reason.trim();
-          if (!trimmedReason || trimmedReason.length > 1000) {
-            setStatus("Enter a report reason between 1 and 1000 characters.", true);
-            return;
-          }
-          const { error } = await supabase.from("post_reports").insert({
-            post_id: post.id,
-            reporter_id: user.id,
-            reason: trimmedReason
-          });
-          if (error?.code === "23505") {
-            setStatus("You have already reported this post.");
-            return;
-          }
-          if (error) throw error;
-          setStatus("Report submitted for review.");
-        } catch (error) {
-          await logClientError("report_post", error);
-          setStatus("Couldn't submit the report. Please try again.", true);
-        }
-      })
-    );
-    article.append(stats, actions);
-    return article;
-  }
-
-  async function renderFeed() {
-    feedList.replaceChildren();
-    if (loading) {
-      const message = document.createElement("div");
-      message.className = "feed-empty card";
-      message.textContent = "Loading your feed…";
-      feedList.append(message);
-      return;
-    }
-    let visible = posts;
-    if (activeFeed === "following" && currentUser) {
-      const { data, error } = await supabase.from("user_follows").select("followed_id").eq("follower_id", currentUser.id);
-      if (!error) {
-        const followed = new Set((data || []).map((row) => row.followed_id));
-        visible = posts.filter((post) => post.is_anonymous || followed.has(post.author_id));
-      }
-    }
-    if (!visible.length) {
-      const empty = document.createElement("div");
-      empty.className = "feed-empty card";
-      const art = document.createElement("div");
-      art.className = "empty-art";
-      art.textContent = "♡";
-      const heading = document.createElement("h2");
-      heading.textContent = activeFeed === "following" ? "Your circle is growing" : "Your feed starts here";
-      const copy = document.createElement("p");
-      copy.textContent = activeFeed === "following"
-        ? "Posts from accounts you follow will appear here."
-        : "Be the first to share a thought with the Amora community.";
-      empty.append(art, heading, copy);
-      feedList.append(empty);
-      return;
-    }
-    for (const post of visible) feedList.append(await renderPost(post));
-  }
-
-  async function loadFeed() {
-    if (!supabase) {
-      setStatus("Supabase did not load. Refresh the page and check the connection.", true);
-      return;
-    }
-    loading = true;
-    await renderFeed();
-    try {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getUser();
-
-      // The social home is for signed-in accounts only. If Supabase confirms
-      // there is no valid user, clear this browser's saved session and return
-      // to the landing page instead of leaving an unauthenticated feed open.
-      if (sessionError) {
-        const authFailure = /invalid jwt|jwt expired|user from sub claim in jwt does not exist|user not found|session not found|refresh token.*(invalid|not found|already used)|not authenticated|auth session missing/i
-          .test(String(sessionError.message || ""));
-        if (authFailure) {
-          try { await supabase.auth.signOut({ scope: "local" }); } catch {}
-          window.location.replace("/index.html");
-          return;
-        }
-        throw sessionError;
-      }
-
-      currentUser = sessionData.user || null;
-      if (currentUser) {
-        const { data: ownProfile } = await supabase.from("profiles").select("display_name,username").eq("id", currentUser.id).maybeSingle();
-        const displayName = ownProfile?.display_name?.trim() || ownProfile?.username || "Your profile";
-        const initial = displayName.slice(0,1).toUpperCase();
-        const nameNode = document.getElementById("composer-display-name");
-        const avatarNode = document.getElementById("composer-user-avatar");
-        const quickAvatar = document.querySelector(".quick-composer-avatar");
-        if (nameNode) nameNode.textContent = displayName;
-        if (avatarNode) avatarNode.textContent = initial;
-        if (quickAvatar) quickAvatar.textContent = initial;
-      }
-      if (!currentUser) {
-        try { await supabase.auth.signOut({ scope: "local" }); } catch {}
-        window.location.replace("/index.html");
-        return;
-      }
-
-      let query = supabase.from("posts")
-        .select("id,author_id,content,media_urls,visibility,is_anonymous,force_anonymous_comments,created_at")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (activeFeed === "public") query = query.eq("visibility", "public");
-      const { data, error } = await query;
-      if (error) throw error;
-      posts = data || [];
-      if (currentUser && posts.length) {
-        const { data: blocks, error: blockError } = await supabase
-          .from("user_blocks")
-          .select("blocked_id")
-          .eq("blocker_id", currentUser.id);
-        if (!blockError && blocks?.length) {
-          const blockedIds = new Set(blocks.map((row) => row.blocked_id));
-          posts = posts.filter((post) => post.is_anonymous || !blockedIds.has(post.author_id));
-        }
-      }
-      commentCache.clear();
-      await loadPublicProfiles(posts.filter((post) => !post.is_anonymous && post.author_id).map((post) => post.author_id));
-      await Promise.all([loadMyInteractions(), loadInteractionCounts()]);
-      loading = false;
-      await renderFeed();
-    } catch (error) {
-      await logClientError("load_feed", error);
-      loading = false;
-      feedList.replaceChildren();
-      const empty = document.createElement("div");
-      empty.className = "feed-empty card";
-      const heading = document.createElement("h2");
-      heading.textContent = "Your feed is temporarily unavailable";
-      const copy = document.createElement("p");
-      copy.textContent = "Please try again in a moment.";
-      empty.append(heading, copy);
-      feedList.append(empty);
-      setStatus("Couldn't load the feed. Please try again.", true);
-    }
-  }
-
-  feedTabs.forEach((tab) => {
-    tab.addEventListener("click", async () => {
-      activeFeed = tab.dataset.feed;
-      feedTabs.forEach((item) => {
-        const selected = item === tab;
-        item.classList.toggle("active", selected);
-        item.setAttribute("aria-selected", String(selected));
-      });
-      await loadFeed();
-    });
-  });
-
-  publishButton.addEventListener("click", async () => {
-    const body = textInput.value.trim();
-    if (!body && !selectedImage) {
-      setStatus("Write something or attach an image first.", true);
-      return;
-    }
-    loading = true;
-    updatePublishButton();
-    let uploadedPath = null;
-    let publishedPostId = null;
-    try {
-      const user = await requireUser();
-      let mediaUrls = [];
-      if (selectedImage) {
-        const extension = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" })[selectedImage.type];
-        if (!extension) throw new Error("That image format is not supported.");
-        uploadedPath = user.id + "/" + crypto.randomUUID() + "." + extension;
-        const { error: uploadError } = await supabase.storage
-          .from("amora-post-images")
-          .upload(uploadedPath, selectedImage, { contentType: selectedImage.type, upsert: false });
-        if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabase.storage.from("amora-post-images").getPublicUrl(uploadedPath);
-        if (!publicUrlData?.publicUrl) throw new Error("Could not create the image URL.");
-        mediaUrls = [publicUrlData.publicUrl];
-      }
-
-      if (hideIdentity.checked) {
-        const token = randomDeletionToken();
-        const result = await supabase.rpc("create_hidden_post", {
-          p_content: body,
-          p_media_urls: mediaUrls,
-          p_deletion_token: token,
-          p_force_anonymous_comments: Boolean(forceAnonymousComments?.checked)
-        });
-        if (result.error) throw result.error;
-        if (typeof result.data !== "string") throw new Error("The post was not confirmed by the server.");
-        saveHiddenToken(result.data, token, user.id);
-        publishedPostId = result.data;
-      } else {
-        const { data: insertedPost, error } = await supabase.from("posts").insert({
-          author_id: user.id,
-          content: body,
-          media_urls: mediaUrls,
-          visibility: "public",
-          is_anonymous: false,
-          force_anonymous_comments: Boolean(forceAnonymousComments?.checked)
-        }).select("id").single();
-        if (error) throw error;
-        publishedPostId = insertedPost.id;
-      }
-      textInput.value = "";
-      hideIdentity.checked = false;
-      if (forceAnonymousComments) forceAnonymousComments.checked = false;
-      if (imageInput) imageInput.value = "";
-      selectedImage = null;
-      if (imagePreview) {
-        imagePreview.replaceChildren();
-        imagePreview.hidden = true;
-      }
-      setStatus("Your post has been published.");
-      activeFeed = "for-you";
-      feedTabs.forEach((tab) => {
-        const selected = tab.dataset.feed === activeFeed;
-        tab.classList.toggle("active", selected);
-        tab.setAttribute("aria-selected", String(selected));
-      });
-      const { data: newPost, error: newPostError } = await supabase.from("posts")
-        .select("id,author_id,content,media_urls,visibility,is_anonymous,force_anonymous_comments,created_at")
-        .eq("id", publishedPostId).single();
-      if (newPostError) throw newPostError;
-      posts = [newPost, ...posts.filter(post => post.id !== newPost.id)].slice(0, 50);
-      if (newPost.author_id) await loadPublicProfiles([newPost.author_id]);
-      interactionCounts.set(newPost.id, { likes: 0, reposts: 0, comments: 0 });
-      commentCache.delete(newPost.id);
-      const renderedPost = await renderPost(newPost);
-      feedList.querySelector(".feed-empty")?.remove();
-      feedList.prepend(renderedPost);
-      if (composerDialog) {
-        composerDialog.classList.remove("is-expanded");
-        composerDialog.hidden = true;
-      }
-      if (quickComposer) quickComposer.setAttribute("aria-expanded", "false");
-    } catch (error) {
-      if (uploadedPath) {
-        try { await supabase.storage.from("amora-post-images").remove([uploadedPath]); } catch {}
-      }
-      await logClientError("publish_post", error);
-      setStatus("Couldn't publish your post. Your draft is still here.", true);
-    } finally {
-      loading = false;
-      updatePublishButton();
-    }
-  });
-
-
-
-  loadFeed().then(restoreHomeState);
-});
+/* Improve contrast throughout light mode, especially profile traits and chips. */
+:root[data-theme="light"] .profile-traits-display,
+:root[data-theme="light"] .profile-traits-display h3,
+:root[data-theme="light"] .profile-traits-display strong {color:#433449!important}
+:root[data-theme="light"] .profile-traits-display span,
+:root[data-theme="light"] .profile-traits-display button {color:#6d2855!important;background:#fff5fb!important;border-color:#e8b9d5!important;opacity:1!important}
+:root[data-theme="light"] .profile-page .section-description,
+:root[data-theme="light"] .profile-page .profile-private-note,
+:root[data-theme="light"] .profile-page .profile-handle {color:#5d5263!important}
+:root[data-theme="light"] .profile-page .profile-stat strong {color:#29212e!important}
+:root[data-theme="light"] .profile-page .profile-stat>span:last-child {color:#625b67!important}
+:root[data-theme="light"] .comments-dialog-panel,:root[data-theme="light"] .comments-dialog-form {background:#fff!important;color:#242126!important}
+:root[data-theme="light"] .comments-dialog-header h2,:root[data-theme="light"] .comments-dialog-form input[name="comment-content"] {color:#242126!important}
+:root[data-theme="light"] .comments-dialog-form input[name="comment-content"] {background:#fff!important;border-color:#c9c3cd!important}
+:root[data-theme="light"] .comments-dialog-form input[name="comment-content"]::placeholder {color:#716a78!important;opacity:1}
+:root[data-theme="light"] .comments-dialog-anonymous,:root[data-theme="light"] .comment-like-count,:root[data-theme="light"] .comment-actions button,:root[data-theme="light"] .comment-reply-button {color:#51465b!important}
+:root[data-theme="light"] .comment-timestamp,:root[data-theme="light"] .comment-edited-label {color:#62586a!important}
+:root[data-theme="light"] .comment-reply-context {background:#eaf3ff!important;color:#394b61!important}
+:root[data-theme="light"] .comment-reply-context strong {color:#1556a6!important}
+/* Keep the composer above the iOS keyboard. */
+.comments-dialog-panel {min-height:0;display:flex;flex-direction:column}
+.comments-dialog-header,.comments-dialog-post {flex-shrink:0}
+.comments-dialog-list {min-height:0;flex:1 1 auto}
+.comments-dialog-form {flex-shrink:0;position:sticky;bottom:0;z-index:3;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+@media(max-width:600px){
+ .comments-dialog{align-items:flex-end;overflow:hidden}
+ .comments-dialog-panel{height:var(--comments-viewport-height,min(88dvh,900px));max-height:var(--comments-viewport-height,92dvh);min-height:0;display:flex;flex-direction:column}
+ .comments-dialog-form{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--surface,#fff)}
+ .comments-dialog-form input[name="comment-content"]{flex:1 1 auto;width:0;min-width:0;scroll-margin-bottom:160px}
+ .comments-dialog-anonymous{order:2;flex:1 0 100%}
+}
