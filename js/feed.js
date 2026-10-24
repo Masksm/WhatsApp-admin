@@ -236,7 +236,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   document.addEventListener("click", (event) => {
     const actions = event.target.closest(".post-actions");
-    closeAllPostMoreMenus(actions?.querySelector(".post-more-menu") || null);
+    const clickedMoreTrigger = event.target.closest(".post-more-trigger");
+    closeAllPostMoreMenus(clickedMoreTrigger ? actions?.querySelector(".post-more-menu") || null : null);
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeAllPostMoreMenus();
