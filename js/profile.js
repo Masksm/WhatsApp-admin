@@ -1,6 +1,19 @@
 "use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
+  // If the user came directly from Home, the Home nav should return to that
+  // preserved document instead of requesting social-home.html again.
+  const homePath = "/pages/social-home.html";
+  let previousPath = "";
+  try { previousPath = new URL(document.referrer).pathname; } catch (_) {}
+  document.querySelectorAll('a[href="/pages/social-home.html"]').forEach(link => {
+    link.addEventListener("click", event => {
+      if (previousPath === homePath && history.length > 1) {
+        event.preventDefault();
+        history.back();
+      }
+    });
+  });
   const supabase = window.amoraSupabase || null;
   const byId = (id) => document.getElementById(id);
   const form = byId("profile-form");
