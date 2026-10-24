@@ -148,3 +148,14 @@ body.comments-dialog-open{overflow:hidden}
 .comment-reply-context strong{color:#9fc6ff;font-size:.68rem}
 .comment-reply-context span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .comment-reply-context+ p{margin-top:0}
+
+
+/* Visibility hardening for comment controls on mobile and desktop */
+.comment-head{display:flex!important;align-items:center!important;gap:7px!important;flex-wrap:wrap!important}
+.comment-timestamp{display:inline-block!important;color:#c8b8d1!important;font-size:12px!important;line-height:1.4!important;font-weight:500!important;opacity:1!important}
+.comment-edited-label{display:inline-block!important;color:#d7c5e4!important;font-size:11px!important;font-style:italic!important;opacity:1!important}
+.comment-actions .comment-owner-action{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:28px!important;padding:5px 9px!important;border:1px solid #b18bc755!important;border-radius:7px!important;background:#35253f!important;color:#f4dfff!important;font-size:12px!important;font-weight:600!important;opacity:1!important;visibility:visible!important}
+.comment-edit-form{display:flex!important;flex-wrap:wrap!important;gap:8px!important;margin:10px 0!important}
+.comment-edit-form textarea{display:block!important;min-height:80px!important;color:#fff!important;background:#211727!important}
+.comment-reply-context{display:flex!important;flex-direction:column!important;gap:3px!important;margin:8px 0!important;padding:8px 10px!important;border-left:3px solid #3988ff!important;border-radius:0 8px 8px 0!important;background:#1877f022!important;color:#e0e8f5!important;font-size:12px!important;line-height:1.4!important}
+.comment-reply-context strong{color:#9fc6ff!important;font-size:12px!important}
