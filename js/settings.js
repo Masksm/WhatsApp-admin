@@ -44,6 +44,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     finally { button.disabled = false; }
   });
 
+  const appearanceDialog=byId("settings-appearance-dialog");
+  const appearanceOpen=byId("settings-open-appearance");
+  const appearanceSummary=byId("settings-appearance-summary");
+  const appearanceStatus=byId("settings-appearance-status");
+  const appearanceKey="amora_appearance";
+  const currentAppearance=()=>{try{return localStorage.getItem(appearanceKey)||"system";}catch{return "system";}};
+  const systemDark=()=>window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const effectiveAppearance=()=>currentAppearance()==="system"?(systemDark()?"dark":"light"):currentAppearance();
+  function applyAppearance(value){
+    const mode=["light","dark","system"].includes(value)?value:"system";
+    try{if(mode==="system")localStorage.removeItem(appearanceKey);else localStorage.setItem(appearanceKey,mode);}catch{}
+    if(mode==="system")document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme",mode);
+    const active=mode==="system"?"System default":mode==="light"?"Light mode":"Dark mode";
+    if(appearanceSummary)appearanceSummary.textContent=active+" selected. Tap to change.";
+    document.querySelectorAll("[data-appearance]").forEach(button=>{
+      const selected=button.dataset.appearance===mode;
+      button.classList.toggle("is-selected",selected);
+      button.setAttribute("aria-pressed",String(selected));
+    });
+    if(appearanceStatus)appearanceStatus.textContent=active+" applied.";
+    const meta=document.querySelector('meta[name="theme-color"]');
+    if(meta)meta.content=effectiveAppearance()==="light"?"#f7f4f8":"#160d1c";
+  }
+  const closeAppearance=()=>{if(appearanceDialog)appearanceDialog.hidden=true;document.body.classList.remove("traits-dialog-open");};
+  appearanceOpen?.addEventListener("click",()=>{applyAppearance(currentAppearance());appearanceDialog.hidden=false;document.body.classList.add("traits-dialog-open");byId("settings-close-appearance")?.focus();});
+  byId("settings-close-appearance")?.addEventListener("click",closeAppearance);
+  appearanceDialog?.addEventListener("click",event=>{if(event.target===appearanceDialog)closeAppearance();});
+  appearanceDialog?.querySelectorAll("[data-appearance]").forEach(button=>button.addEventListener("click",()=>{applyAppearance(button.dataset.appearance);closeAppearance();}));
+  document.addEventListener("keydown",event=>{if(event.key==="Escape"&&appearanceDialog&&!appearanceDialog.hidden)closeAppearance();});
+  applyAppearance(currentAppearance());
+  if(window.matchMedia){
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",()=>{if(currentAppearance()==="system"){applyAppearance("system");}});
+  }
   const traitOptions = {
     hobbies:["Reading","Gaming","Music","Cooking","Writing","Photography","Drawing","Sports","Gardening","Travel"],
     skills:["Coding","Design","Problem solving","Storytelling","Teaching","Making things","Research"],
