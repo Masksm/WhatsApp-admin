@@ -208,3 +208,6 @@ html[data-theme="light"] body.profile-page{--bg:#f0f2f5;--surface:#fff;--surface
 html[data-theme="light"] .profile-page .profile-hero,html[data-theme="light"] .profile-page .profile-section,html[data-theme="light"] .profile-page .profile-stats{background:#fff!important;color:#242526!important}
 @media(max-width:720px){.profile-page .feed-shell{padding:0 15px}.profile-page .profile-hero{margin-left:-15px;margin-right:-15px}.profile-page .profile-cover{height:180px}.profile-page .profile-avatar{width:150px;height:150px;flex-basis:150px}.profile-page .profile-identity{margin-top:-82px}.profile-page .profile-stats{grid-template-columns:repeat(4,minmax(0,1fr))}.profile-page .profile-action-row{padding-left:18px;padding-right:18px}}
 @media(min-width:721px){.profile-page .profile-hero{margin:0 0 16px;border:1px solid var(--line);border-radius:18px}.profile-page .profile-cover{height:220px}.profile-page .profile-identity{margin-top:-90px}.profile-page .profile-avatar{width:170px;height:170px;flex-basis:170px}}
+
+:root[data-theme="light"] .profile-page .profile-stat>span:last-child,:root[data-theme="light"] .profile-page .profile-section,:root[data-theme="light"] .profile-page .profile-hero{color:#241b2b}
+:root[data-theme="light"] .profile-page .profile-stat>span:last-child{color:#55465d!important}
