@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const imageInput = document.getElementById("post-image");
   const imagePreview = document.getElementById("image-preview");
   const hideIdentity = document.getElementById("hide-identity");
-  const allowAnonymousComments = document.getElementById("allow-anonymous-comments");
+  const forceAnonymousComments = document.getElementById("force-anonymous-comments");
   const publishButton = document.getElementById("publish-post");
   const composerStatus = document.getElementById("composer-status");
   const feedList = document.getElementById("feed-list");
@@ -279,7 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const user = await requireUser();
       form.querySelector("button[type=submit]").disabled = true;
       const anonymousChoice = form.querySelector("[name=comment-anonymous]");
-      const isAnonymous = Boolean(post.is_anonymous || (post.allow_anonymous_comments && anonymousChoice?.checked));
+      const isAnonymous = Boolean(post.is_anonymous || post.force_anonymous_comments || anonymousChoice?.checked);
       const payload = {
         post_id: post.id,
         parent_comment_id: parentId || null,
@@ -370,7 +370,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const send = document.createElement("button");
       send.type = "submit";
       send.textContent = "Reply";
-      if (post.allow_anonymous_comments && !post.is_anonymous) {
+      if (!post.force_anonymous_comments && !post.is_anonymous) {
         const anonymousLabel = document.createElement("label");
         anonymousLabel.className = "comment-anonymous-choice";
         const anonymousToggle = document.createElement("input");
@@ -697,7 +697,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       let query = supabase.from("posts")
-        .select("id,author_id,content,media_urls,visibility,is_anonymous,allow_anonymous_comments,created_at")
+        .select("id,author_id,content,media_urls,visibility,is_anonymous,force_anonymous_comments,created_at")
         .order("created_at", { ascending: false })
         .limit(50);
       if (activeFeed === "public") query = query.eq("visibility", "public");
@@ -777,7 +777,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const result = await supabase.rpc("create_hidden_post", {
           p_content: body,
           p_media_urls: mediaUrls,
-          p_deletion_token: token
+          p_deletion_token: token,
+          p_force_anonymous_comments: Boolean(forceAnonymousComments?.checked)
         });
         if (result.error) throw result.error;
         if (typeof result.data !== "string") throw new Error("The post was not confirmed by the server.");
@@ -789,13 +790,13 @@ document.addEventListener("DOMContentLoaded", () => {
           media_urls: mediaUrls,
           visibility: "public",
           is_anonymous: false,
-          allow_anonymous_comments: Boolean(allowAnonymousComments?.checked)
+          force_anonymous_comments: Boolean(forceAnonymousComments?.checked)
         });
         if (error) throw error;
       }
       textInput.value = "";
       hideIdentity.checked = false;
-      if (allowAnonymousComments) allowAnonymousComments.checked = false;
+      if (forceAnonymousComments) forceAnonymousComments.checked = false;
       if (imageInput) imageInput.value = "";
       selectedImage = null;
       if (imagePreview) {
