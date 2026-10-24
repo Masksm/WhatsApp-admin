@@ -6,7 +6,8 @@
   <meta name="theme-color" content="#160d1c">
   <title>Home · Amora</title>
   <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
-  <link rel="stylesheet" href="/css/feed.css?v=home-feed-cache-1">
+  <link rel="stylesheet" href="/css/feed.css?v=home-feed-cache-2">
+  <link rel="stylesheet" href="/css/home-enhancements.css?v=1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
   <script src="/js/moderator-nav.js?v=1" defer></script>
@@ -33,6 +34,7 @@
         <div class="header-account-actions"><a class="icon-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a></div>
       </header>
       <div class="feed-heading feed-tools-heading"><div class="header-account-actions desktop-header-account-actions"><a class="icon-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a></div></div>
+      <section class="amora-moments card" aria-label="Create and share moments"><button class="moment-create" type="button" data-focus-composer><span class="moment-create-icon">＋</span><span><strong>Share a moment</strong><small>Start a conversation with your people</small></span></button><div class="moment-prompt"><span>♡</span><p>Little moments can mean a lot.</p></div></section>
       <button class="feed-quick-composer card" type="button" data-focus-composer aria-label="Create a post">
         <span class="avatar avatar-you quick-composer-avatar">?</span><span class="quick-composer-prompt">What’s on your mind?</span><span class="quick-composer-photo" aria-hidden="true">▧</span>
       </button>
@@ -74,6 +76,7 @@
         </div>
       </section>
 
+      <div class="feed-discovery-heading"><div><span class="eyebrow">YOUR WORLD</span><h2>Discover something real</h2></div><button id="refresh-feed" class="feed-refresh-button" type="button" aria-label="Refresh feed" title="Refresh feed">↻</button></div>
       <div class="feed-tabs" role="tablist" aria-label="Choose your feed">
         <button class="feed-tab active" role="tab" aria-selected="true" data-feed="for-you">For You</button>
         <button class="feed-tab" role="tab" aria-selected="false" data-feed="following">Following</button>
@@ -105,6 +108,7 @@
     </aside>
   </div>
 
+  <div id="media-lightbox" class="media-lightbox" hidden role="dialog" aria-modal="true" aria-label="Photo viewer"><button type="button" class="media-lightbox-close" aria-label="Close photo viewer">×</button><button type="button" class="media-lightbox-prev" aria-label="Previous photo">‹</button><img id="media-lightbox-image" alt="Expanded post photo"><button type="button" class="media-lightbox-next" aria-label="Next photo">›</button><p id="media-lightbox-counter"></p></div>
   <nav class="mobile-nav" aria-label="Mobile navigation">
     <a class="mobile-nav-link active" href="/pages/social-home.html" aria-label="Home"><span class="mobile-nav-icon">⌂</span><span class="mobile-nav-label">Home</span></a>
     <a class="mobile-nav-link" href="/pages/notifications.html" aria-label="Notifications"><span class="mobile-nav-icon">♡</span><span class="mobile-nav-label">Notifications</span></a>
