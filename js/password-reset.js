@@ -19,6 +19,30 @@ const authPanel = document.getElementById("auth-panel");
   const newPassword = document.getElementById("new-password");
   const confirmPassword = document.getElementById("confirm-new-password");
   const newPasswordStatus = document.getElementById("new-password-status");
+  const recoveryAccount = document.getElementById("recovery-account");
+  const recoveryAccountEmail = document.getElementById("recovery-account-email");
+
+  function isRecoveryLink() {
+    const params = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    return params.get("type") === "recovery" || hash.get("type") === "recovery";
+  }
+
+  async function showRecoveryForAccount(sessionUser) {
+    showSection("new-password");
+    if (newPasswordStatus) newPasswordStatus.textContent = "";
+    if (recoveryAccount && recoveryAccountEmail) {
+      let email = sessionUser?.email || "";
+      if (!email) {
+        try {
+          const { data } = await supabase.auth.getUser();
+          email = data?.user?.email || "";
+        } catch {}
+      }
+      recoveryAccount.hidden = false;
+      recoveryAccountEmail.textContent = email || "Verified account";
+    }
+  }
 
   if (!supabase) {
     console.error("Amora Supabase client was not found.");
@@ -128,11 +152,32 @@ function showSection(sectionToShow) {
     });
   }
 
-  supabase.auth.onAuthStateChange(function (event) {
+  supabase.auth.onAuthStateChange(function (event, session) {
     if (event === "PASSWORD_RECOVERY") {
-      showSection("new-password");
-      if (newPasswordStatus) newPasswordStatus.textContent = "";
+      // Defer auth calls until Supabase releases its auth callback lock.
+      window.setTimeout(() => showRecoveryForAccount(session?.user), 0);
     }
-  }) ;
+  });
+
+  // Handle recovery links even if the recovery event fired before this script subscribed.
+  if (isRecoveryLink()) {
+    window.setTimeout(async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (data?.session?.user) {
+          await showRecoveryForAccount(data.session.user);
+        } else {
+          showSection("new-password");
+          if (recoveryAccount) recoveryAccount.hidden = true;
+          if (newPasswordStatus) {
+            newPasswordStatus.textContent = "This recovery link is invalid or expired. Request a new password reset email.";
+          }
+        }
+      } catch {
+        showSection("new-password");
+        if (newPasswordStatus) newPasswordStatus.textContent = "Could not verify this recovery link. Request a new password reset email.";
+      }
+    }, 0);
+  }
 })();
 
