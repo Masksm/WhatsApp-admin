@@ -92,8 +92,7 @@ function showSection(sectionToShow) {
       const email = resetEmail.value.trim();
 
       try {
-        const redirectTo =
-          window.location.origin + window.location.pathname;
+        const redirectTo = window.location.origin + "/pages/reset-password.html";
 
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: redirectTo
