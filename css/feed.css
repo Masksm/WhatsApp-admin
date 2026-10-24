@@ -311,3 +311,12 @@ body.comments-dialog-open{overflow:hidden}
 .comments-dialog-form input[name="comment-content"]{scroll-margin-bottom:180px}
 @media(max-width:600px){.comments-dialog{align-items:flex-end}.comments-dialog-panel{height:88dvh;height:88vh;max-height:92dvh;max-height:92vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}.comments-dialog-list{flex:1 1 auto;overflow-y:auto}.comments-dialog-form{position:relative;bottom:auto;margin-top:auto}}
 @supports(height:100dvh){@media(max-width:600px){.comments-dialog-panel{height:88dvh;max-height:92dvh}}}
+
+/* Notification deep links and iOS visual-viewport handling for the existing comments sheet. */
+.notification-target-highlight{outline:2px solid var(--pink,#ff72b7)!important;outline-offset:3px;box-shadow:0 0 0 5px color-mix(in srgb,var(--pink,#ff72b7) 18%,transparent)!important;scroll-margin:24px}
+.comments-dialog{inset:var(--comments-viewport-top,0px) 0 auto!important;height:var(--comments-viewport-height,100dvh);max-height:var(--comments-viewport-height,100dvh)}
+@media(max-width:600px){.comments-dialog-panel{height:var(--comments-viewport-height,92dvh);max-height:var(--comments-viewport-height,92dvh)}}
+:root[data-theme="light"] .comments-dialog-form input[name="comment-content"]{color:#241b2b!important;background:#fff!important;border-color:#bdb3c5!important}
+:root[data-theme="light"] .comments-dialog-form input[name="comment-content"]::placeholder{color:#625568!important;opacity:1}
+:root[data-theme="light"] .comment-head strong,:root[data-theme="light"] .comment-body p,:root[data-theme="light"] .comment-actions button,:root[data-theme="light"] .comment-reply-button{color:#34263d!important}
+:root[data-theme="light"] .post-stats,:root[data-theme="light"] .post-identity span,:root[data-theme="light"] .post-more{color:#625568!important}
