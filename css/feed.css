@@ -162,3 +162,37 @@ body.comments-dialog-open{overflow:hidden}
 
 .comments-dialog-form .comments-reply-context{order:-1;flex:1 0 100%;margin:0 0 2px;max-width:100%;padding:8px 11px}
 .comments-dialog-form .comments-reply-context[hidden]{display:none!important}
+
+
+/* Light-theme fixes for post composer and comments popups */
+:root[data-theme="light"] .composer-dialog,
+:root[data-theme="light"] .composer-dialog .composer,
+:root[data-theme="light"] .comments-dialog-panel,
+:root[data-theme="light"] .comments-dialog-form{
+  background:var(--surface,#fff)!important;
+  color:var(--text,#2b2030)!important;
+}
+:root[data-theme="light"] .composer-close,
+:root[data-theme="light"] .composer-media-action,
+:root[data-theme="light"] .composer-media-icon,
+:root[data-theme="light"] .comments-dialog-close{
+  background:var(--surface2,#f0eaf3)!important;
+  color:var(--text,#2b2030)!important;
+}
+:root[data-theme="light"] .composer-large-text,
+:root[data-theme="light"] .comments-dialog-header h2,
+:root[data-theme="light"] .comments-dialog-form input[name="comment-content"]{
+  color:var(--text,#2b2030)!important;
+}
+:root[data-theme="light"] .comments-dialog-form input[name="comment-content"]{
+  background:#fff!important;border-color:var(--line)!important;
+}
+:root[data-theme="light"] .comments-dialog-post,
+:root[data-theme="light"] .comments-dialog-subtitle,
+:root[data-theme="light"] .comments-dialog-empty{
+  color:var(--muted,#776a7e)!important;
+}
+:root[data-theme="light"] .comment-reply-context{
+  background:#eaf2ff!important;color:#46566c!important;
+}
+:root[data-theme="light"] .comment-reply-context strong{color:#2458a6!important}
