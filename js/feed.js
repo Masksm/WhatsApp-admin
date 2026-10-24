@@ -13,7 +13,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const feedTabs = [...document.querySelectorAll("[data-feed]")];
   const supabase = window.amoraSupabase || null;
 
-  if (!composer || !textInput || !feedList || !publishButton) return;
+  if (!composer || !textInput || !feedList || !publishButton) {
+    console.error("[Amora] Home initialization stopped: required feed elements are missing.", {
+      composer: !!composer, textInput: !!textInput, feedList: !!feedList, publishButton: !!publishButton
+    });
+    if (feedList) {
+      feedList.replaceChildren();
+      const message = document.createElement("p");
+      message.className = "feed-empty card";
+      message.textContent = "The feed could not start. Refresh the page; if this continues, the page scripts are out of sync.";
+      feedList.append(message);
+    }
+    return;
+  }
 
   let selectedImage = null;
   let activeFeed = "for-you";
