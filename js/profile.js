@@ -175,6 +175,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const isOwner = profile.id === currentUserId;
     const displayName = profile.display_name?.trim() || "Amora member";
     setText("profile-title", displayName);
+    const titleNode = byId("profile-title");
+    let badge = byId("official-account-badge");
+    if (profile.is_official) {
+      if (!badge && titleNode) {
+        badge = node("span", "official-account-badge", "✓");
+        badge.id = "official-account-badge";
+        badge.setAttribute("role", "img");
+        badge.setAttribute("aria-label", "Verified official Amora account");
+        badge.title = "Verified official Amora account";
+        titleNode.insertAdjacentElement("afterend", badge);
+      }
+      if (badge) badge.hidden = false;
+    } else if (badge) {
+      badge.hidden = true;
+    }
     setText("profile-handle", "@" + username);
     setText("profile-avatar", displayName.slice(0, 1).toUpperCase());
     setText("sidebar-avatar", displayName.slice(0, 1).toUpperCase());
@@ -192,6 +207,50 @@ document.addEventListener("DOMContentLoaded", () => {
       ? "🔒 Your email and account details are private."
       : "♡ Public profile. Private account details are not shown.");
     byId("profile-private-note").firstChild.textContent = isOwner ? "🔒 " : "♡ ";
+    let support = byId("official-support-email");
+    if (profile.is_official) {
+      if (!support) {
+        support = node("p", "official-support-email");
+        support.id = "official-support-email";
+        const label = node("strong", "", "Official Amora support: ");
+        const emailLink = node("a", "", profile.support_email || "Amora.support.team@gmail.com");
+        emailLink.href = "mailto:" + (profile.support_email || "Amora.support.team@gmail.com");
+        support.append(label, emailLink);
+        byId("profile-hero").append(support);
+      } else {
+        const link = support.querySelector("a");
+        if (link) {
+          link.textContent = profile.support_email || "Amora.support.team@gmail.com";
+          link.href = "mailto:" + link.textContent;
+        }
+      }
+      support.hidden = false;
+    } else if (support) {
+      support.hidden = true;
+    }
+    let registrationMetric = byId("official-registration-count");
+    if (profile.is_official && isOwner) {
+      if (!registrationMetric) {
+        registrationMetric = node("section", "profile-section card official-registration-card");
+        registrationMetric.id = "official-registration-count";
+        registrationMetric.append(node("p", "eyebrow", "AMORA COMMUNITY"), node("h2", "", "Active registered accounts"));
+        const value = node("strong", "official-registration-value", "Loading…");
+        value.id = "official-registration-value";
+        registrationMetric.append(value);
+        byId("profile-hero").insertAdjacentElement("afterend", registrationMetric);
+      }
+      registrationMetric.hidden = false;
+      supabase.rpc("get_active_registration_count").then(({ data, error }) => {
+        const value = byId("official-registration-value");
+        if (!value) return;
+        value.textContent = error || data === null ? "Unavailable" : Number(data).toLocaleString();
+      }).catch(() => {
+        const value = byId("official-registration-value");
+        if (value) value.textContent = "Unavailable";
+      });
+    } else if (registrationMetric) {
+      registrationMetric.hidden = true;
+    }
     byId("profile-form").hidden = !isOwner;
     settingsButton.hidden = !isOwner;
     byId("identity-settings").hidden = !isOwner || !settingsSection.dataset.open;
