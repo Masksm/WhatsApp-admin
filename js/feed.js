@@ -418,7 +418,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const head = document.createElement("div");
     head.className = "comment-head";
     const author = document.createElement("strong");
+    author.className = "comment-author-name";
     author.textContent = post.is_anonymous || comment.is_anonymous ? "Anonymous" : comment.author;
+    const commentProfile = comment.author_id ? profileCache.get(comment.author_id) : null;
+    if (!post.is_anonymous && !comment.is_anonymous && commentProfile?.is_official) {
+      const badge = document.createElement("span");
+      badge.className = "official-account-badge";
+      badge.textContent = "✓";
+      badge.setAttribute("role", "img");
+      badge.setAttribute("aria-label", "Verified official Amora account");
+      badge.title = "Verified official Amora account";
+      author.append(badge);
+    }
     const text = document.createElement("p");
     text.textContent = comment.content;
     head.append(author);
@@ -512,7 +523,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const identity = document.createElement("div");
     identity.className = "post-identity";
     const name = document.createElement("strong");
+    name.className = "post-author-name";
     name.textContent = post.is_anonymous ? "Anonymous" : profileLabel(post.author_id);
+    if (!post.is_anonymous && publicProfile?.is_official) {
+      const badge = document.createElement("span");
+      badge.className = "official-account-badge";
+      badge.textContent = "✓";
+      badge.setAttribute("role", "img");
+      badge.setAttribute("aria-label", "Verified official Amora account");
+      badge.title = "Verified official Amora account";
+      name.append(badge);
+    }
     if (!post.is_anonymous && publicProfile?.username) {
       const profileLink = document.createElement("a");
       profileLink.href = "/pages/profile.html?username=" + encodeURIComponent(publicProfile.username);
