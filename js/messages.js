@@ -61,22 +61,34 @@ function renderConversationList(conversations) {
       button.classList.add("active");
     }
 
+    const name = conversation.other_anonymous_name || "Anonymous";
+    const unreadTotal = Number(conversation.unread_count) || 0;
+    if (unreadTotal > 0) button.classList.add("has-unread");
+
+    const avatar = document.createElement("span");
+    avatar.className = "conversation-avatar";
+    avatar.setAttribute("aria-hidden", "true");
+    avatar.textContent = name.trim().charAt(0).toUpperCase() || "A";
+
+    const copy = document.createElement("span");
+    copy.className = "conversation-copy";
     const title = document.createElement("strong");
-    title.textContent =
-      conversation.other_anonymous_name || "Anonymous";
-
+    title.textContent = name;
     const preview = document.createElement("span");
-    preview.textContent =
-      conversation.last_message_preview || "No messages yet.";
+    preview.className = "conversation-preview";
+    preview.textContent = conversation.last_message_preview || "No messages yet.";
+    copy.append(title, preview);
 
-    button.append(title, preview);
-
-    if (Number(conversation.unread_count) > 0) {
+    const meta = document.createElement("span");
+    meta.className = "conversation-meta";
+    if (unreadTotal > 0) {
       const unread = document.createElement("span");
       unread.className = "unread-count";
-      unread.textContent = String(conversation.unread_count);
-      button.appendChild(unread);
+      unread.textContent = unreadTotal > 99 ? "99+" : String(unreadTotal);
+      unread.setAttribute("aria-label", unreadTotal + " unread messages");
+      meta.appendChild(unread);
     }
+    button.append(avatar, copy, meta);
 
     button.addEventListener("click", () => {
       openConversation(
@@ -213,9 +225,14 @@ async function loadChatMessages(conversationId) {
 
 function openConversation(conversationId, title = "Anonymous") {
   const heading = $("#active-conversation-heading");
-
+  const workspace = document.querySelector(".messages-workspace");
+  const headerAvatar = document.querySelector(".chat-header-avatar");
   if (heading) heading.textContent = title;
-
+  if (headerAvatar) {
+    headerAvatar.textContent = String(title || "A").trim().charAt(0).toUpperCase() || "A";
+    headerAvatar.classList.add("has-person");
+  }
+  workspace?.classList.add("chat-open");
   loadChatMessages(conversationId);
 }
 
@@ -298,6 +315,7 @@ async function handleSendMessage(event) {
 
 function clearChat() {
   activeConversationId = null;
+  document.querySelector(".messages-workspace")?.classList.remove("chat-open");
   chatRequestInProgress = false;
 
   const conversations = $("#conversation-list");
@@ -354,6 +372,9 @@ function initMessages() {
     "submit",
     handleSendMessage
   );
+  $("#mobile-inbox-back")?.addEventListener("click", () => {
+    document.querySelector(".messages-workspace")?.classList.remove("chat-open");
+  });
 
   $("#refresh-conversations")?.addEventListener(
     "click",
