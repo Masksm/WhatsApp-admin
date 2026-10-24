@@ -5,10 +5,26 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!supabase) { window.location.replace("/"); return; }
   let user = null;
   let originalUsername = "";
+  let originalDisplayName = "";
+  let usernameChangedAt = null;
   const status = (message, error = false) => {
     const el = byId("settings-username-status");
     el.textContent = message || "";
     el.classList.toggle("is-error", error);
+  };
+  const displayNameStatus = (message, error = false) => {
+    const el = byId("settings-display-name-status");
+    el.textContent = message || "";
+    el.classList.toggle("is-error", error);
+  };
+  const usernameNextChange = () => usernameChangedAt ? new Date(new Date(usernameChangedAt).getTime() + 12 * 60 * 60 * 1000) : null;
+  const updateUsernameCooldownUI = () => {
+    const next = usernameNextChange();
+    const button = byId("settings-save-username");
+    const blocked = Boolean(next && next.getTime() > Date.now());
+    if (button) button.disabled = blocked;
+    if (blocked) status("You can change your username again " + next.toLocaleString() + ".");
+    else status("You can change your username now.");
   };
   try {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -16,12 +32,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const { data: verified, error: verifyError } = await supabase.auth.getUser(sessionData.session.access_token);
     if (verifyError || !verified?.user) { await supabase.auth.signOut({scope:"local"}); window.location.replace("/?auth=login"); return; }
     user = verified.user;
-    const { data: profile, error: profileError } = await supabase.from("profiles").select("username").eq("id", user.id).maybeSingle();
+    const { data: profile, error: profileError } = await supabase.from("profiles")
+      .select("username,display_name,last_username_change_at").eq("id", user.id).maybeSingle();
     if (profileError) throw profileError;
     originalUsername = profile?.username || "";
+    originalDisplayName = profile?.display_name || "";
+    usernameChangedAt = profile?.last_username_change_at || null;
     byId("settings-username").textContent = originalUsername || "Amora member";
-    byId("settings-avatar").textContent = (originalUsername || "A").slice(0,1).toUpperCase();
+    byId("settings-avatar").textContent = (originalDisplayName || originalUsername || "A").slice(0,1).toUpperCase();
     byId("settings-username-input").value = originalUsername;
+    byId("settings-display-name-input").value = originalDisplayName;
+    updateUsernameCooldownUI();
+    if (!originalDisplayName) displayNameStatus("Choose a display name or generate one with Random.");
   } catch (error) {
     byId("settings-username").textContent = "Could not load account";
     status(error.message || "Could not load your account.", true);
@@ -33,14 +55,49 @@ document.addEventListener("DOMContentLoaded", async () => {
     const username = input.value.trim();
     if (!/^[A-Za-z0-9_]{3,30}$/.test(username)) { status("Use 3–30 letters, numbers, or underscores.", true); return; }
     if (username.toLowerCase() === originalUsername.toLowerCase()) { status("Your username is already up to date."); return; }
+    const next = usernameNextChange();
+    if (next && next.getTime() > Date.now()) { updateUsernameCooldownUI(); return; }
     const button = byId("settings-save-username"); button.disabled = true; status("Saving username…");
     try {
-      const { data, error } = await supabase.from("profiles").update({username,display_name:null}).eq("id",user.id).select("username").single();
-      if (error) { if (error.code === "23505") throw new Error("That username is already taken. Try another one."); throw error; }
-      originalUsername = data.username; input.value = originalUsername;
-      byId("settings-username").textContent = originalUsername; byId("settings-avatar").textContent = originalUsername.slice(0,1).toUpperCase();
-      status("Username updated.");
+      const { data, error } = await supabase.from("profiles").update({username}).eq("id",user.id)
+        .select("username,last_username_change_at").single();
+      if (error) {
+        if (error.code === "23505") throw new Error("That username is already taken. Try another one.");
+        if (/once every 12 hours|change your username/i.test(error.message || "")) throw new Error(error.message);
+        throw error;
+      }
+      originalUsername = data.username; usernameChangedAt = data.last_username_change_at || new Date().toISOString();
+      input.value = originalUsername;
+      byId("settings-username").textContent = originalUsername;
+      updateUsernameCooldownUI();
+      status("Username updated. You can change it again " + usernameNextChange().toLocaleString() + ".");
     } catch (error) { status(error.message || "Could not update username.", true); }
+    finally { updateUsernameCooldownUI(); }
+  });
+  const randomAdjectives = ["Velvet","Cosmic","Misty","Golden","Quiet","Lunar","Clever","Mellow","Crimson","Sunny","Hidden","Silver","Dreamy","Gentle","Wild","Lucky","Soft","Midnight","Honey","Nova"];
+  const randomNouns = ["Fox","Comet","Willow","Raven","Otter","Bloom","Echo","Finch","Orbit","Clover","Ember","Cloud","Wren","River","Star","Dove","Pixel","Sparrow","Moon","Fern"];
+  const randomDisplayName = () => randomAdjectives[Math.floor(Math.random()*randomAdjectives.length)] + " " + randomNouns[Math.floor(Math.random()*randomNouns.length)];
+  byId("settings-random-display-name")?.addEventListener("click", () => {
+    byId("settings-display-name-input").value = randomDisplayName();
+    displayNameStatus("Random name generated. Save it to apply it to your profile.");
+  });
+  byId("settings-display-name-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!user) return;
+    const input = byId("settings-display-name-input");
+    const displayName = input.value.trim();
+    if (displayName.length < 2 || displayName.length > 32) { displayNameStatus("Use a display name between 2 and 32 characters.", true); return; }
+    if (displayName === originalDisplayName) { displayNameStatus("Your display name is already up to date."); return; }
+    const button = byId("settings-save-display-name"); button.disabled = true; displayNameStatus("Saving display name…");
+    try {
+      const { data, error } = await supabase.from("profiles").update({display_name:displayName}).eq("id",user.id)
+        .select("display_name").single();
+      if (error) throw error;
+      originalDisplayName = data.display_name || "";
+      input.value = originalDisplayName;
+      byId("settings-avatar").textContent = (originalDisplayName || originalUsername || "A").slice(0,1).toUpperCase();
+      displayNameStatus("Display name updated.");
+    } catch (error) { displayNameStatus(error.message || "Could not update your display name.", true); }
     finally { button.disabled = false; }
   });
 
