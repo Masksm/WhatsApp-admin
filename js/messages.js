@@ -3,6 +3,9 @@ import { $, supabase, getErrorMessage } from "./core.js";
 let activeConversationId = null;
 let chatRequestInProgress = false;
 let initialized = false;
+let currentConversations = [];
+let conversationFilter = "inbox";
+let conversationSearch = "";
 
 function setChatStatus(message) {
   const status = $("#chat-status");
@@ -31,17 +34,23 @@ function notifyRefresh() {
 function renderConversationList(conversations) {
   const list = $("#conversation-list");
   if (!list) return;
-
+  const query = conversationSearch.trim().toLowerCase();
+  const visibleConversations = (conversations || []).filter((conversation) => {
+    const name = conversation.other_anonymous_name || "Anonymous";
+    const preview = conversation.last_message_preview || "";
+    const unread = Number(conversation.unread_count) > 0;
+    return (name + " " + preview).toLowerCase().includes(query) && (conversationFilter !== "unread" || unread);
+  });
   list.replaceChildren();
 
-  if (!conversations.length) {
+  if (!visibleConversations.length) {
     const empty = document.createElement("p");
-    empty.textContent = "No conversations yet.";
+    empty.textContent = conversationFilter === "unread" ? "No unread chats." : query ? "No conversations match your search." : "No conversations yet.";
     list.appendChild(empty);
     return;
   }
 
-  conversations.forEach((conversation) => {
+  visibleConversations.forEach((conversation) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "conversation-item";
@@ -101,7 +110,9 @@ async function loadChatConversations(showLoading = true) {
     return;
   }
 
-  renderConversationList(data || []);
+  currentConversations = data || [];
+  renderConversationList(currentConversations);
+  window.dispatchEvent(new CustomEvent("amora:conversations-loaded", { detail: currentConversations }));
 }
 
 function renderMessages(messages) {
@@ -333,6 +344,12 @@ function initMessages() {
   if (initialized) return;
   initialized = true;
 
+  window.addEventListener("amora:filter-conversations", (event) => {
+    conversationFilter = event.detail?.filter || "inbox";
+    conversationSearch = event.detail?.query || "";
+    renderConversationList(currentConversations);
+  });
+
   $("#chat-message-form")?.addEventListener(
     "submit",
     handleSendMessage
@@ -359,6 +376,14 @@ function initMessages() {
   });
 
   refreshInbox();
+
+  const requestedConversation = new URLSearchParams(window.location.search).get("conversation");
+  if (requestedConversation) {
+    window.addEventListener("amora:conversations-loaded", (event) => {
+      const match = (event.detail || []).find((item) => item.conversation_id === requestedConversation);
+      if (match) openConversation(match.conversation_id, match.other_anonymous_name || "Anonymous");
+    }, { once: true });
+  }
 }
 
 export {
