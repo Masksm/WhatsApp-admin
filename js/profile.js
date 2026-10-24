@@ -195,6 +195,21 @@ document.addEventListener("DOMContentLoaded", () => {
     currentUserId = user?.id || null;
   }
 
+  async function loadProfileTraits(profile) {
+    const display = byId("profile-traits-display");
+    if (!display) return;
+    display.replaceChildren(node("p", "profile-loading", "Loading shared traits…"));
+    try {
+      const { data, error } = await supabase.rpc("get_public_profile_traits", { p_username: profile.username });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      renderTraits(row?.public_traits || {}, profile.id === currentUserId);
+    } catch (error) {
+      console.error("[Amora profile traits]", error?.message || error);
+      display.replaceChildren(node("p", "profile-empty", "Public traits could not be loaded right now."));
+    }
+  }
+
   async function loadPublicSummary(username) {
     const { data, error } = await supabase.rpc("get_public_profile_summary", { p_username: username });
     if (error) throw error;
@@ -390,6 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (usernameInput) usernameInput.value = originalUsername;
     setProfileHeader(viewedProfile);
     setStats(viewedProfile);
+    await refreshFollowState();
     byId("owner-tools").hidden = viewedProfile.id !== currentUserId;
     await loadProfileTraits(viewedProfile);
     if (viewedProfile.id === currentUserId) await loadProfileAnonymousLink();
@@ -440,8 +456,57 @@ document.addEventListener("DOMContentLoaded", () => {
       byId("profile-more-button")?.setAttribute("aria-expanded", "false");
     }
   });
-  byId("profile-follow-button")?.addEventListener("click", () => {
-    showStatus("Following is not connected yet. The profile layout is ready for the follow feature.");
+  async function refreshFollowState() {
+    const button = byId("profile-follow-button");
+    if (!button || !viewedProfile || viewedProfile.id === currentUserId) return;
+    if (!user) {
+      button.textContent = "Follow";
+      button.disabled = false;
+      button.setAttribute("aria-pressed", "false");
+      return;
+    }
+    const { data, error } = await supabase.from("user_follows").select("followed_id")
+      .eq("follower_id", user.id).eq("followed_id", viewedProfile.id).maybeSingle();
+    if (error) throw error;
+    const following = Boolean(data);
+    button.textContent = following ? "Following" : "Follow";
+    button.setAttribute("aria-pressed", String(following));
+    button.classList.toggle("is-following", following);
+  }
+  byId("profile-follow-button")?.addEventListener("click", async () => {
+    const button = byId("profile-follow-button");
+    if (!viewedProfile || viewedProfile.id === currentUserId) return;
+    if (!user) {
+      showStatus("Log in to follow this profile.");
+      window.location.href = "/index.html?auth=login";
+      return;
+    }
+    button.disabled = true;
+    try {
+      const { data: existing, error: lookupError } = await supabase.from("user_follows")
+        .select("follower_id").eq("follower_id", user.id).eq("followed_id", viewedProfile.id).maybeSingle();
+      if (lookupError) throw lookupError;
+      if (existing) {
+        const { error } = await supabase.from("user_follows").delete()
+          .eq("follower_id", user.id).eq("followed_id", viewedProfile.id);
+        if (error) throw error;
+        showStatus("You unfollowed @" + viewedProfile.username + ".");
+      } else {
+        const { error } = await supabase.from("user_follows").insert({
+          follower_id: user.id, followed_id: viewedProfile.id
+        });
+        if (error) throw error;
+        showStatus("You are now following @" + viewedProfile.username + ".");
+      }
+      const summary = await loadPublicSummary(viewedProfile.username);
+      setStats(summary);
+      await refreshFollowState();
+    } catch (error) {
+      console.error("[Amora follow]", error?.message || error);
+      showStatus(error.message || "Could not update follow status. Please try again.", true);
+    } finally {
+      button.disabled = false;
+    }
   });
   byId("profile-report-button")?.addEventListener("click", () => {
     showStatus("Account reporting is not connected yet.");
