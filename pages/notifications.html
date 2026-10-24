@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/css/notifications.css?v=notifications-theme-final">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
+  <script src="/js/moderator-nav.js?v=1" defer></script>
   <script type="module" src="/js/notifications-page.js?v=notifications-theme-final"></script>
 </head>
 <body class="amora-feed-page">
@@ -21,6 +22,7 @@
         <a class="nav-link active" href="/pages/notifications.html"><span class="nav-icon">♡</span><span>Notifications</span><span class="notifications-nav-count" id="notifications-nav-count" hidden></span></a>
         <a class="nav-link" href="/pages/messages.html"><span class="nav-icon">✉</span><span>Messages</span></a>
         <a class="nav-link" href="/pages/profile.html"><span class="nav-icon">◎</span><span>Profile</span></a>
+        <a class="nav-link moderator-nav-link" data-moderator-nav href="/pages/moderation.html" aria-label="Moderation dashboard" title="Moderation dashboard" hidden aria-hidden="true"><span class="nav-icon" aria-hidden="true">⬟</span><span>Moderation</span></a>
       </nav>
       <div class="sidebar-note"><span class="note-heart">♡</span><p>A little more honest.<br>A little more you.</p></div>
       <a class="sidebar-account" href="/pages/profile.html"><span class="avatar avatar-you">?</span><span><strong>Your space</strong><small>Manage your profile</small></span><span class="more-dots">···</span></a>
@@ -47,6 +49,7 @@
     <a class="mobile-nav-link active" href="/pages/notifications.html" aria-label="Notifications"><span class="mobile-nav-icon">♡</span><span class="mobile-nav-label">Notifications</span><span class="notifications-mobile-count" id="notifications-mobile-count" hidden></span></a>
     <a class="mobile-nav-link" href="/pages/messages.html" aria-label="Messages"><span class="mobile-nav-icon">✉</span><span class="mobile-nav-label">Messages</span></a>
     <a class="mobile-nav-link" href="/pages/profile.html" aria-label="Profile"><span class="mobile-nav-icon">◎</span><span class="mobile-nav-label">Profile</span></a>
+    <a class="mobile-nav-link moderator-nav-link" data-moderator-nav href="/pages/moderation.html" aria-label="Moderation dashboard" title="Moderation dashboard" hidden aria-hidden="true"><span class="mobile-nav-icon" aria-hidden="true">⬟</span><span class="mobile-nav-label">Moderation</span></a>
   </nav>
 </body>
 </html>
