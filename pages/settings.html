@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#160d1c">
+  <title>Settings · Amora</title>
+  <link rel="stylesheet" href="/css/feed.css">
+  <link rel="stylesheet" href="/css/settings.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-client.js" defer></script>
+  <script src="/js/settings.js" defer></script>
+</head>
+<body class="amora-feed-page settings-page">
+  <div class="feed-shell">
+    <aside class="feed-sidebar" aria-label="Main navigation">
+      <a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a>
+      <nav class="main-nav">
+        <a class="nav-link" href="/pages/social-home.html"><span class="nav-icon">⌂</span><span>Home</span></a>
+        <a class="nav-link" href="/pages/messages.html"><span class="nav-icon">✉</span><span>Messages</span></a>
+        <a class="nav-link" href="/pages/profile.html"><span class="nav-icon">◎</span><span>Profile</span></a>
+        <a class="nav-link active" href="/pages/settings.html"><span class="nav-icon">⚙</span><span>Settings</span></a>
+      </nav>
+      <div class="sidebar-note"><span class="note-heart">♡</span><p>Your identity.<br>Your rules.</p></div>
+    </aside>
+    <main class="feed-main settings-main">
+      <header class="settings-topbar">
+        <a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a>
+        <button id="settings-logout" class="settings-logout" type="button">Log out ↗</button>
+      </header>
+      <div class="settings-heading">
+        <p class="eyebrow">YOUR SPACE, YOUR RULES</p>
+        <h1>Settings <span class="heading-heart">♡</span></h1>
+        <p>Manage your account, privacy, and how you experience Amora.</p>
+      </div>
+      <section class="settings-account-card card">
+        <div class="settings-account-avatar" id="settings-avatar">?</div>
+        <div><p class="eyebrow">YOUR ACCOUNT</p><h2 id="settings-username">Loading account…</h2><p id="settings-email" class="settings-muted">Your login email is private.</p></div>
+        <a class="settings-row-arrow" href="/pages/profile.html" aria-label="View profile">↗</a>
+      </section>
+      <div class="settings-layout">
+        <nav class="settings-index card" aria-label="Settings sections">
+          <a href="#account">Your account</a><a href="#privacy">Privacy and safety</a><a href="#preferences">Preferences</a><a href="#audience">Audience and visibility</a><a href="#activity">Your activity</a><a href="#permissions">Apps and permissions</a><a href="#information">Information and policies</a>
+        </nav>
+        <div class="settings-groups">
+          <section class="settings-group" id="account">
+            <p class="eyebrow">ACCOUNT</p><h2>Your account</h2>
+            <article class="settings-item card"><span class="settings-icon">＠</span><div><h3>Username</h3><p>This is the name people see on your Amora profile. Keep it separate from your real identity.</p><form id="settings-username-form" class="settings-username-form"><label class="sr-only" for="settings-username-input">Username</label><input id="settings-username-input" name="username" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" required autocomplete="username"><button type="submit" class="primary-button" id="settings-save-username">Save username</button></form><p class="settings-status" id="settings-username-status" role="status"></p></div></article>
+            <a class="settings-item card settings-link" href="/pages/password-reset.html"><span class="settings-icon">⌑</span><div><h3>Password and security</h3><p>Use the password recovery flow if you need to reset your password.</p></div><span>↗</span></a>
+          </section>
+          <section class="settings-group" id="privacy">
+            <p class="eyebrow">YOUR CONTROL</p><h2>Privacy and safety</h2>
+            <a class="settings-item card settings-link" href="/pages/profile.html"><span class="settings-icon">◉</span><div><h3>Profile details and public traits</h3><p>Review your public profile and choose which hobbies and preferences you share.</p></div><span>↗</span></a>
+            <a class="settings-item card settings-link" href="/pages/social-home.html"><span class="settings-icon">♧</span><div><h3>Anonymous posting</h3><p>When creating a post, choose whether the post is anonymous and whether anonymous comments are allowed.</p></div><span>↗</span></a>
+          </section>
+          <section class="settings-group" id="preferences">
+            <p class="eyebrow">YOUR EXPERIENCE</p><h2>Preferences</h2>
+            <article class="settings-item card"><span class="settings-icon">◐</span><div><h3>Appearance</h3><p>Amora currently uses its dark theme. More appearance controls can be added later.</p></div></article>
+            <article class="settings-item card"><span class="settings-icon">♧</span><div><h3>Notifications</h3><p>Notification preferences are not available yet.</p></div></article>
+            <article class="settings-item card"><span class="settings-icon">文</span><div><h3>Language and region</h3><p>Amora currently uses the language set by the website.</p></div></article>
+          </section>
+          <section class="settings-group" id="audience">
+            <p class="eyebrow">WHO CAN SEE WHAT</p><h2>Audience and visibility</h2>
+            <article class="settings-item card"><span class="settings-icon">◎</span><div><h3>Public profile</h3><p>Your username, profile counts, shared traits, and public identified posts can be viewed by other people. Private account details are not shown.</p></div></article>
+            <article class="settings-item card"><span class="settings-icon">▤</span><div><h3>Post audience</h3><p>Choose the audience for each post when you publish it. Public posts can appear on other people's feeds and your profile.</p></div></article>
+            <article class="settings-item card"><span class="settings-icon">⊘</span><div><h3>Blocking and profile locking</h3><p>Advanced blocking and profile-lock controls are not available yet.</p></div></article>
+          </section>
+          <section class="settings-group" id="activity">
+            <p class="eyebrow">YOUR CONTENT</p><h2>Your activity</h2>
+            <a class="settings-item card settings-link" href="/pages/profile.html"><span class="settings-icon">▣</span><div><h3>Your posts</h3><p>Open your profile to review your identified posts and remove ones you no longer want.</p></div><span>↗</span></a>
+          </section>
+          <section class="settings-group" id="permissions">
+            <p class="eyebrow">CONNECTED SERVICES</p><h2>Apps and permissions</h2>
+            <article class="settings-item card"><span class="settings-icon">⌘</span><div><h3>Apps and websites</h3><p>No connected-app management page is available yet.</p></div></article>
+            <article class="settings-item card"><span class="settings-icon">▧</span><div><h3>Device permissions and media</h3><p>Camera and photo access are requested by your device or browser when a feature needs them.</p></div></article>
+          </section>
+          <section class="settings-group" id="information">
+            <p class="eyebrow">THE IMPORTANT DETAILS</p><h2>Information and policies</h2>
+            <a class="settings-item card settings-link" href="/privacy.html"><span class="settings-icon">♡</span><div><h3>Privacy policy</h3><p>How Amora handles your information.</p></div><span>↗</span></a>
+            <a class="settings-item card settings-link" href="/terms.html"><span class="settings-icon">§</span><div><h3>Terms of service</h3><p>The rules for using Amora.</p></div><span>↗</span></a>
+          </section>
+        </div>
+      </div>
+      <p class="settings-footer">Amora · A little more honest. A little more you. ♡</p>
+    </main>
+  </div>
+  <nav class="mobile-nav" aria-label="Mobile navigation"><a class="mobile-nav-link" href="/pages/social-home.html" aria-label="Home"><span>⌂</span></a><a class="mobile-nav-link" href="/pages/messages.html" aria-label="Messages"><span>✉</span></a><a class="mobile-nav-link" href="/pages/profile.html" aria-label="Profile"><span>◎</span></a><a class="mobile-nav-link active" href="/pages/settings.html" aria-label="Settings"><span>⚙</span></a></nav>
+</body>
+</html>
