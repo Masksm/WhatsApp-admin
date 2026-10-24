@@ -344,6 +344,12 @@ async function handleLogout() {
   setStatus(byId("auth-status"), "You have signed out.");
 }
 
+function isPasswordRecoveryCallback() {
+  const query = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  return query.get("type") === "recovery" || hash.get("type") === "recovery";
+}
+
 function initAuth() {
   if (initialized) return;
   initialized = true;
@@ -389,6 +395,13 @@ function initAuth() {
       }, 0);
     }
   });
+
+  if (isPasswordRecoveryCallback()) {
+    // A recovery session is not a normal login. Leave the recovery screen visible
+    // so the user can choose a new password instead of being sent to the feed.
+    showDashboard(null);
+    return;
+  }
 
   refreshAuthenticatedUser();
 }
