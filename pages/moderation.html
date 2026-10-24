@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#160d1c">
+  <title>Moderation · Amora</title>
+  <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
+  <link rel="stylesheet" href="/css/feed.css?v=moderation-1">
+  <link rel="stylesheet" href="/css/moderation.css?v=moderation-1">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-client.js" defer></script>
+  <script src="/js/moderation.js?v=moderation-1" defer></script>
+</head>
+<body class="amora-feed-page moderation-page">
+  <main class="moderation-shell">
+    <header class="moderation-header">
+      <a class="moderation-brand" href="/pages/social-home.html"><span class="brand-mark">a</span> amora</a>
+      <span class="moderation-shield" aria-hidden="true">⬟</span>
+      <h1>Moderation dashboard</h1>
+      <p>Review reports and record moderation decisions.</p>
+    </header>
+    <section id="moderation-access" class="moderation-panel" aria-live="polite">
+      <p id="moderation-status">Checking moderator access…</p>
+    </section>
+    <section id="moderation-content" hidden>
+      <div class="moderation-toolbar">
+        <label for="report-filter">Reports</label>
+        <select id="report-filter">
+          <option value="pending">Pending</option>
+          <option value="all">All reports</option>
+          <option value="reviewed">Reviewed</option>
+          <option value="dismissed">Dismissed</option>
+          <option value="actioned">Actioned</option>
+        </select>
+        <button id="refresh-reports" type="button">Refresh</button>
+      </div>
+      <p id="report-count" class="moderation-muted"></p>
+      <div id="report-list" class="moderation-list"></div>
+    </section>
+  </main>
+</body>
+</html>
