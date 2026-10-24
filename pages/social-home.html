@@ -33,7 +33,7 @@
       <button class="feed-quick-composer card" type="button" data-focus-composer aria-label="Create a post">
         <span class="avatar avatar-you quick-composer-avatar">?</span><span class="quick-composer-prompt">What’s on your mind?</span><span class="quick-composer-photo" aria-hidden="true">▧</span>
       </button>
-      <dialog class="composer-dialog" id="composer-dialog" aria-labelledby="composer-dialog-title">
+      <section class="composer-inline-panel" id="composer-dialog" aria-labelledby="composer-dialog-title" hidden>
         <section class="composer card" id="composer" aria-label="Create a post">
           <header class="composer-dialog-header"><h2 id="composer-dialog-title">Create post</h2><button class="composer-close" type="button" id="composer-close" aria-label="Close composer">×</button></header>
           <div class="composer-profile-line"><span class="avatar avatar-you" id="composer-user-avatar">?</span><strong id="composer-display-name">Your profile</strong></div>
@@ -48,7 +48,7 @@
           </div>
           <button id="publish-post" class="primary-button composer-publish-button" type="button" disabled>Post</button><p id="composer-status" class="status-message" role="status"></p>
         </section>
-      </dialog>
+      </section>
 
       <div class="feed-tabs" role="tablist" aria-label="Choose your feed">
         <button class="feed-tab active" role="tab" aria-selected="true" data-feed="for-you">For You</button>
