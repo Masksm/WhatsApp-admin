@@ -197,6 +197,24 @@ document.addEventListener("DOMContentLoaded", () => {
     setText("profile-page-title", isOwner ? "Your profile" : displayName);
     setText("profile-eyebrow", isOwner ? "YOUR AMORA SPACE" : "AMORA COMMUNITY");
     byId("profile-action-row").hidden = isOwner;
+    const followButton = byId("profile-follow-button");
+    const blockButton = byId("profile-block-button");
+    if (profile.is_official) {
+      if (followButton) {
+        followButton.textContent = "Following Amora";
+        followButton.disabled = true;
+        followButton.setAttribute("aria-pressed", "true");
+        followButton.title = "Every active account follows the official Amora account.";
+      }
+      if (blockButton) blockButton.hidden = true;
+      byId("profile-more-button")?.setAttribute("aria-label", "More profile actions");
+    } else {
+      if (followButton) {
+        followButton.disabled = false;
+        followButton.title = "";
+      }
+      if (blockButton) blockButton.hidden = false;
+    }
     byId("profile-private-note").hidden = isOwner;
     byId("profile-more-button")?.setAttribute("aria-expanded", "false");
     setText("posts-section-title", isOwner ? "Your posts" : "Posts");
@@ -530,7 +548,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   async function refreshFollowState() {
     const button = byId("profile-follow-button");
-    if (!button || !viewedProfile || viewedProfile.id === currentUserId) return;
+    if (!button || !viewedProfile || viewedProfile.id === currentUserId || viewedProfile.is_official) return;
     if (!user) {
       button.textContent = "Follow";
       button.disabled = false;
@@ -547,7 +565,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   byId("profile-follow-button")?.addEventListener("click", async () => {
     const button = byId("profile-follow-button");
-    if (!viewedProfile || viewedProfile.id === currentUserId) return;
+    if (!viewedProfile || viewedProfile.id === currentUserId || viewedProfile.is_official) return;
     if (!user) {
       showStatus("Log in to follow this profile.");
       window.location.href = "/index.html?auth=login";
