@@ -69,6 +69,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       originalUsername = data.username; usernameChangedAt = data.last_username_change_at || new Date().toISOString();
       input.value = originalUsername;
       byId("settings-username").textContent = originalUsername;
+      refreshAccountSummaries();
+      closeAccountDialog(usernameDialog);
       updateUsernameCooldownUI();
       status("Username updated. You can change it again " + usernameNextChange().toLocaleString() + ".");
     } catch (error) { status(error.message || "Could not update username.", true); }
@@ -96,10 +98,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       originalDisplayName = data.display_name || "";
       input.value = originalDisplayName;
       byId("settings-avatar").textContent = (originalDisplayName || originalUsername || "A").slice(0,1).toUpperCase();
+      refreshAccountSummaries();
+      closeAccountDialog(displayNameDialog);
       displayNameStatus("Display name updated.");
     } catch (error) { displayNameStatus(error.message || "Could not update your display name.", true); }
     finally { button.disabled = false; }
   });
+
+  const usernameDialog = byId("settings-username-dialog");
+  const displayNameDialog = byId("settings-display-name-dialog");
+  const closeAccountDialog = dialog => { if (dialog) dialog.hidden = true; document.body.classList.remove("traits-dialog-open"); };
+  const openAccountDialog = (dialog, focusId) => { if (!dialog) return; dialog.hidden = false; document.body.classList.add("traits-dialog-open"); byId(focusId)?.focus(); };
+  byId("settings-open-username")?.addEventListener("click", () => openAccountDialog(usernameDialog, "settings-username-input"));
+  byId("settings-open-display-name")?.addEventListener("click", () => openAccountDialog(displayNameDialog, "settings-display-name-input"));
+  byId("settings-close-username")?.addEventListener("click", () => closeAccountDialog(usernameDialog));
+  byId("settings-close-display-name")?.addEventListener("click", () => closeAccountDialog(displayNameDialog));
+  [usernameDialog, displayNameDialog].forEach(dialog => dialog?.addEventListener("click", event => { if (event.target === dialog) closeAccountDialog(dialog); }));
+  document.addEventListener("keydown", event => { if (event.key === "Escape") [usernameDialog, displayNameDialog].forEach(dialog => { if (dialog && !dialog.hidden) closeAccountDialog(dialog); }); });
+  const usernameSummary = byId("settings-username-summary");
+  const displayNameSummary = byId("settings-display-name-summary");
+  const refreshAccountSummaries = () => { if (usernameSummary) usernameSummary.textContent = originalUsername ? "@" + originalUsername + " · Changeable once every 12 hours." : "Manage your unique @username."; if (displayNameSummary) displayNameSummary.textContent = originalDisplayName || "Choose the name shown on your profile."; };
+  refreshAccountSummaries();
 
   const appearanceDialog=byId("settings-appearance-dialog");
   const appearanceOpen=byId("settings-open-appearance");
