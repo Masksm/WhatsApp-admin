@@ -286,13 +286,20 @@ async function handleAuthSubmit(event) {
     let result;
 
     if (authMode === "signup") {
-      result = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { name }
-        }
-      });
+      const { data: signupData, error: signupError } = await supabase.functions.invoke(
+        "auth-email-request",
+        { body: { action: "signup", email, password, name } }
+      );
+      if (signupError) {
+        let message = signupError.message || "Could not create your account.";
+        try {
+          const responseBody = await signupError.context?.json();
+          if (responseBody?.error) message = responseBody.error;
+        } catch {}
+        throw new Error(message);
+      }
+      if (signupData?.error) throw new Error(signupData.error);
+      result = { data: { session: null, user: null }, error: null };
     } else {
       result = await supabase.auth.signInWithPassword({
         email,
