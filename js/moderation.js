@@ -56,6 +56,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
     countNode.textContent = (data?.length || 0) + " report(s) shown · maximum 100 per load";
+    const postIds = [...new Set((data || []).map(report => report.post_id).filter(Boolean))];
+    const contextResult = postIds.length ? await supabase.rpc("moderator_get_report_post_context", { p_post_ids: postIds }) : { data: [], error: null };
+    const postContexts = new Map((contextResult.data || []).map(post => [post.post_id, post]));
     listNode.replaceChildren();
     if (!data?.length) {
       listNode.append(element("p", "moderation-muted", "No reports in this filter."));
@@ -67,13 +70,36 @@ document.addEventListener("DOMContentLoaded", async () => {
       heading.append(element("strong", "", "Report " + report.id.slice(0, 8)));
       heading.append(element("span", "moderation-status-pill", pretty(report.status)));
       card.append(heading);
+      const post = postContexts.get(report.post_id);
+      const preview = element("section", "moderation-post-preview");
+      preview.append(element("h3", "moderation-post-title", "Reported post"));
+      if (contextResult.error) {
+        preview.append(element("p", "moderation-error", "Post details could not be loaded. Check moderator post-context permissions."));
+      } else if (!post) {
+        preview.append(element("p", "moderation-muted", "The original post is unavailable. It may have been deleted."));
+      } else {
+        const author = post.is_anonymous ? "Anonymous post" : (post.author_display_name || "Amora user");
+        preview.append(element("p", "moderation-post-author", author + " · " + (post.post_created_at ? new Date(post.post_created_at).toLocaleString() : "Date unknown")));
+        preview.append(element("p", "moderation-post-content", post.post_content || "[This post contains no text.]"));
+        if (post.post_visibility) preview.append(element("p", "moderation-muted", "Visibility: " + pretty(post.post_visibility)));
+        (post.media_urls || []).forEach(url => {
+          if (typeof url !== "string" || !/^https:\/\//i.test(url)) return;
+          const mediaLink = element("a", "moderation-media-link", "Open attached media");
+          mediaLink.href = url;
+          mediaLink.target = "_blank";
+          mediaLink.rel = "noopener noreferrer";
+          preview.append(mediaLink);
+        });
+      }
+      const postLink = element("a", "moderation-post-link", "Open Amora feed");
+      postLink.href = "/pages/social-home.html";
+      preview.append(postLink);
+      card.append(preview);
       const details = element("dl", "moderation-details");
       for (const [label, value] of [
         ["Reason", report.reason],
-        ["Post ID", report.post_id],
-        ["Reporter ID", report.reporter_id],
-        ["Submitted", report.created_at ? new Date(report.created_at).toLocaleString() : "Unknown"],
-        ["Admin notes", report.admin_notes || "None"]
+        ["Post reference", report.post_id],
+        ["Report submitted", report.created_at ? new Date(report.created_at).toLocaleString() : "Unknown"]
       ]) {
         details.append(element("dt", "", label), element("dd", "", String(value ?? "Not provided")));
       }
