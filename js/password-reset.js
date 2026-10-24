@@ -19,6 +19,7 @@ const authPanel = document.getElementById("auth-panel");
   const newPassword = document.getElementById("new-password");
   const confirmPassword = document.getElementById("confirm-new-password");
   const newPasswordStatus = document.getElementById("new-password-status");
+  const resetLoginLink = document.getElementById("reset-login-link");
   const recoveryAccount = document.getElementById("recovery-account");
   const recoveryAccountEmail = document.getElementById("recovery-account-email");
 
@@ -140,7 +141,7 @@ function showSection(sectionToShow) {
 
         newPasswordStatus.textContent =
           "Your password has been updated successfully. You can now log in with your new password.";
-
+        if (resetLoginLink) resetLoginLink.hidden = false;
         newPasswordForm.reset();
       } catch (error) {
         console.error("Password update error:", error);
