@@ -810,5 +810,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+
+  async function logoutFromHeader(button) {
+    if (!supabase || !button) return;
+    button.disabled = true;
+    const originalLabel = button.textContent;
+    button.textContent = "Logging out…";
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      button.disabled = false;
+      button.textContent = originalLabel;
+      setStatus(error.message || "Could not log out.", true);
+      return;
+    }
+    window.location.replace("/?auth=login");
+  }
+  document.getElementById("home-logout-button")?.addEventListener("click", (event) => logoutFromHeader(event.currentTarget));
+  document.getElementById("home-logout-button-desktop")?.addEventListener("click", (event) => logoutFromHeader(event.currentTarget));
+
   loadFeed();
 });
