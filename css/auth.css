@@ -653,3 +653,10 @@ body:has(#auth-panel) #new-password-section > p {
     transition-duration: 0.01ms !important;
   }
 }
+
+.recovery-account{display:flex;align-items:center;gap:12px;padding:13px 14px;margin:12px 0 18px;border:1px solid rgba(255,145,202,.25);border-radius:14px;background:rgba(255,107,181,.07)}
+.recovery-account[hidden]{display:none!important}
+.recovery-account-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:rgba(255,107,181,.13);color:var(--auth-pink-bright);font-size:1.1rem;flex:0 0 38px}
+.recovery-account div{display:grid;gap:4px;min-width:0}
+.recovery-account small{font-size:.65rem;letter-spacing:.12em;color:var(--auth-muted);font-weight:800}
+.recovery-account strong{font-size:.88rem;overflow-wrap:anywhere;color:var(--auth-text)}
