@@ -227,6 +227,19 @@ document.addEventListener("DOMContentLoaded", () => {
     return button;
   }
 
+  function closeAllPostMoreMenus() {
+    document.querySelectorAll(".post-more-menu:not([hidden])").forEach((menu) => {
+      menu.hidden = true;
+      menu.closest(".post-actions")?.querySelector(".post-more-trigger")?.setAttribute("aria-expanded", "false");
+    });
+  }
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".post-actions")) closeAllPostMoreMenus();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeAllPostMoreMenus();
+  });
+
   function timeAgo(value) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "Recently";
@@ -947,13 +960,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }, "post-more-report");
     }
     actions.append(moreMenu);
-    actions.addEventListener("click", (event) => event.stopPropagation());
-    document.addEventListener("click", (event) => {
-      if (!actions.contains(event.target)) closeMoreMenu();
-    });
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeMoreMenu();
-    });
     article.append(stats, actions);
     return article;
   }
