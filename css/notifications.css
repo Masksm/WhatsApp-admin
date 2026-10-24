@@ -65,3 +65,43 @@
   :root:not([data-theme]) .notifications-main .notification-copy small { color:#b0b3b8; }
   :root:not([data-theme]) .notifications-main .secondary-button { background:#3a3b3c;color:#f0f2f5;border-color:#4e4f50; }
 }
+
+
+/* Complete Facebook-inspired palette and reliable explicit theme switching. */
+:root[data-theme="dark"] body.amora-feed-page {
+  color-scheme: dark;
+  --bg: #18191a;
+  --surface: #242526;
+  --surface2: #3a3b3c;
+  --line: #3e4042;
+  --text: #f0f2f5;
+  --muted: #b0b3b8;
+  background: #18191a !important;
+  color: #f0f2f5 !important;
+}
+:root[data-theme="light"] body.amora-feed-page {
+  color-scheme: light;
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --surface2: #e4e6eb;
+  --line: #d8dadf;
+  --text: #242526;
+  --muted: #65676b;
+  background: #f0f2f5 !important;
+  color: #242526 !important;
+}
+:root[data-theme="dark"] .notifications-main .notifications-filters { border-color:#3e4042; }
+:root[data-theme="dark"] .notifications-main .notification-filter { color:#b0b3b8; }
+:root[data-theme="dark"] .notifications-main .notification-filter.active { color:#4599ff;border-color:#4599ff; }
+:root[data-theme="light"] .notifications-main .notification-filter { color:#65676b; }
+:root[data-theme="light"] .notifications-main .notification-filter.active { color:#1877f2;border-color:#1877f2; }
+:root[data-theme="dark"] .notifications-main .notifications-header .eyebrow { color:#4599ff; }
+:root[data-theme="light"] .notifications-main .notifications-header .eyebrow { color:#1877f2; }
+:root[data-theme="dark"] .notifications-main .notifications-status { color:#4599ff; }
+:root[data-theme="light"] .notifications-main .notifications-status { color:#1877f2; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) body.amora-feed-page { color-scheme:dark;--bg:#18191a;--surface:#242526;--surface2:#3a3b3c;--line:#3e4042;--text:#f0f2f5;--muted:#b0b3b8;background:#18191a!important;color:#f0f2f5!important; }
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) body.amora-feed-page { color-scheme:light;--bg:#f0f2f5;--surface:#fff;--surface2:#e4e6eb;--line:#d8dadf;--text:#242526;--muted:#65676b;background:#f0f2f5!important;color:#242526!important; }
+}
