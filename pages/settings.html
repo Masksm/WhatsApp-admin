@@ -58,11 +58,25 @@
             <article class="settings-item card"><span class="settings-icon">♧</span><div><h3>Notifications</h3><p>Notification preferences are not available yet.</p></div></article>
             <article class="settings-item card"><span class="settings-icon">文</span><div><h3>Language and region</h3><p>Amora currently uses the language set by the website.</p></div></article>
             <article class="settings-traits-card card">
-              <div class="settings-traits-heading"><span class="settings-icon">✧</span><div><h3>Public profile traits</h3><p>Choose the optional interests and details shown on your profile. Only saved choices are public.</p></div></div>
-              <p class="settings-traits-privacy">Do not include contact details, your full name, school, workplace, or exact location.</p>
-              <div id="settings-traits-fields" class="settings-traits-fields"><p>Loading your saved choices…</p></div>
-              <button class="primary-button" id="settings-save-traits" type="button">Save public traits ↗</button>
-              <p class="settings-status" id="settings-traits-status" role="status"></p>
+              <button class="settings-traits-trigger" id="settings-open-traits" type="button" aria-haspopup="dialog" aria-controls="settings-traits-dialog">
+                <span class="settings-icon">✧</span>
+                <span class="settings-traits-trigger-copy"><strong>Public profile traits</strong><small>Choose which optional interests and details appear on your profile.</small></span>
+                <span class="settings-traits-trigger-arrow" aria-hidden="true">↗</span>
+              </button>
+              <div class="settings-traits-backdrop" id="settings-traits-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-traits-dialog-title" hidden>
+                <section class="settings-traits-modal">
+                  <button class="settings-traits-close" id="settings-close-traits" type="button" aria-label="Close public profile traits">×</button>
+                  <p class="eyebrow">YOUR PUBLIC PROFILE</p>
+                  <h3 id="settings-traits-dialog-title">Choose your traits</h3>
+                  <p class="settings-traits-privacy">Choose what you want to share. Only saved choices are public. Do not include contact details, your full name, school, workplace, or exact location.</p>
+                  <div id="settings-traits-fields" class="settings-traits-fields"><p>Loading your saved choices…</p></div>
+                  <div class="settings-traits-actions">
+                    <button class="settings-traits-cancel" id="settings-cancel-traits" type="button">Cancel</button>
+                    <button class="primary-button" id="settings-save-traits" type="button">Save choices</button>
+                  </div>
+                  <p class="settings-status" id="settings-traits-status" role="status" aria-live="polite"></p>
+                </section>
+              </div>
             </article>
           </section>
           <section class="settings-group" id="audience">
