@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#160d1c">
+  <title>Notifications · Amora</title>
+  <link rel="stylesheet" href="/css/feed.css?v=notifications-1">
+  <link rel="stylesheet" href="/css/notifications.css?v=notifications-1">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-client.js" defer></script>
+  <script type="module" src="/js/notifications-page.js?v=notifications-1"></script>
+</head>
+<body class="amora-feed-page">
+  <div class="feed-shell">
+    <aside class="feed-sidebar" aria-label="Main navigation">
+      <a class="feed-brand" href="/pages/social-home.html" aria-label="Amora home"><span class="brand-mark">a</span><span>amora</span></a>
+      <nav class="main-nav">
+        <a class="nav-link" href="/pages/social-home.html"><span class="nav-icon">⌂</span><span>Home</span></a>
+        <a class="nav-link active" href="/pages/notifications.html"><span class="nav-icon">♡</span><span>Notifications</span><span class="notifications-nav-count" id="notifications-nav-count" hidden></span></a>
+        <a class="nav-link" href="/pages/messages.html"><span class="nav-icon">✉</span><span>Messages</span></a>
+        <a class="nav-link" href="/pages/profile.html"><span class="nav-icon">◎</span><span>Profile</span></a>
+      </nav>
+      <div class="sidebar-note"><span class="note-heart">♡</span><p>A little more honest.<br>A little more you.</p></div>
+      <a class="sidebar-account" href="/pages/profile.html"><span class="avatar avatar-you">?</span><span><strong>Your space</strong><small>Manage your profile</small></span><span class="more-dots">···</span></a>
+    </aside>
+    <main class="feed-main notifications-main">
+      <header class="mobile-topbar"><a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a></header>
+      <section class="notifications-header">
+        <div><p class="eyebrow">YOUR AMORA ACTIVITY</p><h1>Notifications</h1><p>Likes, replies, follows and messages, all in one place.</p></div>
+        <button class="secondary-button" id="mark-all-read" type="button">Mark all as read</button>
+      </section>
+      <div class="notifications-filters" role="tablist" aria-label="Filter notifications">
+        <button class="notification-filter active" type="button" data-filter="all" aria-selected="true">All</button>
+        <button class="notification-filter" type="button" data-filter="unread" aria-selected="false">Unread</button>
+      </div>
+      <section id="notifications-list" class="notifications-list" aria-live="polite">
+        <div class="notification-loading">Loading your notifications…</div>
+      </section>
+      <p id="notifications-status" class="notifications-status" role="status" aria-live="polite"></p>
+    </main>
+    <aside class="feed-rightbar"><section class="welcome-card"><span class="welcome-sparkle">✦</span><p class="eyebrow">STAY IN THE LOOP</p><h2>Your people.<br><span>Your moments.</span></h2><p>New activity from your Amora community will show up here.</p></section></aside>
+  </div>
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <a class="mobile-nav-link" href="/pages/social-home.html" aria-label="Home"><span class="mobile-nav-icon">⌂</span><span class="mobile-nav-label">Home</span></a>
+    <a class="mobile-nav-link active" href="/pages/notifications.html" aria-label="Notifications"><span class="mobile-nav-icon">♡</span><span class="mobile-nav-label">Notifications</span><span class="notifications-mobile-count" id="notifications-mobile-count" hidden></span></a>
+    <a class="mobile-nav-link" href="/pages/messages.html" aria-label="Messages"><span class="mobile-nav-icon">✉</span><span class="mobile-nav-label">Messages</span></a>
+    <a class="mobile-nav-link" href="/pages/profile.html" aria-label="Profile"><span class="mobile-nav-icon">◎</span><span class="mobile-nav-label">Profile</span></a>
+  </nav>
+</body>
+</html>
