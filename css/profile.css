@@ -93,3 +93,7 @@
 .profile-delete-post{border:1px solid #ff789b45;border-radius:8px;background:#ff789b0d;color:#ff9ab8;padding:6px 9px;font-size:.7rem;cursor:pointer}
 .profile-delete-post:disabled{opacity:.5;cursor:wait}
 @media(max-width:680px){.profile-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.anonymous-link-result{flex-direction:column}.anonymous-link-result input{width:100%;box-sizing:border-box}}
+
+.profile-heading .profile-header-logout{margin-left:8px;white-space:nowrap}
+.profile-heading #profile-settings-button{margin-left:auto;text-decoration:none}
+@media(max-width:600px){.profile-heading .profile-header-logout{font-size:.7rem;padding:8px 10px}}
