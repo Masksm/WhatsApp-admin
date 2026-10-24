@@ -211,3 +211,18 @@ html[data-theme="light"] .profile-page .profile-hero,html[data-theme="light"] .p
 
 :root[data-theme="light"] .profile-page .profile-stat>span:last-child,:root[data-theme="light"] .profile-page .profile-section,:root[data-theme="light"] .profile-page .profile-hero{color:#241b2b}
 :root[data-theme="light"] .profile-page .profile-stat>span:last-child{color:#55465d!important}
+
+/* Accessible profile trait labels and chips in the explicit light appearance. */
+:root[data-theme="light"] .profile-page .public-trait-group h3{color:#34243c!important}
+:root[data-theme="light"] .profile-page .public-trait-chip{color:#572044!important;background:#fff1f8!important;border:1px solid #e2b4cf!important;opacity:1!important}
+:root[data-theme="light"] .profile-page .profile-kicker{color:#6740a1!important}
+:root[data-theme="light"] .profile-page .profile-post-meta,:root[data-theme="light"] .profile-page .profile-post-stats{color:#625568!important}
+:root[data-theme="light"] .profile-page .profile-post-visibility{color:#6740a1!important}
+:root[data-theme="light"] .profile-page .profile-form label,:root[data-theme="light"] .profile-page .profile-account-actions strong{color:#34243c!important}
+:root[data-theme="light"] .profile-page .profile-empty,:root[data-theme="light"] .profile-page .profile-loading{color:#625568!important}
+:root[data-theme="light"] .profile-page .profile-empty strong{color:#241b2b!important}
+:root[data-theme="light"] .profile-page .username-field{background:#fff!important;border-color:#bdb3c5!important}
+:root[data-theme="light"] .profile-page .username-field input{color:#241b2b!important}
+:root[data-theme="light"] .profile-page .field-hint{color:#625568!important}
+:root[data-theme="light"] .profile-page .secondary-button{background:#fff!important;color:#572044!important;border-color:#c9b8ce!important}
+:root[data-theme="light"] .profile-page .profile-status{color:#8e1d66!important}
