@@ -7,7 +7,12 @@ function dateLabel(value) {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) return "Just now";
+  if (seconds < 3600) return Math.floor(seconds / 60) + "m ago";
+  if (seconds < 86400) return Math.floor(seconds / 3600) + "h ago";
+  if (seconds < 604800) return Math.floor(seconds / 86400) + "d ago";
+  return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
 function setStatus(message, isError = false) {
@@ -15,6 +20,33 @@ function setStatus(message, isError = false) {
   if (!status) return;
   status.textContent = message;
   status.style.color = isError ? "#c62828" : "";
+}
+
+function actorLabel(item) {
+  if (item.notification_type === "new_message") return item.sender_anonymous_name || "Someone";
+  return item.actor_name || (item.actor_username ? "@" + item.actor_username : "Someone");
+}
+
+function notificationText(item) {
+  const name = actorLabel(item);
+  switch (item.notification_type) {
+    case "new_message": return name + " sent you a message";
+    case "post_like": return name + " liked your post";
+    case "post_comment": return name + " commented on your post";
+    case "comment_reply": return name + " replied to your comment";
+    case "new_follower": return name + " started following you";
+    case "comment_like": return name + " liked your comment";
+    case "mention": return name + " mentioned you";
+    default: return "You have new activity";
+  }
+}
+
+function notificationSymbol(type) {
+  if (type === "new_message") return "✉";
+  if (type === "new_follower") return "♙";
+  if (type === "post_comment" || type === "comment_reply") return "▤";
+  if (type === "mention") return "@";
+  return "♡";
 }
 
 function updateUnreadCount() {
@@ -50,19 +82,20 @@ function render() {
     const symbol = document.createElement("span");
     symbol.className = "notification-symbol";
     symbol.setAttribute("aria-hidden", "true");
-    symbol.textContent = item.notification_type === "new_message" ? "✉" : "♡";
+    symbol.textContent = notificationSymbol(item.notification_type);
 
     const copy = document.createElement("span");
     copy.className = "notification-copy";
     const title = document.createElement("strong");
-    title.textContent = item.notification_type === "new_message" ? (item.sender_anonymous_name || "New message") : "Amora activity";
+    title.textContent = notificationText(item);
     const message = document.createElement("span");
-    message.textContent = item.message_preview || (item.notification_type === "new_message" ? "You received a new message." : "There's new activity for you.");
+    message.textContent = item.message_preview || "";
+    message.hidden = !item.message_preview;
     const timestamp = document.createElement("small");
     timestamp.textContent = dateLabel(item.created_at);
     copy.append(title, message, timestamp);
-
     button.append(symbol, copy);
+
     if (!item.read_at) {
       const dot = document.createElement("span");
       dot.className = "notification-unread-dot";
@@ -75,7 +108,7 @@ function render() {
       if (!item.read_at) {
         const { error } = await supabase.rpc("mark_my_notification_read", { p_notification_id: item.notification_id });
         if (error) {
-          setStatus(error.message || "Could not mark this notification as read.", true);
+          setStatus("Could not mark this notification as read. Please try again.", true);
           return;
         }
         item.read_at = new Date().toISOString();
@@ -84,6 +117,10 @@ function render() {
       }
       if (item.conversation_id) {
         window.location.href = "/pages/messages.html?conversation=" + encodeURIComponent(item.conversation_id);
+      } else if (item.actor_username && item.notification_type === "new_follower") {
+        window.location.href = "/pages/profile.html?username=" + encodeURIComponent(item.actor_username);
+      } else if (item.post_id || item.comment_id) {
+        window.location.href = "/pages/social-home.html";
       }
     });
 
@@ -108,26 +145,19 @@ async function loadNotifications() {
   loading.textContent = "Loading your notifications…";
   list.appendChild(loading);
 
-  const { data, error } = await supabase.rpc("get_my_notifications");
+  const { data, error } = await supabase.rpc("get_my_notifications_feed");
   if (error) {
     list.replaceChildren();
     const failure = document.createElement("div");
     failure.className = "notifications-empty";
-    failure.textContent = error.message || "Could not load notifications.";
+    failure.textContent = "Could not load notifications. Please refresh and try again.";
     list.appendChild(failure);
-    setStatus("Check that you're signed in, then refresh.", true);
+    setStatus("Notification loading failed.", true);
+    console.error("[Amora notifications]", error.message);
     return;
   }
 
-  allNotifications = (data || []).map(row => ({
-    notification_id: row.notification_id || row.id,
-    conversation_id: row.conversation_id,
-    notification_type: row.notification_type,
-    sender_anonymous_name: row.sender_anonymous_name,
-    message_preview: row.message_preview,
-    created_at: row.created_at,
-    read_at: row.read_at
-  }));
+  allNotifications = (data || []).map(row => ({ ...row }));
   updateUnreadCount();
   render();
   setStatus("");
@@ -164,7 +194,7 @@ $("#mark-all-read")?.addEventListener("click", async () => {
     render();
     setStatus("All notifications marked as read.");
   } catch (error) {
-    setStatus(error.message || "Some notifications could not be marked as read.", true);
+    setStatus("Some notifications could not be marked as read.", true);
     await loadNotifications();
   } finally {
     button.disabled = false;
