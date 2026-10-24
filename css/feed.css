@@ -352,3 +352,6 @@ body.comments-dialog-open{overflow:hidden}
 @media(prefers-color-scheme:light){:root:not([data-theme]) .post-more-menu{background:#fff;color:#241b2b}:root:not([data-theme]) .post-more-menu-header strong,:root:not([data-theme]) .post-more-menu-item{color:#34243b}:root:not([data-theme]) .post-more-menu-item.post-more-report{color:#a51d68}}
 @keyframes post-more-sheet-in{from{transform:translateY(18px);opacity:.7}to{transform:translateY(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){.post-more-menu{animation:none}}
+
+/* Moderator navigation stays hidden until the server confirms Tier 2 or Tier 3. */
+.moderator-nav-link[hidden]{display:none!important}
