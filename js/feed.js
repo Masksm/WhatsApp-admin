@@ -227,14 +227,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return button;
   }
 
-  function closeAllPostMoreMenus() {
+  function closeAllPostMoreMenus(exceptMenu = null) {
     document.querySelectorAll(".post-more-menu:not([hidden])").forEach((menu) => {
+      if (menu === exceptMenu) return;
       menu.hidden = true;
       menu.closest(".post-actions")?.querySelector(".post-more-trigger")?.setAttribute("aria-expanded", "false");
     });
   }
   document.addEventListener("click", (event) => {
-    if (!event.target.closest(".post-actions")) closeAllPostMoreMenus();
+    const actions = event.target.closest(".post-actions");
+    closeAllPostMoreMenus(actions?.querySelector(".post-more-menu") || null);
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeAllPostMoreMenus();
@@ -847,8 +849,7 @@ document.addEventListener("DOMContentLoaded", () => {
       moreMenu.hidden = true;
       moreButton.setAttribute("aria-expanded", "false");
     };
-    const moreButton = makeButton("••• More", "post-action post-more-trigger", (event) => {
-      event.stopPropagation();
+    const moreButton = makeButton("••• More", "post-action post-more-trigger", () => {
       const shouldOpen = moreMenu.hidden;
       moreMenu.hidden = !shouldOpen;
       moreButton.setAttribute("aria-expanded", String(shouldOpen));
