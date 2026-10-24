@@ -184,9 +184,12 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.setAttribute("role", "img");
         badge.setAttribute("aria-label", "Verified official Amora account");
         badge.title = "Verified official Amora account";
-        titleNode.insertAdjacentElement("afterend", badge);
+        titleNode.append(badge);
       }
-      if (badge) badge.hidden = false;
+      if (badge) {
+        badge.hidden = false;
+        if (badge.parentElement !== titleNode) titleNode?.append(badge);
+      }
     } else if (badge) {
       badge.hidden = true;
     }
@@ -200,15 +203,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const followButton = byId("profile-follow-button");
     const blockButton = byId("profile-block-button");
     if (profile.is_official) {
-      if (followButton) {
-        followButton.textContent = "Following Amora";
-        followButton.disabled = true;
-        followButton.setAttribute("aria-pressed", "true");
-        followButton.title = "Every active account follows the official Amora account.";
-      }
+      byId("profile-action-row").hidden = true;
+      if (followButton) followButton.hidden = true;
       if (blockButton) blockButton.hidden = true;
       byId("profile-more-button")?.setAttribute("aria-label", "More profile actions");
     } else {
+      byId("profile-action-row").hidden = isOwner;
       if (followButton) {
         followButton.disabled = false;
         followButton.title = "";
@@ -234,7 +234,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const emailLink = node("a", "", profile.support_email || "Amora.support.team@gmail.com");
         emailLink.href = "mailto:" + (profile.support_email || "Amora.support.team@gmail.com");
         support.append(label, emailLink);
-        byId("profile-hero").append(support);
+        const hero = document.querySelector(".profile-hero");
+        if (hero) hero.insertAdjacentElement("afterend", support);
       } else {
         const link = support.querySelector("a");
         if (link) {
