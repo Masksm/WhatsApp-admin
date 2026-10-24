@@ -660,3 +660,7 @@ body:has(#auth-panel) #new-password-section > p {
 .recovery-account div{display:grid;gap:4px;min-width:0}
 .recovery-account small{font-size:.65rem;letter-spacing:.12em;color:var(--auth-muted);font-weight:800}
 .recovery-account strong{font-size:.88rem;overflow-wrap:anywhere;color:var(--auth-text)}
+
+.reset-login-link{display:inline-block;margin-top:8px;color:var(--auth-pink-bright);font-size:.88rem;font-weight:750;text-decoration:none}
+.reset-login-link:hover{text-decoration:underline}
+.reset-login-link[hidden]{display:none}
