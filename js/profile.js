@@ -160,12 +160,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function setProfileHeader(profile) {
     const username = profile.username || "Amora member";
     const isOwner = profile.id === currentUserId;
-    setText("profile-title", "@" + username);
+    const displayName = profile.display_name?.trim() || "Amora member";
+    setText("profile-title", displayName);
     setText("profile-handle", "@" + username);
-    setText("profile-avatar", username.slice(0, 1).toUpperCase());
-    setText("sidebar-avatar", username.slice(0, 1).toUpperCase());
+    setText("profile-avatar", displayName.slice(0, 1).toUpperCase());
+    setText("sidebar-avatar", displayName.slice(0, 1).toUpperCase());
     setText("sidebar-username", "@" + username);
-    setText("profile-page-title", isOwner ? "Your profile" : "@" + username);
+    setText("profile-page-title", isOwner ? "Your profile" : displayName);
     setText("profile-eyebrow", isOwner ? "YOUR AMORA SPACE" : "AMORA COMMUNITY");
     byId("profile-action-row").hidden = isOwner;
     byId("profile-private-note").hidden = isOwner;
