@@ -522,7 +522,7 @@ document.addEventListener("DOMContentLoaded", () => {
         editInput.focus();
       });
       const deleteButton = makeButton("Delete", "comment-reply-button comment-owner-action", async () => {
-        if (!window.confirm("Delete this comment? This cannot be undone.")) return;
+        if (!window.confirm("Delete this comment? Any replies beneath it will also be deleted. This cannot be undone.")) return;
         try {
           const user = await requireUser();
           const { data, error } = await supabase.from("post_comments").delete()
@@ -567,7 +567,7 @@ document.addEventListener("DOMContentLoaded", () => {
       item.append(form);
       input.focus();
     });
-    body.append(replyButton);
+    actions.append(replyButton);
     item.append(body, actions);
     if (comment.replies?.length && depth < 8) {
       const children = document.createElement("div");
