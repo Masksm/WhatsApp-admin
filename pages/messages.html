@@ -7,11 +7,11 @@
   <title>Chats · Amora</title>
   <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
   <link rel="stylesheet" href="/css/feed.css?v=messages-layout-1">
-  <link rel="stylesheet" href="/css/messages.css?v=messages-layout-1">
+  <link rel="stylesheet" href="/css/messages.css?v=messenger-refresh-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
   <script src="/js/moderator-nav.js?v=1" defer></script>
-  <script type="module" src="/js/messages-page.js?v=messages-layout-1"></script>
+  <script type="module" src="/js/messages-page.js?v=messenger-refresh-2"></script>
 </head>
 <body class="amora-feed-page">
   <div class="feed-shell">
@@ -30,11 +30,11 @@
     <main class="feed-main messages-main">
       <header class="messages-topbar">
         <a class="messages-back" href="/pages/social-home.html" aria-label="Back to home">‹</a>
-        <h1>Chats</h1>
+        <h1>Messages</h1>
         <a class="icon-button" href="/pages/settings.html" aria-label="Settings">⚙</a>
         <button class="icon-button" id="refresh-conversations" type="button" aria-label="Refresh conversations" title="Refresh conversations">↻</button>
       </header>
-      <label class="messages-search"><span aria-hidden="true">⌕</span><input id="conversation-search" type="search" placeholder="Search conversations" autocomplete="off"></label>
+      <label class="messages-search"><span aria-hidden="true">⌕</span><input id="conversation-search" type="search" placeholder="Search people and conversations" autocomplete="off"></label>
       <div class="messages-note-heading"><span>YOUR CONNECTIONS</span><span>♡</span></div>
       <div class="messages-note-row" aria-label="Amora notes">
         <div class="note-person"><span class="note-avatar your-note">♡</span><span>Your note</span></div>
@@ -44,15 +44,15 @@
       <div class="messages-tabs" role="tablist" aria-label="Conversation filter">
         <button class="messages-tab active" type="button" data-chat-filter="inbox" role="tab" aria-selected="true">Inbox</button>
         <button class="messages-tab" type="button" data-chat-filter="unread" role="tab" aria-selected="false">Unread</button>
-        <button class="messages-tab" type="button" data-chat-filter="requests" role="tab" aria-selected="false">Requests</button>
+        <button class="messages-tab messages-tab-disabled" type="button" disabled aria-disabled="true" title="Message requests will be enabled when request permissions and backend handling are ready">Requests <span class="coming-soon-label">Soon</span></button>
       </div>
       <section class="messages-workspace">
         <div class="inbox-panel">
-          <div class="inbox-heading"><h2>Messages</h2><span>Private conversations</span></div>
+          <div class="inbox-heading"><div><h2>Chats</h2><span>Private conversations</span></div><span class="inbox-lock" aria-label="Private">♡</span></div>
           <div id="conversation-list" class="conversation-list" aria-live="polite">Sign in to view your conversations.</div>
         </div>
         <section class="chat-panel" aria-label="Conversation">
-          <header class="chat-panel-header"><span class="chat-header-avatar">♡</span><div><h2 id="active-conversation-heading">Choose a conversation</h2><p>Keep it kind. Keep it Amora.</p></div></header>
+          <header class="chat-panel-header"><button id="mobile-inbox-back" class="mobile-inbox-back" type="button" aria-label="Back to conversations">‹</button><span class="chat-header-avatar">♡</span><div class="chat-header-copy"><h2 id="active-conversation-heading">Choose a conversation</h2><p id="chat-header-subtitle">Private conversation</p></div><span class="chat-header-lock" title="Private conversation" aria-label="Private conversation">♡</span></header>
           <div id="message-list" class="message-list" aria-live="polite"><div class="chat-empty"><span>♡</span><strong>Your next conversation starts here</strong><p>Select a chat to read messages and reply.</p></div></div>
           <form id="chat-message-form" class="chat-composer">
             <label class="sr-only" for="chat-message-text">Write a message</label>
