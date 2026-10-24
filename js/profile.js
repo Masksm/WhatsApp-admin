@@ -342,7 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function addComment(postId, input, sendButton, commentsList) {
+  async function addComment(postId, input, sendButton) {
     if (!requireSignedIn()) return;
     const content = input.value.trim();
     if (!content) return;
@@ -436,7 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
         input.maxLength = 3000; input.placeholder = "Write a comment…"; input.setAttribute("aria-label", "Write a comment");
         const send = node("button", "", "Send"); send.type = "submit";
         form.append(input, send);
-        form.addEventListener("submit", (event) => { event.preventDefault(); addComment(post.id, input, send, commentsList); });
+        form.addEventListener("submit", (event) => { event.preventDefault(); addComment(post.id, input, send); });
         article.insertBefore(form, actions);
         input.focus();
       });
