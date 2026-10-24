@@ -97,3 +97,34 @@
 .profile-heading .profile-header-logout{margin-left:8px;white-space:nowrap}
 .profile-heading #profile-settings-button{margin-left:auto;text-decoration:none}
 @media(max-width:600px){.profile-heading .profile-header-logout{font-size:.7rem;padding:8px 10px}}
+
+/* Instagram-inspired profile header: cover, overlapping avatar, compact stats */
+.profile-main{max-width:900px}
+.profile-heading{margin-bottom:15px}
+.profile-hero{display:block;overflow:visible;padding:0;margin-bottom:10px;border-radius:18px;background:var(--surface,#1a1020)}
+.profile-cover{height:155px;position:relative;overflow:hidden;border-radius:18px 18px 0 0;background:radial-gradient(ellipse at 18% 20%,#ff80bd88,transparent 35%),radial-gradient(ellipse at 80% 0%,#9b7aff99,transparent 40%),linear-gradient(120deg,#3a1c3c,#7d315d 48%,#30204b)}
+.profile-cover:after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,#ffffff0d 30%,transparent 60%)}
+.profile-cover-mark{position:absolute;right:7%;top:-35px;font-size:10rem;line-height:1;color:#ffffff18;transform:rotate(-12deg)}
+.profile-identity{position:relative;display:flex;align-items:flex-end;gap:16px;padding:0 22px;margin-top:-43px}
+.profile-avatar{width:106px;height:106px;flex:0 0 106px;border:5px solid var(--surface,#1a1020);border-radius:50%;background:linear-gradient(135deg,#ff79b9,#a779ff);box-shadow:0 5px 22px #0003;font-size:2.5rem;z-index:1}
+.profile-hero-copy{padding:0 0 5px;min-width:0}
+.profile-hero h2{margin:0;font-size:1.35rem;letter-spacing:-.035em}
+.profile-handle{margin:4px 0 0;font-size:.86rem}
+.profile-action-row{display:flex;align-items:center;gap:9px;padding:16px 22px 0}
+.profile-message-button,.profile-follow-button,.profile-more-button{min-height:39px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;padding:0 17px;font-size:.82rem;font-weight:800;text-decoration:none;cursor:pointer}
+.profile-message-button{flex:1;background:var(--surface2,#26182e);border:1px solid var(--line,#ffffff1c);color:var(--text,#fff)}
+.profile-follow-button{flex:1;border:1px solid transparent;background:linear-gradient(105deg,#ff70b5,#ba83ff);color:#fff}
+.profile-more-wrap{position:relative}
+.profile-more-button{width:43px;padding:0;border:1px solid var(--line,#ffffff1c);background:var(--surface2,#26182e);color:var(--text,#fff);letter-spacing:2px}
+.profile-more-menu{position:absolute;right:0;top:calc(100% + 7px);z-index:20;width:175px;padding:6px;border:1px solid var(--line,#ffffff1c);border-radius:12px;background:var(--surface,#1a1020);box-shadow:0 14px 35px #0004}
+.profile-more-menu button{display:block;width:100%;padding:11px 10px;border:0;border-radius:8px;background:transparent;color:var(--text,#fff);text-align:left;font-size:.8rem;cursor:pointer}
+.profile-more-menu button:hover{background:#ff72b715}
+.profile-private-note{padding:11px 22px 17px;margin:0;color:var(--muted,#ad9eb4);font-size:.7rem;line-height:1.5}
+.profile-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:0 0 18px;padding:12px 0;border-top:1px solid var(--profile-line);border-bottom:1px solid var(--profile-line)}
+.profile-stat{display:flex;min-width:0;align-items:center;justify-content:center;gap:4px;padding:4px 5px;text-align:center;background:transparent;border:0;box-shadow:none}
+.profile-stat strong{font-size:1rem;line-height:1.25}
+.profile-stat>span:last-child{font-size:.66rem;line-height:1.3;color:var(--muted,#ad9eb4)}
+.profile-stat .stat-icon{display:none}
+.profile-page .profile-section{border-radius:15px}
+.profile-page .profile-section:last-of-type{margin-top:16px}
+@media(max-width:560px){.profile-main{padding-top:14px}.profile-heading{margin-bottom:12px}.profile-cover{height:122px}.profile-identity{gap:12px;padding:0 14px;margin-top:-35px}.profile-avatar{width:84px;height:84px;flex-basis:84px;border-width:4px;font-size:2rem}.profile-hero h2{font-size:1.12rem}.profile-handle{font-size:.8rem}.profile-action-row{gap:7px;padding:14px 14px 0}.profile-message-button,.profile-follow-button{min-height:37px;padding:0 9px;font-size:.77rem}.profile-more-button{min-height:37px;width:39px}.profile-private-note{padding:10px 14px 14px;font-size:.67rem}.profile-stats{padding:10px 0;margin-bottom:14px}.profile-stat{gap:3px;padding:3px 2px}.profile-stat strong{font-size:.9rem}.profile-stat>span:last-child{font-size:.59rem;overflow-wrap:anywhere}.profile-section{padding:16px}}
