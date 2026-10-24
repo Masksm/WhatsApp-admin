@@ -159,3 +159,6 @@ body.comments-dialog-open{overflow:hidden}
 .comment-edit-form textarea{display:block!important;min-height:80px!important;color:#fff!important;background:#211727!important}
 .comment-reply-context{display:flex!important;flex-direction:column!important;gap:3px!important;margin:8px 0!important;padding:8px 10px!important;border-left:3px solid #3988ff!important;border-radius:0 8px 8px 0!important;background:#1877f022!important;color:#e0e8f5!important;font-size:12px!important;line-height:1.4!important}
 .comment-reply-context strong{color:#9fc6ff!important;font-size:12px!important}
+
+.comments-dialog-form .comments-reply-context{order:-1;flex:1 0 100%;margin:0 0 2px;max-width:100%;padding:8px 11px}
+.comments-dialog-form .comments-reply-context[hidden]{display:none!important}
