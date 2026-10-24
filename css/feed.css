@@ -246,3 +246,35 @@ body.comments-dialog-open{overflow:hidden}
   :root:not([data-theme]) .composer-screen .composer-large-text { color: #2b2030; }
   :root:not([data-theme]) .composer-screen .composer-large-text::placeholder { color: #776a7e; }
 }
+
+/* Improve contrast throughout light mode, especially profile traits and chips. */
+:root[data-theme="light"] .profile-traits-display,
+:root[data-theme="light"] .profile-traits-display h3,
+:root[data-theme="light"] .profile-traits-display strong {color:#433449!important}
+:root[data-theme="light"] .profile-traits-display span,
+:root[data-theme="light"] .profile-traits-display button {color:#6d2855!important;background:#fff5fb!important;border-color:#e8b9d5!important;opacity:1!important}
+:root[data-theme="light"] .profile-page .section-description,
+:root[data-theme="light"] .profile-page .profile-private-note,
+:root[data-theme="light"] .profile-page .profile-handle {color:#5d5263!important}
+:root[data-theme="light"] .profile-page .profile-stat strong {color:#29212e!important}
+:root[data-theme="light"] .profile-page .profile-stat>span:last-child {color:#625b67!important}
+:root[data-theme="light"] .comments-dialog-panel,:root[data-theme="light"] .comments-dialog-form {background:#fff!important;color:#242126!important}
+:root[data-theme="light"] .comments-dialog-header h2,:root[data-theme="light"] .comments-dialog-form input[name="comment-content"] {color:#242126!important}
+:root[data-theme="light"] .comments-dialog-form input[name="comment-content"] {background:#fff!important;border-color:#c9c3cd!important}
+:root[data-theme="light"] .comments-dialog-form input[name="comment-content"]::placeholder {color:#716a78!important;opacity:1}
+:root[data-theme="light"] .comments-dialog-anonymous,:root[data-theme="light"] .comment-like-count,:root[data-theme="light"] .comment-actions button,:root[data-theme="light"] .comment-reply-button {color:#51465b!important}
+:root[data-theme="light"] .comment-timestamp,:root[data-theme="light"] .comment-edited-label {color:#62586a!important}
+:root[data-theme="light"] .comment-reply-context {background:#eaf3ff!important;color:#394b61!important}
+:root[data-theme="light"] .comment-reply-context strong {color:#1556a6!important}
+/* Keep the composer above the iOS keyboard. */
+.comments-dialog-panel {min-height:0;display:flex;flex-direction:column}
+.comments-dialog-header,.comments-dialog-post {flex-shrink:0}
+.comments-dialog-list {min-height:0;flex:1 1 auto}
+.comments-dialog-form {flex-shrink:0;position:sticky;bottom:0;z-index:3;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+@media(max-width:600px){
+ .comments-dialog{align-items:flex-end;overflow:hidden}
+ .comments-dialog-panel{height:var(--comments-viewport-height,min(88dvh,900px));max-height:var(--comments-viewport-height,92dvh);min-height:0;display:flex;flex-direction:column}
+ .comments-dialog-form{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--surface,#fff)}
+ .comments-dialog-form input[name="comment-content"]{flex:1 1 auto;width:0;min-width:0;scroll-margin-bottom:160px}
+ .comments-dialog-anonymous{order:2;flex:1 0 100%}
+}
