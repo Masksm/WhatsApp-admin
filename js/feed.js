@@ -791,31 +791,6 @@ document.addEventListener("DOMContentLoaded", () => {
       deleteButton.setAttribute("aria-label", "Delete post");
       deleteButton.title = "Delete your post";
       header.append(deleteButton);
-    } else {
-      if (post.author_id && currentUser && post.author_id !== currentUser.id) {
-        header.append(makeButton("Block", "post-more", async () => {
-          const confirmed = window.confirm("Block this account? Their posts will be hidden from your feed.");
-          if (!confirmed) return;
-          try {
-            const { error } = await supabase.from("user_blocks").insert({
-              blocker_id: currentUser.id,
-              blocked_id: post.author_id
-            });
-            if (error && error.code !== "23505") throw error;
-            setStatus("Account blocked.");
-            await loadFeed();
-          } catch (error) {
-            await logClientError("block_account", error);
-            setStatus("Couldn't block this account. Please try again.", true);
-          }
-        }));
-      } else {
-        const more = document.createElement("span");
-        more.className = "post-more";
-        more.textContent = "♡";
-        more.setAttribute("aria-hidden", "true");
-        header.append(more);
-      }
     }
 
     const content = document.createElement("p");
@@ -855,6 +830,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const actions = document.createElement("div");
     actions.className = "post-actions";
+    const closeMoreMenu = () => {
+      moreMenu.hidden = true;
+      moreButton.setAttribute("aria-expanded", "false");
+    };
+    const moreButton = makeButton("••• More", "post-action post-more-trigger", (event) => {
+      event.stopPropagation();
+      const shouldOpen = moreMenu.hidden;
+      moreMenu.hidden = !shouldOpen;
+      moreButton.setAttribute("aria-expanded", String(shouldOpen));
+    });
+    moreButton.setAttribute("aria-haspopup", "menu");
+    moreButton.setAttribute("aria-expanded", "false");
+    const moreMenu = document.createElement("div");
+    moreMenu.className = "post-more-menu";
+    moreMenu.hidden = true;
+    moreMenu.setAttribute("role", "menu");
+    const menuAction = (label, action, className = "") => {
+      const button = makeButton(label, "post-more-menu-item" + (className ? " " + className : ""), async () => {
+        closeMoreMenu();
+        await action();
+      });
+      button.setAttribute("role", "menuitem");
+      moreMenu.append(button);
+      return button;
+    };
     actions.append(
       makeButton(likeCache.has(post.id) ? "♥ Liked" : "♡ Like", "post-action", async () => {
         try {
@@ -864,7 +864,7 @@ document.addEventListener("DOMContentLoaded", () => {
           await logClientError("toggle_post_like", error);
           setStatus("Couldn't update your like. Please try again.", true);
         }
-      }),
+      }, likeCache.has(post.id)),
       makeButton("Comments · " + comments.length, "post-action post-comments-trigger", () => openCommentsDialog(post)),
       makeButton(repostCache.has(post.id) ? "↻ Reposted" : "⟳ Repost", "post-action", async () => {
         try {
@@ -874,50 +874,86 @@ document.addEventListener("DOMContentLoaded", () => {
           await logClientError("toggle_post_repost", error);
           setStatus("Couldn't repost this. Please try again.", true);
         }
-      }),
-      makeButton(bookmarkCache.has(post.id) ? "▣ Saved" : "▢ Save", "post-action", async () => {
-        try { await toggleRow("post_bookmarks", post.id, bookmarkCache); }
-        catch (error) { await logClientError("toggle_post_bookmark", error); setStatus("Couldn't save this post. Please try again.", true); }
-      }, bookmarkCache.has(post.id)),
-      makeButton("↗ Share", "post-action", async () => {
-        const shareUrl = window.location.origin + "/pages/social-home.html#post-" + post.id;
-        try {
-          if (navigator.share) await navigator.share({ title: "Amora post", text: post.content, url: shareUrl });
-          else if (navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(shareUrl);
-            setStatus("Post link copied.");
-          } else setStatus(shareUrl);
-        } catch (error) {
-          if (error?.name !== "AbortError") { await logClientError("share_post", error); setStatus("Couldn't share this post. Please try again.", true); }
-        }
-      }),
-      makeButton("⚑ Report", "post-action", async () => {
-        try {
-          const user = await requireUser();
-          const reason = window.prompt("Why are you reporting this post? (1–1000 characters)");
-          if (reason === null) return;
-          const trimmedReason = reason.trim();
-          if (!trimmedReason || trimmedReason.length > 1000) {
-            setStatus("Enter a report reason between 1 and 1000 characters.", true);
-            return;
-          }
-          const { error } = await supabase.from("post_reports").insert({
-            post_id: post.id,
-            reporter_id: user.id,
-            reason: trimmedReason
-          });
-          if (error?.code === "23505") {
-            setStatus("You have already reported this post.");
-            return;
-          }
-          if (error) throw error;
-          setStatus("Report submitted for review.");
-        } catch (error) {
-          await logClientError("report_post", error);
-          setStatus("Couldn't submit the report. Please try again.", true);
-        }
-      })
+      }, repostCache.has(post.id)),
+      moreButton
     );
+    menuAction(bookmarkCache.has(post.id) ? "▣ Remove saved post" : "▢ Save post", async () => {
+      try {
+        await toggleRow("post_bookmarks", post.id, bookmarkCache);
+        moreButton.classList.toggle("is-active", bookmarkCache.has(post.id));
+        setStatus(bookmarkCache.has(post.id) ? "Post saved." : "Post removed from saved items.");
+      } catch (error) {
+        await logClientError("toggle_post_bookmark", error);
+        setStatus("Couldn't save this post. Please try again.", true);
+      }
+    });
+    menuAction("↗ Share post", async () => {
+      const shareUrl = window.location.origin + "/pages/social-home.html?post=" + encodeURIComponent(post.id);
+      try {
+        if (navigator.share) await navigator.share({ title: "Amora post", text: post.content, url: shareUrl });
+        else if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+          setStatus("Post link copied.");
+        } else setStatus(shareUrl);
+      } catch (error) {
+        if (error?.name !== "AbortError") {
+          await logClientError("share_post", error);
+          setStatus("Couldn't share this post. Please try again.", true);
+        }
+      }
+    });
+    menuAction("⚑ Report post", async () => {
+      try {
+        const reportUser = await requireUser();
+        const reason = window.prompt("Why are you reporting this post? (1–1000 characters)");
+        if (reason === null) return;
+        const trimmedReason = reason.trim();
+        if (!trimmedReason || trimmedReason.length > 1000) {
+          setStatus("Enter a report reason between 1 and 1000 characters.", true);
+          return;
+        }
+        const { error } = await supabase.from("post_reports").insert({
+          post_id: post.id,
+          reporter_id: reportUser.id,
+          reason: trimmedReason
+        });
+        if (error?.code === "23505") {
+          setStatus("You have already reported this post.");
+          return;
+        }
+        if (error) throw error;
+        setStatus("Report submitted for review.");
+      } catch (error) {
+        await logClientError("report_post", error);
+        setStatus("Couldn't submit the report. Please try again.", true);
+      }
+    }, "post-more-report");
+    if (post.author_id && currentUser && post.author_id !== currentUser.id && !post.is_anonymous) {
+      menuAction("⊘ Block account", async () => {
+        const confirmed = window.confirm("Block this account? Their posts will be hidden from your feed.");
+        if (!confirmed) return;
+        try {
+          const { error } = await supabase.from("user_blocks").insert({
+            blocker_id: currentUser.id,
+            blocked_id: post.author_id
+          });
+          if (error && error.code !== "23505") throw error;
+          setStatus("Account blocked.");
+          await loadFeed();
+        } catch (error) {
+          await logClientError("block_account", error);
+          setStatus("Couldn't block this account. Please try again.", true);
+        }
+      }, "post-more-report");
+    }
+    actions.append(moreMenu);
+    actions.addEventListener("click", (event) => event.stopPropagation());
+    document.addEventListener("click", (event) => {
+      if (!actions.contains(event.target)) closeMoreMenu();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMoreMenu();
+    });
     article.append(stats, actions);
     return article;
   }
