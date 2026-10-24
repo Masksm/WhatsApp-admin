@@ -1,0 +1,23 @@
+/* Home feed enhancements: retain Amora's existing palette and typography. */
+.amora-moments{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px;padding:14px 16px}
+.moment-create{display:flex;align-items:center;gap:12px;min-width:0;border:0;background:transparent;color:var(--text);text-align:left;cursor:pointer}
+.moment-create-icon{display:grid;flex:0 0 42px;height:42px;place-items:center;border:1px solid var(--line);border-radius:50%;background:linear-gradient(135deg,#ff72b71c,#ad8aff20);color:var(--pink);font-size:27px}
+.moment-create strong,.moment-create small{display:block}
+.moment-create strong{font-size:13px}
+.moment-create small{margin-top:4px;color:var(--muted);font-size:11px}
+.moment-prompt{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:11px}
+.moment-prompt span{color:var(--pink);font-size:18px}
+.moment-prompt p{margin:0}
+.feed-discovery-heading{display:flex;align-items:center;justify-content:space-between;margin:22px 0 10px}
+.feed-discovery-heading .eyebrow{color:var(--pink);font-size:10px;font-weight:800;letter-spacing:1.5px}
+.feed-discovery-heading h2{margin:4px 0 0;font:750 19px 'Manrope',sans-serif;letter-spacing:-.4px}
+.feed-refresh-button{display:grid;width:38px;height:38px;place-items:center;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--text);font-size:23px;cursor:pointer}
+.post-image{cursor:zoom-in;transition:filter .15s}
+.post-image:hover{filter:brightness(.96)}
+.media-lightbox[hidden]{display:none}
+.media-lightbox{position:fixed;z-index:9999;inset:0;display:flex;align-items:center;justify-content:center;gap:16px;padding:60px 20px 44px;background:rgba(8,5,12,.94);backdrop-filter:blur(10px)}
+.media-lightbox img{display:block;max-width:min(88vw,1100px);max-height:78vh;object-fit:contain;border-radius:8px}
+.media-lightbox button{display:grid;place-items:center;width:44px;height:44px;border:1px solid #ffffff38;border-radius:50%;background:#ffffff12;color:#fff;font-size:30px;cursor:pointer}
+.media-lightbox .media-lightbox-close{position:absolute;top:calc(16px + env(safe-area-inset-top));right:18px}
+.media-lightbox p{position:absolute;bottom:12px;left:0;right:0;color:#fff;text-align:center;font-size:12px}
+@media(max-width:760px){.amora-moments{padding:12px}.moment-prompt{display:none}.feed-discovery-heading{margin-top:18px}.media-lightbox{gap:8px;padding:64px 8px 44px}.media-lightbox img{max-width:calc(100vw - 100px);max-height:75vh}.media-lightbox button{width:34px;height:34px;font-size:24px}}
