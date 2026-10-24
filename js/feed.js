@@ -11,6 +11,50 @@ document.addEventListener("DOMContentLoaded", () => {
   const composerStatus = document.getElementById("composer-status");
   const feedList = document.getElementById("feed-list");
   const feedTabs = [...document.querySelectorAll("[data-feed]")];
+  const homeStateKey = "amora_home_navigation_state";
+  const saveHomeState = () => {
+    try {
+      sessionStorage.setItem(homeStateKey, JSON.stringify({
+        scrollY: window.scrollY,
+        activeFeed: activeFeed,
+        savedAt: Date.now()
+      }));
+    } catch (_) {}
+  };
+  // Keep the current feed view when navigating away and back in this tab.
+  document.querySelectorAll('a[href="/pages/social-home.html"]').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const target = new URL(link.href, window.location.href);
+      if (target.pathname === window.location.pathname && !target.search && !target.hash) {
+        event.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      if (target.pathname !== window.location.pathname) saveHomeState();
+    });
+  });
+  window.addEventListener("pagehide", saveHomeState);
+  const restoreHomeState = () => {
+    try {
+      const raw = sessionStorage.getItem(homeStateKey);
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      if (!state || Date.now() - state.savedAt > 30 * 60 * 1000) {
+        sessionStorage.removeItem(homeStateKey);
+        return;
+      }
+      if (state.activeFeed && feedTabs.some(tab => tab.dataset.feed === state.activeFeed)) {
+        activeFeed = state.activeFeed;
+        feedTabs.forEach(tab => {
+          const selected = tab.dataset.feed === activeFeed;
+          tab.classList.toggle("active", selected);
+          tab.setAttribute("aria-selected", String(selected));
+        });
+      }
+      requestAnimationFrame(() => window.scrollTo({ top: Number(state.scrollY) || 0, behavior: "instant" }));
+    } catch (_) {}
+  };
+
   const supabase = window.amoraSupabase || null;
 
   if (!composer || !textInput || !feedList || !publishButton) {
@@ -901,5 +945,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-  loadFeed();
+  loadFeed().then(restoreHomeState);
 });
