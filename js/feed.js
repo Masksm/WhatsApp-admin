@@ -547,7 +547,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const send = document.createElement("button");
         send.type = "submit";
         send.textContent = "Reply";
-        if (post.allow_anonymous_comments && !post.is_anonymous) {
+        if (!post.force_anonymous_comments && !post.is_anonymous) {
           const anonymousLabel = document.createElement("label");
           anonymousLabel.className = "comment-anonymous-choice";
           const anonymousToggle = document.createElement("input");
