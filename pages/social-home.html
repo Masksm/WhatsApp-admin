@@ -29,28 +29,30 @@
         <a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a>
         <div class="header-account-actions"><a class="icon-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a></div>
       </header>
-      <div class="feed-heading">
-        <div><p class="eyebrow">YOUR CORNER OF THE INTERNET</p><h1>Home <span class="heading-heart">♡</span></h1></div>
-        <div class="header-account-actions desktop-header-account-actions"><a class="icon-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a></div>
-      </div>
-      <section class="composer card" id="composer" aria-label="Create a post">
-        <div class="composer-top">
-          <span class="avatar avatar-you">?</span>
+      <div class="feed-heading feed-tools-heading"><div class="header-account-actions desktop-header-account-actions"><a class="icon-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a></div></div>
+      <button class="feed-quick-composer card" type="button" data-focus-composer aria-label="Create a post">
+        <span class="avatar avatar-you quick-composer-avatar">?</span><span class="quick-composer-prompt">What’s on your mind?</span><span class="quick-composer-photo" aria-hidden="true">▧</span>
+      </button>
+      <dialog class="composer-dialog" id="composer-dialog" aria-labelledby="composer-dialog-title">
+        <section class="composer card" id="composer" aria-label="Create a post">
+          <header class="composer-dialog-header"><h2 id="composer-dialog-title">Create post</h2><button class="composer-close" type="button" id="composer-close" aria-label="Close composer">×</button></header>
+          <div class="composer-profile-line"><span class="avatar avatar-you" id="composer-user-avatar">?</span><strong id="composer-display-name">Your profile</strong></div>
           <label class="sr-only" for="post-text">What is on your mind?</label>
-          <textarea id="post-text" rows="2" maxlength="2000" placeholder="What’s on your mind?"></textarea>
-        </div>
-        <div class="image-preview" id="image-preview" hidden></div>
-        <div class="composer-bottom">
-          <div class="composer-tools">
-            <label class="tool-button" for="post-image"><span>▧</span> Photo</label>
-            <input id="post-image" type="file" accept="image/*" hidden>
-            <label class="identity-toggle"><input id="hide-identity" type="checkbox"><span class="toggle-track"></span><span>Hide my identity</span><span class="info-dot" title="Your username will not be shown on this post or its replies.">i</span></label>
-            <label class="identity-toggle"><input id="force-anonymous-comments" type="checkbox"><span class="toggle-track"></span><span>Everyone comments anonymously</span><span class="info-dot" title="When enabled, all comments and replies on this post hide the commenter’s identity. Otherwise, each commenter can choose anonymity.">i</span></label>
+          <textarea class="composer-large-text" id="post-text" rows="6" maxlength="2000" placeholder="What’s on your mind?"></textarea>
+          <div class="image-preview" id="image-preview" hidden></div>
+          <div class="composer-dialog-tools"><span class="composer-tools-label">Add to your post</span><div class="composer-media-tools">
+            <label class="composer-media-action" for="post-image"><span>▧</span><b>Photo</b></label><input id="post-image" type="file" accept="image/*" hidden>
+            <button class="composer-media-action" type="button" disabled title="Video posting is not available yet"><span>▹</span><b>Video</b></button>
+            <button class="composer-media-action" type="button" disabled title="More options coming soon"><span>☺</span><b>Feeling</b></button>
+            <button class="composer-media-action" type="button" disabled title="More options coming soon"><span>⌖</span><b>Location</b></button>
+          </div></div>
+          <div class="composer-anonymity-options">
+            <label class="identity-toggle"><input id="hide-identity" type="checkbox"><span class="toggle-track"></span><span>Make post anonymous</span><span class="info-dot" title="Your identity will be hidden on this post.">i</span></label>
+            <label class="identity-toggle"><input id="force-anonymous-comments" type="checkbox"><span class="toggle-track"></span><span>Make comments anonymous for everyone</span><span class="info-dot" title="When enabled, all comments and replies are anonymous. Otherwise each commenter can choose.">i</span></label>
           </div>
-          <button id="publish-post" class="primary-button" type="button" disabled>Post <span>↗</span></button>
-        </div>
-        <p id="composer-status" class="status-message" role="status"></p>
-      </section>
+          <button id="publish-post" class="primary-button composer-publish-button" type="button" disabled>Post</button><p id="composer-status" class="status-message" role="status"></p>
+        </section>
+      </dialog>
 
       <div class="feed-tabs" role="tablist" aria-label="Choose your feed">
         <button class="feed-tab active" role="tab" aria-selected="true" data-feed="for-you">For You</button>
@@ -84,9 +86,9 @@
   </div>
 
   <nav class="mobile-nav" aria-label="Mobile navigation">
-    <a class="mobile-nav-link active" href="/pages/social-home.html" aria-label="Home"><span>⌂</span></a>
-    <a class="mobile-nav-link" href="/pages/messages.html" aria-label="Messages"><span>✉</span></a>
-    <a class="mobile-nav-link" href="/pages/profile.html" aria-label="Profile"><span>◎</span></a>
+    <a class="mobile-nav-link active" href="/pages/social-home.html" aria-label="Home"><span class="mobile-nav-icon">⌂</span><span class="mobile-nav-label">Home</span></a>
+    <a class="mobile-nav-link" href="/pages/messages.html" aria-label="Messages"><span class="mobile-nav-icon">✉</span><span class="mobile-nav-label">Messages</span></a>
+    <a class="mobile-nav-link" href="/pages/profile.html" aria-label="Profile"><span class="mobile-nav-icon">◎</span><span class="mobile-nav-label">Profile</span></a>
   </nav>
 </body>
 </html>
