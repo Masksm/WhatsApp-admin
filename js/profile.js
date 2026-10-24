@@ -176,8 +176,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const displayName = profile.display_name?.trim() || "Amora member";
     setText("profile-title", displayName);
     const titleNode = byId("profile-title");
+    const isModerator = Number(profile.moderator_tier || 0) >= 2;
+    let moderatorBadge = byId("moderator-account-badge");
+    if (isModerator) {
+      if (!moderatorBadge && titleNode) {
+        moderatorBadge = node("span", "moderator-account-badge", "⬟");
+        moderatorBadge.id = "moderator-account-badge";
+        moderatorBadge.setAttribute("role", "img");
+        moderatorBadge.setAttribute("aria-label", Number(profile.moderator_tier) >= 3 ? "Senior Amora moderator" : "Amora moderator");
+        moderatorBadge.title = Number(profile.moderator_tier) >= 3 ? "Senior Amora moderator" : "Amora moderator";
+        titleNode.append(moderatorBadge);
+      }
+      if (moderatorBadge) { moderatorBadge.hidden = false; if (moderatorBadge.parentElement !== titleNode) titleNode?.append(moderatorBadge); }
+    } else if (moderatorBadge) moderatorBadge.hidden = true;
     let badge = byId("official-account-badge");
-    if (profile.is_official) {
+    if (profile.is_official && !isModerator) {
       if (!badge && titleNode) {
         badge = node("span", "official-account-badge", "✓");
         badge.id = "official-account-badge";
@@ -202,11 +215,11 @@ document.addEventListener("DOMContentLoaded", () => {
     byId("profile-action-row").hidden = isOwner;
     const followButton = byId("profile-follow-button");
     const blockButton = byId("profile-block-button");
-    if (profile.is_official) {
+    if (isModerator) {
       byId("profile-action-row").hidden = true;
       if (followButton) followButton.hidden = true;
       if (blockButton) blockButton.hidden = true;
-      byId("profile-more-button")?.setAttribute("aria-label", "More profile actions");
+      byId("profile-more-button")?.setAttribute("aria-label", "Moderator account");
     } else {
       byId("profile-action-row").hidden = isOwner;
       if (followButton) {
@@ -482,6 +495,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!viewedProfile) throw new Error("This profile could not be found.");
     originalUsername = viewedProfile.username || "";
     if (usernameInput) usernameInput.value = originalUsername;
+    const { data: moderatorTier, error: moderatorTierError } = await supabase.rpc("is_amora_moderator_profile", { p_username: viewedProfile.username });
+    if (moderatorTierError) console.warn("[Amora moderator badge] Could not load moderator tier.");
+    viewedProfile.moderator_tier = Number(moderatorTier || 0);
     setProfileHeader(viewedProfile);
     setStats(viewedProfile);
     await refreshFollowState();
@@ -537,7 +553,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   async function refreshFollowState() {
     const button = byId("profile-follow-button");
-    if (!button || !viewedProfile || viewedProfile.id === currentUserId || viewedProfile.is_official) return;
+    if (!button || !viewedProfile || viewedProfile.id === currentUserId || Number(viewedProfile.moderator_tier || 0) >= 2) return;
     if (!user) {
       button.textContent = "Follow";
       button.disabled = false;
@@ -554,7 +570,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   byId("profile-follow-button")?.addEventListener("click", async () => {
     const button = byId("profile-follow-button");
-    if (!viewedProfile || viewedProfile.id === currentUserId || viewedProfile.is_official) return;
+    if (!viewedProfile || viewedProfile.id === currentUserId || Number(viewedProfile.moderator_tier || 0) >= 2) return;
     if (!user) {
       showStatus("Log in to follow this profile.");
       window.location.href = "/index.html?auth=login";
