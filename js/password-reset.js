@@ -141,6 +141,9 @@ function showSection(sectionToShow) {
 
         if (error) throw error;
 
+        // End the recovery session so the user can deliberately log in with the new password.
+        try { await supabase.auth.signOut({ scope: "local" }); } catch {}
+
         newPasswordStatus.textContent =
           "Your password has been updated successfully. You can now log in with your new password.";
         if (resetLoginLink) resetLoginLink.hidden = false;
