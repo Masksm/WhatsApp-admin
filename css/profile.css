@@ -128,3 +128,5 @@
 .profile-page .profile-section{border-radius:15px}
 .profile-page .profile-section:last-of-type{margin-top:16px}
 @media(max-width:560px){.profile-main{padding-top:14px}.profile-heading{margin-bottom:12px}.profile-cover{height:122px}.profile-identity{gap:12px;padding:0 14px;margin-top:-35px}.profile-avatar{width:84px;height:84px;flex-basis:84px;border-width:4px;font-size:2rem}.profile-hero h2{font-size:1.12rem}.profile-handle{font-size:.8rem}.profile-action-row{gap:7px;padding:14px 14px 0}.profile-message-button,.profile-follow-button{min-height:37px;padding:0 9px;font-size:.77rem}.profile-more-button{min-height:37px;width:39px}.profile-private-note{padding:10px 14px 14px;font-size:.67rem}.profile-stats{padding:10px 0;margin-bottom:14px}.profile-stat{gap:3px;padding:3px 2px}.profile-stat strong{font-size:.9rem}.profile-stat>span:last-child{font-size:.59rem;overflow-wrap:anywhere}.profile-section{padding:16px}}
+
+.profile-tools-heading{min-height:12px;margin-bottom:14px}
