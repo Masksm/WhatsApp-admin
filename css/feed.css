@@ -196,3 +196,53 @@ body.comments-dialog-open{overflow:hidden}
   background:#eaf2ff!important;color:#46566c!important;
 }
 :root[data-theme="light"] .comment-reply-context strong{color:#2458a6!important}
+
+
+/* Ensure the full-screen create-post experience follows the selected appearance. */
+:root[data-theme="light"] .composer-inline-panel.is-expanded,
+:root[data-theme="light"] .composer-screen,
+:root[data-theme="light"] .composer-screen-bottom {
+  --page-bg: #f7f4f8;
+  background: #f7f4f8 !important;
+  color: #2b2030 !important;
+}
+:root[data-theme="light"] .composer-screen-header {
+  border-bottom-color: rgba(61,37,68,.13);
+}
+:root[data-theme="light"] .composer-screen-profile,
+:root[data-theme="light"] .composer-chip,
+:root[data-theme="light"] .composer-bottom-media-item,
+:root[data-theme="light"] .composer-anonymity-options .identity-toggle {
+  color: #2b2030;
+}
+:root[data-theme="light"] .composer-chip,
+:root[data-theme="light"] .composer-bottom-media-item,
+:root[data-theme="light"] .composer-anonymity-options .identity-toggle {
+  background: #f0eaf3;
+  border-color: rgba(61,37,68,.13);
+}
+:root[data-theme="light"] .composer-screen .composer-large-text {
+  background: transparent;
+  color: #2b2030;
+}
+:root[data-theme="light"] .composer-screen .composer-large-text::placeholder {
+  color: #776a7e;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .composer-inline-panel.is-expanded,
+  :root:not([data-theme]) .composer-screen,
+  :root:not([data-theme]) .composer-screen-bottom {
+    --page-bg: #f7f4f8;
+    background: #f7f4f8 !important;
+    color: #2b2030 !important;
+  }
+  :root:not([data-theme]) .composer-chip,
+  :root:not([data-theme]) .composer-bottom-media-item,
+  :root:not([data-theme]) .composer-anonymity-options .identity-toggle {
+    background: #f0eaf3;
+    color: #2b2030;
+    border-color: rgba(61,37,68,.13);
+  }
+  :root:not([data-theme]) .composer-screen .composer-large-text { color: #2b2030; }
+  :root:not([data-theme]) .composer-screen .composer-large-text::placeholder { color: #776a7e; }
+}
