@@ -600,16 +600,42 @@ document.addEventListener("DOMContentLoaded", () => {
         </form>
       </section>`;
     document.body.append(commentsDialog);
+    installCommentsViewportHandlers();
+    syncCommentsViewport();
     commentsDialog.querySelectorAll("[data-comments-close]").forEach(button => button.addEventListener("click", closeCommentsDialog));
     commentsDialog.querySelector(".comments-dialog-form").addEventListener("submit", event => {
       event.preventDefault();
       if (!activeCommentsPost) return;
       addComment(activeCommentsPost, activeReplyParentId, event.currentTarget.elements.namedItem("comment-content"), event.currentTarget);
     });
+    const composerInput = commentsDialog.querySelector('[name="comment-content"]');
+    composerInput.addEventListener("focus", () => {
+      syncCommentsViewport();
+      window.requestAnimationFrame(() => composerInput.scrollIntoView({ block: "nearest", behavior: "smooth" }));
+    });
     commentsDialog.addEventListener("keydown", event => {
       if (event.key === "Escape") closeCommentsDialog();
     });
     return commentsDialog;
+  }
+
+  let commentsViewportHandlersInstalled = false;
+  function syncCommentsViewport() {
+    if (!commentsDialog) return;
+    const viewport = window.visualViewport;
+    const visibleHeight = viewport ? viewport.height : window.innerHeight;
+    const topOffset = viewport ? Math.max(0, viewport.offsetTop) : 0;
+    commentsDialog.style.setProperty("--comments-viewport-height", Math.max(280, visibleHeight) + "px");
+    commentsDialog.style.setProperty("--comments-viewport-top", topOffset + "px");
+  }
+  function installCommentsViewportHandlers() {
+    if (commentsViewportHandlersInstalled) return;
+    commentsViewportHandlersInstalled = true;
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", syncCommentsViewport);
+      window.visualViewport.addEventListener("scroll", syncCommentsViewport);
+    }
+    window.addEventListener("resize", syncCommentsViewport);
   }
 
   function closeCommentsDialog() {
