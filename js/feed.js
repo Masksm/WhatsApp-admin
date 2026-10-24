@@ -1283,5 +1283,64 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) { await logClientError("open_notification_target", error); setStatus("Could not open that notification post. It may have been deleted or access may be restricted.", true); }
   }
 
+  // Photo viewer for feed media. Uses only URLs already rendered on accessible posts.
+  const lightbox = document.getElementById("media-lightbox");
+  const lightboxImage = document.getElementById("media-lightbox-image");
+  const lightboxCounter = document.getElementById("media-lightbox-counter");
+  let lightboxImages = [];
+  let lightboxIndex = 0;
+  function showLightboxImage() {
+    if (!lightboxImages.length || !lightbox) return;
+    lightboxImage.src = lightboxImages[lightboxIndex].src;
+    lightboxImage.alt = lightboxImages[lightboxIndex].alt || "Expanded post photo";
+    lightboxCounter.textContent = (lightboxIndex + 1) + " of " + lightboxImages.length;
+    const prev = lightbox.querySelector(".media-lightbox-prev");
+    const next = lightbox.querySelector(".media-lightbox-next");
+    prev.hidden = lightboxImages.length < 2;
+    next.hidden = lightboxImages.length < 2;
+  }
+  function closeLightbox() {
+    if (!lightbox) return;
+    lightbox.hidden = true;
+    document.body.classList.remove("media-viewer-open");
+    lightboxImage.removeAttribute("src");
+    lightboxImages = [];
+  }
+  feedList.addEventListener("click", (event) => {
+    const image = event.target.closest(".post-image");
+    if (!image || !image.closest(".post-card")) return;
+    const article = image.closest(".post-card");
+    lightboxImages = [...article.querySelectorAll(".post-image")];
+    lightboxIndex = Math.max(0, lightboxImages.indexOf(image));
+    showLightboxImage();
+    lightbox.hidden = false;
+    document.body.classList.add("media-viewer-open");
+    lightbox.querySelector(".media-lightbox-close").focus();
+  });
+  if (lightbox) {
+    lightbox.querySelector(".media-lightbox-close").addEventListener("click", closeLightbox);
+    lightbox.querySelector(".media-lightbox-prev").addEventListener("click", () => {
+      if (lightboxImages.length) { lightboxIndex = (lightboxIndex - 1 + lightboxImages.length) % lightboxImages.length; showLightboxImage(); }
+    });
+    lightbox.querySelector(".media-lightbox-next").addEventListener("click", () => {
+      if (lightboxImages.length) { lightboxIndex = (lightboxIndex + 1) % lightboxImages.length; showLightboxImage(); }
+    });
+    lightbox.addEventListener("click", (event) => { if (event.target === lightbox) closeLightbox(); });
+    document.addEventListener("keydown", (event) => {
+      if (lightbox.hidden) return;
+      if (event.key === "Escape") closeLightbox();
+      if (event.key === "ArrowLeft" && lightboxImages.length > 1) { lightboxIndex = (lightboxIndex - 1 + lightboxImages.length) % lightboxImages.length; showLightboxImage(); }
+      if (event.key === "ArrowRight" && lightboxImages.length > 1) { lightboxIndex = (lightboxIndex + 1) % lightboxImages.length; showLightboxImage(); }
+    });
+  }
+  const refreshFeedButton = document.getElementById("refresh-feed");
+  if (refreshFeedButton) refreshFeedButton.addEventListener("click", async () => {
+    refreshFeedButton.disabled = true;
+    refreshFeedButton.textContent = "…";
+    restoredFeedCache = null;
+    try { await loadFeed(); }
+    finally { refreshFeedButton.disabled = false; refreshFeedButton.textContent = "↻"; }
+  });
+
   loadFeed().then(async () => { restoreHomeState(); await openNotificationTarget(); });
 });
