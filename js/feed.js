@@ -130,10 +130,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function saveHiddenToken(postId, token) {
+  function saveHiddenToken(postId, token, ownerId) {
     const tokens = readHiddenTokens();
-    tokens[postId] = token;
+    tokens[postId] = { token, ownerId };
     try { localStorage.setItem(hiddenTokenStorageKey, JSON.stringify(tokens)); } catch {}
+  }
+
+  function getOwnedHiddenToken(postId) {
+    const record = readHiddenTokens()[postId];
+    if (!record || typeof record !== "object" || typeof record.token !== "string") return null;
+    if (!currentUser || record.ownerId !== currentUser.id) return null;
+    return record.token;
   }
 
   function randomDeletionToken() {
@@ -436,20 +443,24 @@ document.addEventListener("DOMContentLoaded", () => {
     meta.textContent = timeAgo(post.created_at) + (post.visibility === "followers" ? " · Followers" : "");
     identity.append(meta);
     header.append(avatar, identity);
-    if (post.is_anonymous && readHiddenTokens()[post.id]) {
-      header.append(makeButton("Delete", "post-more", async () => {
-        const token = readHiddenTokens()[post.id];
+    const ownedDeletionToken = getOwnedHiddenToken(post.id);
+    if (post.is_anonymous && ownedDeletionToken) {
+      const deleteButton = makeButton("🗑", "anonymous-post-delete", async () => {
+        if (!window.confirm("Delete this anonymous post permanently? This cannot be undone.")) return;
         try {
-          const { data, error } = await supabase.rpc("delete_hidden_post", { p_post_id: post.id, p_deletion_token: token });
+          const { data, error } = await supabase.rpc("delete_hidden_post", { p_post_id: post.id, p_deletion_token: ownedDeletionToken });
           if (error) throw error;
-          if (data !== true) throw new Error("The deletion token was not accepted.");
+          if (data !== true) throw new Error("The deletion token was not accepted for this account.");
           const tokens = readHiddenTokens();
           delete tokens[post.id];
           localStorage.setItem(hiddenTokenStorageKey, JSON.stringify(tokens));
           setStatus("Anonymous post deleted.");
           await loadFeed();
         } catch (error) { await logClientError("delete_hidden_post", error); setStatus("Couldn't delete this post. Please try again.", true); }
-      }));
+      });
+      deleteButton.setAttribute("aria-label", "Delete anonymous post");
+      deleteButton.title = "Delete your anonymous post";
+      header.append(deleteButton);
     } else {
       if (post.author_id && currentUser && post.author_id !== currentUser.id) {
         header.append(makeButton("Block", "post-more", async () => {
@@ -770,7 +781,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         if (result.error) throw result.error;
         if (typeof result.data !== "string") throw new Error("The post was not confirmed by the server.");
-        saveHiddenToken(result.data, token);
+        saveHiddenToken(result.data, token, user.id);
       } else {
         const { error } = await supabase.from("posts").insert({
           author_id: user.id,
