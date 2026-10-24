@@ -56,3 +56,57 @@ html[data-theme="light"] .messages-search{background:#eee9f1}
 html[data-theme="light"] .messages-tab.active{background:#dcecff;color:#245d99}
 @media(max-width:900px){.feed-shell{grid-template-columns:210px minmax(0,650px);gap:20px}.messages-workspace{grid-template-columns:minmax(0,1fr)}.chat-panel{min-height:420px}.feed-rightbar{display:none}}
 @media(max-width:760px){.feed-shell{display:block;padding:0 16px}.feed-sidebar{display:none}.messages-main{padding:18px 0 100px}.messages-topbar{gap:12px;margin-bottom:18px}.messages-topbar h1{font-size:29px}.icon-button{width:38px;height:38px}.messages-workspace{display:flex;flex-direction:column;gap:14px;min-height:0}.inbox-panel{order:1}.chat-panel{order:2;min-height:420px}.conversation-list{max-height:340px}.message-list{min-height:250px;max-height:55vh}.messages-note-row{gap:12px}.note-person,.note-placeholder{flex-basis:72px}.note-avatar{width:60px;height:60px}.messages-tabs{gap:4px}.messages-tab{padding:9px 15px;font-size:13px}.mobile-nav{z-index:300}}
+
+/* Messenger-inspired inbox polish, using Amora's existing palette. */
+.messages-main{width:100%;max-width:none}
+.messages-topbar h1{letter-spacing:-.8px}
+.messages-workspace{grid-template-columns:minmax(280px,.82fr) minmax(0,1.18fr);gap:12px;min-height:560px}
+.inbox-panel,.chat-panel{border-radius:17px}
+.inbox-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:17px 16px}
+.inbox-heading h2{font-size:20px}
+.inbox-lock,.chat-header-lock{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:50%;background:var(--surface2);color:var(--pink)}
+.conversation-list{padding:7px;max-height:650px}
+.conversation-item{display:grid;grid-template-columns:46px minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:11px;align-items:center;min-height:76px;padding:11px 10px;border-radius:12px}
+.conversation-avatar{grid-column:1;grid-row:1 / span 2;display:grid;place-items:center;width:46px;height:46px;border:2px solid var(--surface);border-radius:50%;background:linear-gradient(145deg,#ff72b7,#8e68dd);color:#fff;font-size:17px;font-weight:800}
+.conversation-copy{grid-column:2;grid-row:1 / span 2;display:flex;min-width:0;flex-direction:column;gap:5px}
+.conversation-copy strong{display:block;overflow:hidden;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.conversation-copy .conversation-preview{display:block;overflow:hidden;color:var(--muted);font-size:12px;font-weight:400;text-overflow:ellipsis;white-space:nowrap}
+.conversation-meta{grid-column:3;grid-row:1 / span 2;display:flex;align-items:flex-end;flex-direction:column;gap:7px}
+.conversation-time{color:var(--muted);font-size:10px;white-space:nowrap}
+.conversation-item.has-unread .conversation-copy strong{font-weight:850}
+.conversation-item.has-unread .conversation-preview{color:var(--text);font-weight:650}
+.unread-count{position:static;transform:none;min-width:19px;height:19px;font-size:10px}
+.messages-tab-disabled{opacity:.6;cursor:not-allowed}
+.coming-soon-label{margin-left:5px;font-size:9px;text-transform:uppercase;letter-spacing:.4px}
+.chat-panel{min-height:560px}
+.chat-panel-header{min-height:76px;padding:14px 17px}
+.chat-header-copy{min-width:0;flex:1}
+.chat-header-avatar{position:relative}
+.chat-header-avatar.has-person{font-weight:800}
+.chat-header-copy h2{font-size:15px}
+.chat-header-copy p{font-size:11px}
+.mobile-inbox-back{display:none;border:0;background:transparent;color:var(--text);font-size:29px;line-height:1;cursor:pointer}
+.message-list{max-height:none;min-height:300px;padding:22px 18px}
+.chat-message{max-width:min(78%,480px);padding:11px 14px}
+.chat-composer{padding:14px}
+.chat-composer textarea{min-height:44px;max-height:130px;resize:none}
+.chat-status{padding-bottom:10px}
+.conversation-empty{margin:20px 12px;color:var(--muted);font-size:13px;line-height:1.5}
+html[data-theme="light"] .conversation-avatar{border-color:#fff}
+html[data-theme="light"] .conversation-item.active{background:#e9e1f0}
+html[data-theme="light"] .conversation-item:hover{background:#f4eef7}
+@media(max-width:900px){.messages-workspace{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);min-height:500px}.feed-shell{grid-template-columns:190px minmax(0,1fr);gap:16px}.chat-panel{min-height:500px}.conversation-list{max-height:600px}}
+@media(max-width:760px){
+  .messages-workspace{display:flex;position:relative;min-height:0}
+  .inbox-panel{display:block;order:1}
+  .chat-panel{display:none;order:2;min-height:calc(100dvh - 205px)}
+  .messages-workspace.chat-open .inbox-panel{display:none}
+  .messages-workspace.chat-open .chat-panel{display:flex}
+  .mobile-inbox-back{display:grid;place-items:center;width:30px;height:38px;flex:0 0 30px}
+  .chat-header-lock{display:none}
+  .chat-panel-header{gap:9px;padding:12px}
+  .message-list{min-height:0;max-height:none;flex:1;padding:16px 12px}
+  .chat-message{max-width:88%}
+  .conversation-list{max-height:none}
+  .messages-topbar h1{font-size:27px}
+}
