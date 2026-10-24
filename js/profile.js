@@ -58,6 +58,158 @@ document.addEventListener("DOMContentLoaded", () => {
     setText("post-count", Number(summary.identified_posts || 0).toLocaleString());
     setText("follower-count", Number(summary.followers || 0).toLocaleString());
     setText("likes-count", Number(summary.likes || 0).toLocaleString());
+    setText("following-count", Number(summary.following || 0).toLocaleString());
+  }
+
+  const traitOptions = {
+    hobbies: ["Reading", "Gaming", "Music", "Cooking", "Writing", "Photography", "Drawing", "Sports", "Gardening", "Travel"],
+    skills: ["Coding", "Design", "Problem solving", "Storytelling", "Teaching", "Making things", "Research"],
+    interests: ["Science", "Art", "Technology", "History", "Nature", "Psychology", "Space", "Fashion", "Books", "Movies"],
+    vibe: ["Adventure", "Indoor activities", "Outdoor activities", "Quiet moments", "Social butterfly", "Trying new things", "Routine and comfort"],
+    likes: ["Cats", "Dogs", "Coffee", "Tea", "Rainy days", "Sunsets", "Deep conversations", "Comedy", "Learning"],
+    dislikes: ["Loud places", "Crowds", "Spoilers", "Early mornings", "Spicy food", "Small talk"],
+    zodiac: ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"],
+    gender: ["Woman", "Man", "Non-binary", "Prefer not to say"]
+  };
+  const traitLabels = {
+    hobbies: "Hobbies", skills: "Skills", interests: "Interested in",
+    vibe: "Your kind of vibe", likes: "Likes", dislikes: "Dislikes",
+    zodiac: "Zodiac sign (optional)", gender: "Gender (optional)"
+  };
+
+  function renderTraits(traits, isOwner) {
+    const display = byId("profile-traits-display");
+    const editor = byId("profile-traits-editor");
+    const fields = byId("profile-traits-fields");
+    if (!display || !editor || !fields) return;
+    display.replaceChildren();
+    fields.replaceChildren();
+    const selected = traits && typeof traits === "object" ? traits : {};
+    let count = 0;
+    Object.entries(traitOptions).forEach(([category, options]) => {
+      const raw = selected[category];
+      const chosen = Array.isArray(raw) ? raw.filter((value) => options.includes(value))
+        : (typeof raw === "string" && options.includes(raw) ? [raw] : []);
+      if (chosen.length) {
+        const group = node("div", "public-trait-group");
+        group.append(node("h3", "", traitLabels[category]));
+        const chips = node("div", "public-trait-chips");
+        chosen.forEach((value) => chips.append(node("span", "public-trait-chip", value)));
+        group.append(chips);
+        display.append(group);
+        count += chosen.length;
+      }
+      if (isOwner) {
+        const group = node("fieldset", "trait-editor-group");
+        group.append(node("legend", "", traitLabels[category]));
+        const wrap = node("div", "trait-options");
+        options.forEach((value) => {
+          const label = node("label", "trait-option");
+          const input = node("input");
+          input.type = category === "zodiac" || category === "gender" ? "radio" : "checkbox";
+          input.name = "trait-" + category; input.value = value; input.checked = chosen.includes(value);
+          label.append(input, document.createTextNode(value)); wrap.append(label);
+        });
+        if (category === "zodiac" || category === "gender") {
+          const label = node("label", "trait-option"); const input = node("input");
+          input.type = "radio"; input.name = "trait-" + category; input.value = ""; input.checked = chosen.length === 0;
+          label.append(input, document.createTextNode("Prefer not to share")); wrap.append(label);
+        }
+        group.append(wrap); fields.append(group);
+      }
+    });
+    if (!count) display.append(node("p", "profile-empty", isOwner ? "Choose any traits you want to share. Leaving everything blank is fine." : "This person has not shared any profile traits."));
+    editor.hidden = !isOwner;
+  }
+
+  function readTraitsFromEditor() {
+    const result = {};
+    Object.entries(traitOptions).forEach(([category, options]) => {
+      const values = Array.from(document.querySelectorAll('[name="trait-' + category + '"]:checked'))
+        .map((input) => input.value).filter((value) => options.includes(value));
+      if (values.length) result[category] = category === "zodiac" || category === "gender" ? values[0] : values.slice(0, 8);
+    });
+    return result;
+  }
+
+  async function loadProfileTraits(profile) {
+    const { data, error } = await supabase.rpc("get_public_profile_traits", { p_username: profile.username });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    profile.public_traits = row?.public_traits && typeof row.public_traits === "object" ? row.public_traits : {};
+    renderTraits(profile.public_traits, profile.id === currentUserId);
+  }
+
+  async function saveProfileTraits() {
+    if (viewedProfile?.id !== currentUserId || !user) return;
+    const button = byId("save-profile-traits"); const statusNode = byId("profile-traits-status");
+    button.disabled = true; statusNode.textContent = "Saving your choices…";
+    try {
+      const public_traits = readTraitsFromEditor();
+      const { error } = await supabase.from("profiles").update({ public_traits }).eq("id", user.id);
+      if (error) throw error;
+      viewedProfile.public_traits = public_traits; renderTraits(public_traits, true);
+      statusNode.textContent = "Your public traits are saved."; statusNode.classList.remove("is-error");
+    } catch (error) {
+      statusNode.textContent = error.message || "Could not save your traits."; statusNode.classList.add("is-error");
+    } finally { button.disabled = false; }
+  }
+
+  function setAnonymousLinkStatus(message, isError = false) {
+    const statusNode = byId("profile-anonymous-link-status");
+    if (!statusNode) return;
+    statusNode.textContent = message || ""; statusNode.classList.toggle("is-error", isError);
+  }
+  function showProfileAnonymousLink(slug) {
+    const result = byId("profile-anonymous-link-result"); const input = byId("profile-anonymous-link-url");
+    if (!result || !input) return;
+    input.value = window.location.origin + "/?anon=" + encodeURIComponent(slug); result.hidden = false;
+  }
+  async function loadProfileAnonymousLink() {
+    if (!user || viewedProfile?.id !== currentUserId) return;
+    try {
+      const { data, error } = await supabase.from("anonymous_links").select("slug,is_active")
+        .eq("owner_id", user.id).eq("is_active", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (error) throw error;
+      if (data?.slug) { showProfileAnonymousLink(data.slug); setAnonymousLinkStatus("Your anonymous message link is ready."); }
+      else setAnonymousLinkStatus("Create a link to receive anonymous messages.");
+    } catch (error) { setAnonymousLinkStatus(error.message || "Could not load your anonymous link.", true); }
+  }
+  async function createProfileAnonymousLink() {
+    if (!user || viewedProfile?.id !== currentUserId) return;
+    const button = byId("profile-create-anonymous-link"); button.disabled = true;
+    setAnonymousLinkStatus("Creating your anonymous link…");
+    try {
+      const { data: existing, error: lookupError } = await supabase.from("anonymous_links").select("slug,is_active")
+        .eq("owner_id", user.id).eq("is_active", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (lookupError) throw lookupError;
+      let slug = existing?.slug;
+      if (!slug) {
+        slug = "m-" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+        const { data, error } = await supabase.from("anonymous_links").insert({ owner_id: user.id, slug, is_active: true }).select("slug").single();
+        if (error) throw error; slug = data.slug;
+      }
+      showProfileAnonymousLink(slug); setAnonymousLinkStatus("Your anonymous message link is ready.");
+    } catch (error) { setAnonymousLinkStatus(error.message || "Could not create your link.", true); }
+    finally { button.disabled = false; }
+  }
+  async function copyProfileAnonymousLink() {
+    const input = byId("profile-anonymous-link-url"); if (!input?.value) return;
+    try { await navigator.clipboard.writeText(input.value); setAnonymousLinkStatus("Link copied."); }
+    catch { input.focus(); input.select(); const copied = document.execCommand("copy"); setAnonymousLinkStatus(copied ? "Link copied." : "Copy the selected link manually.", !copied); }
+  }
+  async function deleteIdentifiedPost(postId, button, article) {
+    if (!user || viewedProfile?.id !== currentUserId) return;
+    if (!window.confirm("Delete this identified post? This cannot be undone.")) return;
+    button.disabled = true;
+    try {
+      const { error } = await supabase.from("posts").delete().eq("id", postId).eq("author_id", user.id).eq("is_anonymous", false);
+      if (error) throw error;
+      article.remove();
+      const summary = await loadPublicSummary(viewedProfile.username); setStats(summary);
+      showStatus("Identified post deleted.");
+      if (!postsContainer.querySelector(".profile-post")) renderEmptyPosts("You have no identified posts left.");
+    } catch (error) { showStatus(error.message || "Could not delete this post.", true); button.disabled = false; }
   }
   function setProfileHeader(profile) {
     const username = profile.username || "Amora member";
@@ -188,7 +340,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const article = node("article", "profile-post profile-post-card");
       const meta = node("div", "profile-post-meta");
       meta.append(node("span", "", relativeTime(post.created_at)));
-      meta.append(node("span", "profile-post-visibility", post.visibility === "followers" ? "Followers only" : "Public"));
+      const metaRight = node("div", "profile-post-meta-actions");
+      metaRight.append(node("span", "profile-post-visibility", post.visibility === "followers" ? "Followers only" : "Public"));
+      if (viewedProfile?.id === currentUserId) {
+        const deleteButton = node("button", "profile-delete-post", "Delete post");
+        deleteButton.type = "button";
+        deleteButton.addEventListener("click", () => deleteIdentifiedPost(post.id, deleteButton, article));
+        metaRight.append(deleteButton);
+      }
+      meta.append(metaRight);
       const content = node("p", "profile-post-content", post.content || "");
       article.append(meta, content);
       (post.media_urls || []).slice(0, 4).forEach((url) => {
@@ -280,14 +440,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (usernameInput) usernameInput.value = originalUsername;
     setProfileHeader(viewedProfile);
     setStats(viewedProfile);
-
-    const { data: posts, error: postsError } = await supabase.from("posts")
+    byId("owner-tools").hidden = viewedProfile.id !== currentUserId;
+    await loadProfileTraits(viewedProfile);
+    if (viewedProfile.id === currentUserId) await loadProfileAnonymousLink();
+    let postsQuery = supabase.from("posts")
       .select("id,author_id,content,media_urls,visibility,is_anonymous,created_at")
       .eq("author_id", viewedProfile.id).eq("is_anonymous", false)
       .order("created_at", { ascending: false }).limit(50);
+    if (viewedProfile.id !== currentUserId) postsQuery = postsQuery.eq("visibility", "public");
+    const { data: posts, error: postsError } = await postsQuery;
     if (postsError) throw postsError;
     await renderPosts(posts || []);
   }
+
+  byId("save-profile-traits")?.addEventListener("click", saveProfileTraits);
+  byId("profile-create-anonymous-link")?.addEventListener("click", createProfileAnonymousLink);
+  byId("profile-copy-anonymous-link")?.addEventListener("click", copyProfileAnonymousLink);
 
   settingsButton?.addEventListener("click", () => {
     if (viewedProfile?.id !== currentUserId) {
