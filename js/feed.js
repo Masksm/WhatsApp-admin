@@ -770,6 +770,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loading = true;
     updatePublishButton();
     let uploadedPath = null;
+    let publishedPostId = null;
     try {
       const user = await requireUser();
       let mediaUrls = [];
@@ -797,16 +798,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (result.error) throw result.error;
         if (typeof result.data !== "string") throw new Error("The post was not confirmed by the server.");
         saveHiddenToken(result.data, token, user.id);
+        publishedPostId = result.data;
       } else {
-        const { error } = await supabase.from("posts").insert({
+        const { data: insertedPost, error } = await supabase.from("posts").insert({
           author_id: user.id,
           content: body,
           media_urls: mediaUrls,
           visibility: "public",
           is_anonymous: false,
           force_anonymous_comments: Boolean(forceAnonymousComments?.checked)
-        });
+        }).select("id").single();
         if (error) throw error;
+        publishedPostId = insertedPost.id;
       }
       textInput.value = "";
       hideIdentity.checked = false;
@@ -824,7 +827,17 @@ document.addEventListener("DOMContentLoaded", () => {
         tab.classList.toggle("active", selected);
         tab.setAttribute("aria-selected", String(selected));
       });
-      await loadFeed();
+      const { data: newPost, error: newPostError } = await supabase.from("posts")
+        .select("id,author_id,content,media_urls,visibility,is_anonymous,force_anonymous_comments,created_at")
+        .eq("id", publishedPostId).single();
+      if (newPostError) throw newPostError;
+      posts = [newPost, ...posts.filter(post => post.id !== newPost.id)].slice(0, 50);
+      if (newPost.author_id) await loadPublicProfiles([newPost.author_id]);
+      interactionCounts.set(newPost.id, { likes: 0, reposts: 0, comments: 0 });
+      commentCache.delete(newPost.id);
+      const renderedPost = await renderPost(newPost);
+      feedList.querySelector(".feed-empty")?.remove();
+      feedList.prepend(renderedPost);
     } catch (error) {
       if (uploadedPath) {
         try { await supabase.storage.from("amora-post-images").remove([uploadedPath]); } catch {}
