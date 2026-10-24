@@ -363,17 +363,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const comments = await loadComments(post.id);
       const article = feedList.querySelector('[data-post-id="' + post.id + '"]');
       if (article) {
-        const existingSection = article.querySelector(":scope > .post-comments");
-        const section = document.createElement("section");
-        section.className = "post-comments";
-        const title = document.createElement("h3");
-        title.textContent = "Conversation";
-        section.append(title);
-        comments.forEach(comment => section.append(makeComment(comment, post)));
-        if (existingSection) existingSection.replaceWith(section); else article.append(section);
         const countLabel = article.querySelector(".post-stats span:last-child");
         if (countLabel) countLabel.textContent = comments.length + (comments.length === 1 ? " comment" : " comments");
+        const trigger = article.querySelector(".post-comments-trigger");
+        if (trigger) trigger.textContent = "☏ Comments · " + comments.length;
       }
+      if (activeCommentsPost?.id === post.id) await refreshCommentsDialog();
     } catch (error) {
       await logClientError("submit_comment", error);
       setStatus("Couldn't post your reply. Please try again.", true);
@@ -505,6 +500,105 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     await loadInteractionCounts();
     await renderFeed();
+  }
+
+  let commentsDialog = null;
+  let activeCommentsPost = null;
+
+  function ensureCommentsDialog() {
+    if (commentsDialog) return commentsDialog;
+    commentsDialog = document.createElement("div");
+    commentsDialog.className = "comments-dialog";
+    commentsDialog.hidden = true;
+    commentsDialog.innerHTML = `
+      <div class="comments-dialog-backdrop" data-comments-close></div>
+      <section class="comments-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="comments-dialog-title">
+        <header class="comments-dialog-header">
+          <div><h2 id="comments-dialog-title">Comments</h2><p class="comments-dialog-subtitle"></p></div>
+          <button type="button" class="comments-dialog-close" aria-label="Close comments" data-comments-close>×</button>
+        </header>
+        <div class="comments-dialog-post"></div>
+        <div class="comments-dialog-list" aria-live="polite"></div>
+        <form class="comments-dialog-form post-reply-composer">
+          <input name="comment-content" maxlength="3000" placeholder="Write a comment…" aria-label="Write a comment" required>
+          <label class="comment-anonymous-choice comments-dialog-anonymous"><input type="checkbox" name="comment-anonymous"> Comment anonymously</label>
+          <button type="submit">Reply</button>
+        </form>
+      </section>`;
+    document.body.append(commentsDialog);
+    commentsDialog.querySelectorAll("[data-comments-close]").forEach(button => button.addEventListener("click", closeCommentsDialog));
+    commentsDialog.querySelector(".comments-dialog-form").addEventListener("submit", event => {
+      event.preventDefault();
+      if (!activeCommentsPost) return;
+      addComment(activeCommentsPost, null, event.currentTarget.elements.namedItem("comment-content"), event.currentTarget);
+    });
+    commentsDialog.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeCommentsDialog();
+    });
+    return commentsDialog;
+  }
+
+  function closeCommentsDialog() {
+    if (!commentsDialog || commentsDialog.hidden) return;
+    commentsDialog.classList.remove("is-open");
+    document.body.classList.remove("comments-dialog-open");
+    window.setTimeout(() => { if (commentsDialog) commentsDialog.hidden = true; }, 200);
+    activeCommentsPost = null;
+  }
+
+  async function openCommentsDialog(post) {
+    activeCommentsPost = post;
+    const dialog = ensureCommentsDialog();
+    const profile = post.author_id ? profileCache.get(post.author_id) : null;
+    dialog.querySelector(".comments-dialog-subtitle").textContent = (profile?.display_name || profile?.username || "Amora post") + " · Conversation";
+    dialog.querySelector(".comments-dialog-post").textContent = post.content || "";
+    const form = dialog.querySelector(".comments-dialog-form");
+    form.elements.namedItem("comment-content").placeholder = post.is_anonymous || post.force_anonymous_comments ? "Reply anonymously…" : "Write a comment…";
+    dialog.querySelector(".comments-dialog-anonymous").hidden = Boolean(post.is_anonymous || post.force_anonymous_comments);
+    dialog.hidden = false;
+    document.body.classList.add("comments-dialog-open");
+    requestAnimationFrame(() => dialog.classList.add("is-open"));
+    await refreshCommentsDialog();
+    form.elements.namedItem("comment-content").focus({ preventScroll: true });
+  }
+
+  async function refreshCommentsDialog() {
+    if (!activeCommentsPost || !commentsDialog) return;
+    const post = activeCommentsPost;
+    const list = commentsDialog.querySelector(".comments-dialog-list");
+    list.replaceChildren();
+    const loadingNote = document.createElement("p");
+    loadingNote.className = "comments-dialog-empty";
+    loadingNote.textContent = "Loading conversation…";
+    list.append(loadingNote);
+    try {
+      const comments = await loadComments(post.id);
+      if (!activeCommentsPost || activeCommentsPost.id !== post.id) return;
+      const ids = [];
+      const collect = rows => (rows || []).forEach(row => { if (row.author_id && !row.is_anonymous) ids.push(row.author_id); collect(row.replies); });
+      collect(comments);
+      await loadPublicProfiles(ids);
+      list.replaceChildren();
+      if (!comments.length) {
+        const empty = document.createElement("p");
+        empty.className = "comments-dialog-empty";
+        empty.textContent = "No comments yet. Start the conversation.";
+        list.append(empty);
+      } else comments.forEach(comment => list.append(makeComment(comment, post)));
+      commentsDialog.querySelector("#comments-dialog-title").textContent = "Comments (" + comments.length + ")";
+      const article = feedList.querySelector('[data-post-id="' + post.id + '"]');
+      const countLabel = article?.querySelector(".post-stats span:last-child");
+      if (countLabel) countLabel.textContent = comments.length + (comments.length === 1 ? " comment" : " comments");
+      const trigger = article?.querySelector(".post-comments-trigger");
+      if (trigger) trigger.textContent = "☏ Comments · " + comments.length;
+    } catch (error) {
+      await logClientError("refresh_comments_dialog", error);
+      list.replaceChildren();
+      const message = document.createElement("p");
+      message.className = "comments-dialog-empty";
+      message.textContent = "Couldn't load comments. Close and try again.";
+      list.append(message);
+    }
   }
 
   async function renderPost(post) {
@@ -647,6 +741,7 @@ document.addEventListener("DOMContentLoaded", () => {
           setStatus("Couldn't update your like. Please try again.", true);
         }
       }),
+      makeButton("☏ Comments · " + comments.length, "post-action post-comments-trigger", () => openCommentsDialog(post)),
       makeButton("▢ Reply", "post-action", () => {
         const old = article.querySelector(":scope > .post-reply-composer");
         if (old) { old.remove(); return; }
@@ -729,15 +824,6 @@ document.addEventListener("DOMContentLoaded", () => {
       })
     );
     article.append(stats, actions);
-    if (comments.length) {
-      const section = document.createElement("section");
-      section.className = "post-comments";
-      const title = document.createElement("h3");
-      title.textContent = "Conversation";
-      section.append(title);
-      comments.forEach((comment) => section.append(makeComment(comment, post)));
-      article.append(section);
-    }
     return article;
   }
 
