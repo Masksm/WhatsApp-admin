@@ -227,17 +227,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return button;
   }
 
-  function closeAllPostMoreMenus(exceptMenu = null) {
+  function closeAllPostMoreMenus() {
     document.querySelectorAll(".post-more-menu:not([hidden])").forEach((menu) => {
-      if (menu === exceptMenu) return;
       menu.hidden = true;
       menu.closest(".post-actions")?.querySelector(".post-more-trigger")?.setAttribute("aria-expanded", "false");
     });
+    document.querySelectorAll(".post-more-backdrop:not([hidden])").forEach((backdrop) => { backdrop.hidden = true; });
   }
   document.addEventListener("click", (event) => {
-    const actions = event.target.closest(".post-actions");
     const clickedMoreTrigger = event.target.closest(".post-more-trigger");
-    closeAllPostMoreMenus(clickedMoreTrigger ? actions?.querySelector(".post-more-menu") || null : null);
+    if (!clickedMoreTrigger) closeAllPostMoreMenus();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeAllPostMoreMenus();
@@ -852,15 +851,31 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const moreButton = makeButton("••• More", "post-action post-more-trigger", () => {
       const shouldOpen = moreMenu.hidden;
+      closeAllPostMoreMenus();
       moreMenu.hidden = !shouldOpen;
+      moreBackdrop.hidden = !shouldOpen;
       moreButton.setAttribute("aria-expanded", String(shouldOpen));
+      document.body.classList.toggle("post-more-open", shouldOpen);
     });
-    moreButton.setAttribute("aria-haspopup", "menu");
+    moreButton.setAttribute("aria-haspopup", "dialog");
     moreButton.setAttribute("aria-expanded", "false");
+    const moreBackdrop = document.createElement("div");
+    moreBackdrop.className = "post-more-backdrop";
+    moreBackdrop.hidden = true;
+    moreBackdrop.addEventListener("click", closeAllPostMoreMenus);
     const moreMenu = document.createElement("div");
     moreMenu.className = "post-more-menu";
     moreMenu.hidden = true;
-    moreMenu.setAttribute("role", "menu");
+    moreMenu.setAttribute("role", "dialog");
+    moreMenu.setAttribute("aria-label", "Post options");
+    const moreMenuHeader = document.createElement("div");
+    moreMenuHeader.className = "post-more-menu-header";
+    const moreMenuTitle = document.createElement("strong");
+    moreMenuTitle.textContent = "Post options";
+    const moreMenuClose = makeButton("×", "post-more-menu-close", closeAllPostMoreMenus);
+    moreMenuClose.setAttribute("aria-label", "Close post options");
+    moreMenuHeader.append(moreMenuTitle, moreMenuClose);
+    moreMenu.append(moreMenuHeader);
     const menuAction = (label, action, className = "") => {
       const button = makeButton(label, "post-more-menu-item" + (className ? " " + className : ""), async () => {
         closeMoreMenu();
@@ -961,7 +976,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }, "post-more-report");
     }
-    actions.append(moreMenu);
+    document.body.append(moreBackdrop, moreMenu);
     article.append(stats, actions);
     return article;
   }
