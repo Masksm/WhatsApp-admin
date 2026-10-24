@@ -6,6 +6,9 @@ let initialized = false;
 let currentConversations = [];
 let conversationFilter = "inbox";
 let conversationSearch = "";
+let inboxRefreshTimer = null;
+let activeMessageRefreshTimer = null;
+let lastMessageIds = new Set();
 
 function setChatStatus(message) {
   const status = $("#chat-status");
@@ -157,14 +160,40 @@ function renderMessages(messages) {
         : message.sender_anonymous_name || "Anonymous";
 
     const date = formatChatDate(message.sent_at);
-
-    meta.textContent = date ? `${sender} · ${date}` : sender;
+    const receipt = message.sent_by_me && message.read_at ? " · Seen" : "";
+    meta.textContent = (date ? sender + " · " + date : sender) + receipt;
+    if (message.sent_by_me && message.read_at) { meta.classList.add("message-seen-indicator"); meta.setAttribute("aria-label", "Seen by recipient"); }
 
     item.append(content, meta);
     list.appendChild(item);
   });
 
   list.scrollTop = list.scrollHeight;
+}
+
+function stopLiveMessageUpdates() {
+  if (activeMessageRefreshTimer) clearInterval(activeMessageRefreshTimer);
+  activeMessageRefreshTimer = null;
+}
+function startLiveMessageUpdates(conversationId) {
+  stopLiveMessageUpdates();
+  if (!supabase || !conversationId) return;
+  // Use the secured RPC because direct SELECT on chat_messages is intentionally restricted.
+  activeMessageRefreshTimer = setInterval(async () => {
+    if (document.hidden || activeConversationId !== conversationId || chatRequestInProgress) return;
+    const result = await supabase.rpc("get_conversation_messages", { p_conversation_id: conversationId });
+    if (result.error || activeConversationId !== conversationId) return;
+    const incoming = result.data || [];
+    const ids = new Set(incoming.map(m => m.id).filter(Boolean));
+    const hasNewMessage = [...ids].some(id => !lastMessageIds.has(id));
+    const list = $("#message-list");
+    const wasNearBottom = list ? list.scrollHeight - list.scrollTop - list.clientHeight < 100 : true;
+    renderMessages(incoming);
+    if (list && !wasNearBottom && !hasNewMessage) list.scrollTop = Math.max(0, list.scrollHeight - list.clientHeight - 40);
+    lastMessageIds = ids;
+    await loadChatConversations(false);
+    if (incoming.some(m => !m.sent_by_me && !m.read_at)) await supabase.rpc("mark_conversation_read", { p_conversation_id: conversationId });
+  }, 5000);
 }
 
 async function loadChatMessages(conversationId) {
@@ -194,8 +223,11 @@ async function loadChatMessages(conversationId) {
 
     if (activeConversationId !== conversationId) return;
 
-    renderMessages(data || []);
-    setChatStatus("");
+    const messages = data || [];
+    lastMessageIds = new Set(messages.map(m => m.id).filter(Boolean));
+    renderMessages(messages);
+    setChatStatus("Messages update automatically.");
+    startLiveMessageUpdates(conversationId);
 
     await supabase.rpc("mark_conversation_read", {
       p_conversation_id: conversationId
@@ -315,6 +347,8 @@ async function handleSendMessage(event) {
 
 function clearChat() {
   activeConversationId = null;
+  stopLiveMessageUpdates();
+  lastMessageIds = new Set();
   document.querySelector(".messages-workspace")?.classList.remove("chat-open");
   chatRequestInProgress = false;
 
@@ -397,6 +431,8 @@ function initMessages() {
   });
 
   refreshInbox();
+  if (inboxRefreshTimer) clearInterval(inboxRefreshTimer);
+  inboxRefreshTimer = setInterval(() => { if (!document.hidden) loadChatConversations(false); }, 15000);
 
   const requestedConversation = new URLSearchParams(window.location.search).get("conversation");
   if (requestedConversation) {
