@@ -290,9 +290,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const meta = node("div", "profile-post-meta");
       meta.append(node("span", "", relativeTime(post.created_at)));
       const metaRight = node("div", "profile-post-meta-actions");
+      if (post.is_repost) metaRight.append(node("span", "profile-repost-label", "↻ Reposted"));
       metaRight.append(node("span", "profile-post-visibility", post.visibility === "followers" ? "Followers only" : "Public"));
-      if (viewedProfile?.id === currentUserId) {
-        const deleteButton = node("button", "profile-delete-post", "Delete post");
+      if (!post.is_repost && viewedProfile?.id === currentUserId) {
+        const deleteButton = node("button", "profile-delete-post", "Delete");
         deleteButton.type = "button";
         deleteButton.addEventListener("click", () => deleteIdentifiedPost(post.id, deleteButton, article));
         metaRight.append(deleteButton);
@@ -397,9 +398,32 @@ document.addEventListener("DOMContentLoaded", () => {
       .eq("author_id", viewedProfile.id).eq("is_anonymous", false)
       .order("created_at", { ascending: false }).limit(50);
     if (viewedProfile.id !== currentUserId) postsQuery = postsQuery.eq("visibility", "public");
-    const { data: posts, error: postsError } = await postsQuery;
+    const { data: ownPosts, error: postsError } = await postsQuery;
     if (postsError) throw postsError;
-    await renderPosts(posts || []);
+    const combinedPosts = (ownPosts || []).map(post => ({ ...post, is_repost: false }));
+    const { data: repostRows, error: repostError } = await supabase.from("post_reposts")
+      .select("post_id,created_at").eq("user_id", viewedProfile.id)
+      .order("created_at", { ascending: false }).limit(50);
+    if (!repostError && repostRows?.length) {
+      const ownIds = new Set(combinedPosts.map(post => post.id));
+      const repostIds = repostRows.map(row => row.post_id).filter(id => !ownIds.has(id));
+      if (repostIds.length) {
+        let repostQuery = supabase.from("posts")
+          .select("id,author_id,content,media_urls,visibility,is_anonymous,created_at")
+          .in("id", repostIds).eq("is_anonymous", false);
+        if (viewedProfile.id !== currentUserId) repostQuery = repostQuery.eq("visibility", "public");
+        const { data: repostPosts, error: repostPostsError } = await repostQuery;
+        if (!repostPostsError && repostPosts) {
+          const byId = new Map(repostPosts.map(post => [post.id, post]));
+          repostRows.forEach(row => {
+            const post = byId.get(row.post_id);
+            if (post) combinedPosts.push({ ...post, is_repost: true, reposted_at: row.created_at });
+          });
+        }
+      }
+    }
+    combinedPosts.sort((a, b) => new Date(b.reposted_at || b.created_at) - new Date(a.reposted_at || a.created_at));
+    await renderPosts(combinedPosts.slice(0, 50));
   }
 
   byId("profile-more-button")?.addEventListener("click", () => {
