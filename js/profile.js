@@ -354,8 +354,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       if (error) throw error;
       input.value = "";
-      const comment = node("p", "profile-comment", "You: " + content);
-      commentsList.append(comment);
       showStatus("Comment added.");
     } catch (error) {
       showStatus(error.message || "Could not add your comment.", true);
@@ -418,16 +416,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const likeCount = Number(postCount?.likes_count || 0);
       const stats = node("div", "profile-post-stats");
       const likesText = node("span", "", (likeCount || 0) + ((likeCount || 0) === 1 ? " like" : " likes"));
-      const commentsResult = await supabase.from("post_comments")
-        .select("id,author_id,content,is_anonymous,created_at").eq("post_id", post.id)
-        .order("created_at", { ascending: true }).limit(30);
-      const commentsList = node("div", "profile-comments");
-      if (!commentsResult.error) {
-        commentsResult.data.forEach((comment) => {
-          commentsList.append(node("p", "profile-comment",
-            (comment.is_anonymous ? "Anonymous" : (comment.author_id === user?.id ? "You" : "Amora member")) + ": " + comment.content));
-        });
-      }
       stats.append(likesText);
       const actions = node("div", "profile-post-actions");
       let liked = false;
@@ -449,7 +437,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const send = node("button", "", "Send"); send.type = "submit";
         form.append(input, send);
         form.addEventListener("submit", (event) => { event.preventDefault(); addComment(post.id, input, send, commentsList); });
-        article.insertBefore(form, commentsList);
+        article.insertBefore(form, actions);
         input.focus();
       });
       const repostButton = node("button", "post-action", "⟳ Repost");
@@ -461,7 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       repostButton.addEventListener("click", () => toggleRepost(post.id, repostButton));
       actions.append(likeButton, replyButton, repostButton);
-      article.append(stats, actions, commentsList);
+      article.append(stats, actions);
       postsContainer.append(article);
     }
   }
