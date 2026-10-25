@@ -222,3 +222,14 @@ html.amora-chat-popup-mode .chat-status{flex:0 0 auto}
 .chat-emoji-option{min-width:32px;min-height:34px;border:0;border-radius:8px;background:transparent;color:var(--text);font-size:21px;cursor:pointer}
 .chat-emoji-option:hover,.chat-emoji-option:focus-visible{background:var(--surface2);outline:2px solid #3987ff55}
 @media(max-width:420px){.chat-emoji-picker{grid-template-columns:repeat(7,minmax(30px,1fr));max-height:190px}}
+
+/* Dedicated shortcut for guest conversations in the Messages inbox. */
+.guest-inbox-entry{display:flex;align-items:center;gap:11px;margin:12px 12px 4px;padding:12px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(110deg,rgba(232,62,140,.10),var(--surface2));color:var(--text);text-decoration:none;transition:border-color .18s,transform .18s}
+.guest-inbox-entry:hover{border-color:var(--pink,#e83e8c);transform:translateY(-1px)}
+.guest-inbox-entry:focus-visible{outline:2px solid var(--pink,#e83e8c);outline-offset:3px}
+.guest-inbox-entry-icon{display:grid;flex:0 0 38px;height:38px;place-items:center;border-radius:12px;background:rgba(232,62,140,.14);color:var(--pink,#e83e8c);font-size:21px}
+.guest-inbox-entry-copy{display:grid;flex:1;gap:3px;min-width:0}
+.guest-inbox-entry-copy strong{font-size:13px}
+.guest-inbox-entry-copy small{color:var(--muted);font-size:11px;line-height:1.4}
+.guest-inbox-entry-arrow{color:var(--pink,#e83e8c);font-size:18px}
+@media(prefers-reduced-motion:reduce){.guest-inbox-entry{transition:none}}
