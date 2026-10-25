@@ -92,7 +92,7 @@ function render() {
   if (!items.length) {
     const empty = document.createElement("div");
     empty.className = "notifications-empty";
-    empty.textContent = activeFilter === "unread" ? "You're all caught up. No unread notifications." : "No notifications yet. New activity will appear here.";
+    empty.textContent = searchQuery.trim() ? "No notifications match your search." : activeFilter === "unread" ? "You're all caught up. No unread notifications." : activeFilter === "likes" ? "No like notifications here yet." : activeFilter === "comments" ? "No comment notifications here yet." : activeFilter === "follows" ? "No new follower notifications here yet." : "No notifications yet. New activity will appear here.";
     list.appendChild(empty);
     return;
   }
