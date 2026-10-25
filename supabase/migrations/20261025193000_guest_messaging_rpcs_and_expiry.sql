@@ -96,42 +96,6 @@ revoke all on table public.guest_message_rate_limits from anon, authenticated;
 revoke all on sequence public.guest_message_rate_limits_id_seq from anon, authenticated;
 
 commit;
-),
-  action text not null
-  occurred_at timestamptz not null default now(),
-  constraint guest_rate_limit_actor_check
-    check (identity_id is not null or owner_user_id is not null)
-);
-
-create index if not exists guest_conversations_owner_recent_idx
-  on public.guest_conversations (owner_user_id, last_message_at desc);
-create index if not exists guest_conversations_identity_recent_idx
-  on public.guest_conversations (guest_identity_id, last_message_at desc);
-create index if not exists guest_messages_conversation_recent_idx
-  on public.guest_messages (conversation_id, created_at desc)
-  where deleted_at is null;
-create index if not exists guest_messages_moderation_queue_idx
-  on public.guest_messages (created_at)
-  where moderation_status = 'pending' and deleted_at is null;
-create index if not exists guest_rate_limits_identity_action_time_idx
-  on public.guest_message_rate_limits (identity_id, action, occurred_at desc);
-create index if not exists guest_rate_limits_user_action_time_idx
-  on public.guest_message_rate_limits (owner_user_id, action, occurred_at desc);
-
-alter table public.guest_identities enable row level security;
-alter table public.guest_conversations enable row level security;
-alter table public.guest_messages enable row level security;
-alter table public.guest_message_rate_limits enable row level security;
-
--- No client-facing RLS policies or direct table grants by design.
-revoke all on table public.guest_identities from anon, authenticated;
-revoke all on table public.guest_conversations from anon, authenticated;
-revoke all on table public.guest_messages from anon, authenticated;
-revoke all on table public.guest_message_rate_limits from anon, authenticated;
-revoke all on sequence public.guest_message_rate_limits_id_seq from anon, authenticated;
-
-commit;
-
 
 -- Server-side guest identity and messaging RPCs. All guest RPCs authenticate
 -- with a high-entropy recovery token; only its SHA-256 hash is stored.
