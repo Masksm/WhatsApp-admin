@@ -9,6 +9,7 @@ let conversationSearch = "";
 let inboxRefreshTimer = null;
 let activeMessageRefreshTimer = null;
 let lastMessageIds = new Set();
+let anonymousInboxRequest = null;
 
 function setChatStatus(message) {
   const status = $("#chat-status");
@@ -37,6 +38,7 @@ function notifyRefresh() {
 function renderConversationList(conversations) {
   const list = $("#conversation-list");
   if (!list) return;
+  if (conversationFilter === "anonymous") { loadAnonymousMessages(); return; }
   const query = conversationSearch.trim().toLowerCase();
   const visibleConversations = (conversations || []).filter((conversation) => {
     const name = conversation.other_anonymous_name || "Anonymous";
@@ -102,6 +104,66 @@ function renderConversationList(conversations) {
 
     list.appendChild(button);
   });
+}
+
+async function loadAnonymousMessages() {
+  const list = $("#conversation-list");
+  if (!list || !supabase) return;
+  if (anonymousInboxRequest) return anonymousInboxRequest;
+  anonymousInboxRequest = (async () => {
+    list.replaceChildren();
+    const loading = document.createElement("p");
+    loading.className = "conversation-empty";
+    loading.textContent = "Loading anonymous messages…";
+    list.appendChild(loading);
+    const { data, error } = await supabase.rpc("get_my_anonymous_inbox");
+    if (conversationFilter !== "anonymous") return;
+    list.replaceChildren();
+    if (error) {
+      const failed = document.createElement("p");
+      failed.className = "conversation-empty";
+      failed.textContent = "Anonymous messages could not be loaded. Please refresh and try again.";
+      list.appendChild(failed);
+      setChatStatus(getErrorMessage(error, "Could not load anonymous messages."));
+      console.error("Amora anonymous inbox failed:", error);
+      return;
+    }
+    const messages = data || [];
+    const count = document.getElementById("anonymous-message-count");
+    if (count) {
+      const unread = messages.filter(item => !item.is_read).length;
+      count.hidden = unread === 0;
+      count.textContent = unread > 99 ? "99+" : String(unread);
+      count.setAttribute("aria-label", unread + " unread anonymous messages");
+    }
+    if (!messages.length) {
+      const empty = document.createElement("p");
+      empty.className = "conversation-empty";
+      empty.textContent = "No anonymous link messages yet. Messages sent through your personal anonymous link will appear here.";
+      list.appendChild(empty);
+      return;
+    }
+    messages.forEach(item => {
+      const card = document.createElement("article");
+      card.className = "anonymous-inbox-item" + (item.is_read ? "" : " is-unread");
+      const top = document.createElement("div");
+      top.className = "anonymous-inbox-item-top";
+      const title = document.createElement("strong");
+      title.textContent = "Anonymous message";
+      const state = document.createElement("span");
+      state.className = "anonymous-inbox-state";
+      state.textContent = item.is_read ? "Received" : "New";
+      top.append(title, state);
+      const body = document.createElement("p");
+      body.className = "anonymous-inbox-text";
+      body.textContent = item.message_text || "Message content unavailable.";
+      const date = document.createElement("small");
+      date.textContent = formatChatDate(item.created_at);
+      card.append(top, body, date);
+      list.appendChild(card);
+    });
+  })();
+  try { await anonymousInboxRequest; } finally { anonymousInboxRequest = null; }
 }
 
 async function loadChatConversations(showLoading = true) {
