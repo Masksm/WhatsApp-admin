@@ -32,12 +32,19 @@ async function listAnonymousLinkMessages(){
   const body=document.createElement("span");body.className="conversation-preview";body.textContent=m.message_text||"";copy.append(meta,body);card.append(avatar,copy);target.append(card);
  });
 }
-function closeChatPopup(){document.body.classList.remove("guest-chat-popup-open");}
+function closeChatPopup(){
+ document.body.classList.remove("guest-chat-popup-open");
+ const panel=$(".guest-inbox-workspace .chat-panel");
+ if(panel){panel.style.position="";panel.style.display="";panel.style.zIndex="";panel.style.left="";panel.style.top="";panel.style.transform="";panel.style.width="";panel.style.height="";panel.style.maxHeight="";panel.style.overflow="";}
+}
 $("#guest-chat-popup-close")?.addEventListener("click",closeChatPopup);
 $("#guest-inbox-mobile-back")?.addEventListener("click",closeChatPopup);
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeChatPopup();});
 async function openChat(id){
- active=id;document.body.classList.add("guest-chat-popup-open");const {data,error}=await supabase.rpc("owner_get_guest_messages",{p_conversation_id:id});if(error)throw error;
+ active=id;document.body.classList.add("guest-chat-popup-open");
+ const panel=$(".guest-inbox-workspace .chat-panel");
+ if(panel){panel.style.display="flex";panel.style.position="fixed";panel.style.zIndex="10001";panel.style.left="50%";panel.style.top="50%";panel.style.transform="translate(-50%,-50%)";panel.style.width="min(720px, calc(100vw - 28px))";panel.style.height="min(780px, calc(100dvh - 32px))";panel.style.maxHeight="calc(100dvh - 32px)";panel.style.overflow="hidden";}
+ const {data,error}=await supabase.rpc("owner_get_guest_messages",{p_conversation_id:id});if(error)throw error;
  const list=$("#owner-guest-messages");list.replaceChildren();
  (data||[]).forEach(m=>{const div=document.createElement("div");div.className="guest-msg"+(m.sent_by_me?" mine":"");const meta=document.createElement("small");meta.textContent=(m.sender_anonymous_name||"Anonymous")+" · "+new Date(m.sent_at).toLocaleString();const body=document.createElement("p");body.textContent=m.message_text;div.append(meta,body);if(m.sent_by_me){const del=document.createElement("button");del.type="button";del.textContent="Delete";del.addEventListener("click",async()=>{const {error}=await supabase.rpc("owner_delete_guest_message",{p_conversation_id:id,p_message_id:m.message_id});if(error)say(error.message,true);else{say("Message deleted.");await openChat(id);}});div.append(del);}list.append(div);});
  $("#owner-guest-reply").disabled=false;$("#owner-guest-send").disabled=false;await listConversations();
