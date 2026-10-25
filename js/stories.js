@@ -326,7 +326,28 @@ document.addEventListener("DOMContentLoaded", () => {
         video.play().catch(() => {});
       } else {
         const img = document.createElement("img");
-        img.alt = "Story shared by " + nameFor(group.profile); img.src = url;
+        img.alt = "Story shared by " + nameFor(group.profile);
+        img.decoding = "async";
+        img.onload = () => { img.dataset.loaded = "true"; };
+        img.onerror = async () => {
+          if (img.dataset.fallbackTried === "true") {
+            viewerMedia.textContent = "This story image could not be loaded. Please try again later.";
+            console.error("Amora story image URL failed:", story.id, story.media_path);
+            return;
+          }
+          img.dataset.fallbackTried = "true";
+          try {
+            const downloaded = await db.storage.from(BUCKET).download(story.media_path);
+            if (downloaded.error || !downloaded.data) throw downloaded.error || new Error("Storage download returned no image.");
+            const blobUrl = URL.createObjectURL(downloaded.data);
+            signedUrlCache.set(story.id, {url:blobUrl,expiresAt:Date.now()+1700000});
+            img.src = blobUrl;
+          } catch (fallbackError) {
+            console.error("Amora story image fallback failed:", fallbackError);
+            viewerMedia.textContent = "This story image could not be loaded. Please try again later.";
+          }
+        };
+        img.src = url;
         viewerMedia.appendChild(img);
         const segment = viewerProgress.children[activeIndex]?.firstElementChild;
         const start = Date.now();
