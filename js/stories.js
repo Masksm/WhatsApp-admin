@@ -386,8 +386,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (action === "mute") {
       if (activeStory.user_id === currentUser.id) { say("You cannot mute your own stories."); return; }
       try {
-        const { error } = await db.from("story_mutes").upsert({user_id:currentUser.id,muted_user_id:activeStory.user_id});
-        if (error) throw error;
+        const { error } = await db.from("story_mutes").insert({user_id:currentUser.id,muted_user_id:activeStory.user_id});
+        if (error && error.code !== "23505") throw error;
         say("Stories from this person are now muted.");
         closeViewer();
         await loadStories();
