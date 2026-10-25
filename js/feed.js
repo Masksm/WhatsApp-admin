@@ -676,7 +676,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.append(commentsDialog);
     installCommentsViewportHandlers();
     syncCommentsViewport();
-    commentsDialog.querySelectorAll("[data-comments-close]").forEach(button => button.addEventListener("click", closeCommentsDialog));
+    commentsDialog.querySelectorAll("[data-comments-close]").forEach(button => button.addEventListener("click", () => {
+      if (postOnlyMode) window.location.href = "/pages/notifications.html";
+      else closeCommentsDialog();
+    }));
     commentsDialog.querySelector(".comments-dialog-form").addEventListener("submit", event => {
       event.preventDefault();
       if (!activeCommentsPost) return;
@@ -722,7 +725,10 @@ document.addEventListener("DOMContentLoaded", () => {
       window.requestAnimationFrame(() => composerInput.scrollIntoView({ block: "nearest", behavior: "smooth" }));
     });
     commentsDialog.addEventListener("keydown", event => {
-      if (event.key === "Escape") closeCommentsDialog();
+      if (event.key === "Escape") {
+        if (postOnlyMode) window.location.href = "/pages/notifications.html";
+        else closeCommentsDialog();
+      }
     });
     return commentsDialog;
   }
@@ -1290,7 +1296,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (!requestedPostId) throw new Error("A post ID is required to open this page.");
           query = query.eq("id", requestedPostId);
         } else if (activeFeed === "public") query = query.eq("visibility", "public");
-        if (activeFeed === "anonymous") query = query.eq("is_anonymous", true);
+        if (!postOnlyMode && activeFeed === "anonymous") query = query.eq("is_anonymous", true);
         const { data, error } = await query;
         if (error) throw error;
         posts = data || [];
