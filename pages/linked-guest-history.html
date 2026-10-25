@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#242526"><title>Linked guest history · Amora</title>
+<link rel="stylesheet" href="/css/feed.css?v=messages-layout-1"><link rel="stylesheet" href="/css/messages.css?v=chat-emoji-2"><link rel="stylesheet" href="/css/guest-messaging.css?v=guest-ui-1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/supabase-client.js" defer></script><script type="module" src="/js/linked-guest-history.js?v=linked-history-1"></script>
+</head><body class="amora-feed-page"><main class="guest-history-shell"><a href="/pages/messages.html">← Back to Messages</a><h1>Linked guest history</h1><p>Guest conversations linked to your verified account. Other participants remain anonymous.</p>
+<section class="guest-history-card"><div id="linked-guest-list" class="guest-messaging-list">Loading linked history…</div><p id="linked-guest-status" role="status" aria-live="polite"></p></section>
+<section class="guest-history-card"><div id="linked-guest-messages" aria-live="polite"></div><form id="linked-guest-reply-form" class="guest-messaging-form"><textarea id="linked-guest-reply" rows="2" maxlength="2000" required placeholder="Write a reply…" disabled></textarea><button id="linked-guest-send" type="submit" disabled>Send reply</button></form></section>
+</main></body></html>
