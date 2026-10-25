@@ -245,3 +245,66 @@ html[data-theme="dark"] .notifications-main .secondary-button {
     border-color: var(--surface, #19121e) !important;
   }
 }
+
+/* Match notification dark mode to Amora's shared romantic palette. */
+html[data-theme="dark"] body.amora-feed-page,
+html[data-theme="dark"] body.amora-feed-page .feed-shell,
+html[data-theme="dark"] body.amora-feed-page .feed-main {
+  background: var(--bg, #100b14) !important;
+  color: var(--text, #fff7fc) !important;
+}
+html[data-theme="dark"] .notifications-main .amora-notification,
+html[data-theme="dark"] .notifications-main .notification-loading,
+html[data-theme="dark"] .notifications-main .notifications-empty,
+html[data-theme="dark"] .notifications-main .notifications-search,
+html[data-theme="dark"] .notifications-main .notification-refresh-button {
+  background: var(--surface, #19121e) !important;
+  color: var(--text, #fff7fc) !important;
+  border-color: var(--line, rgba(255,255,255,.085)) !important;
+}
+html[data-theme="dark"] .notifications-main .amora-notification.unread {
+  background: var(--surface2, #211727) !important;
+  border-color: rgba(255,114,183,.32) !important;
+}
+html[data-theme="dark"] .notifications-main .notification-symbol {
+  background: rgba(255,114,183,.16) !important;
+  color: var(--pink, #ff72b7) !important;
+  border-color: var(--surface, #19121e) !important;
+}
+html[data-theme="dark"] .notifications-main .notification-filter.active,
+html[data-theme="dark"] .notifications-main .notifications-header .eyebrow,
+html[data-theme="dark"] .notifications-main .notifications-status {
+  color: var(--pink, #ff72b7) !important;
+  border-bottom-color: var(--pink, #ff72b7) !important;
+}
+html[data-theme="dark"] .notifications-main .notification-copy span,
+html[data-theme="dark"] .notifications-main .notification-copy small,
+html[data-theme="dark"] .notifications-main .notifications-header p:not(.eyebrow),
+html[data-theme="dark"] .notifications-main .notifications-search {
+  color: var(--muted, #ad9eb4) !important;
+}
+html[data-theme="dark"] .notifications-main .secondary-button {
+  background: var(--surface2, #211727) !important;
+  color: var(--text, #fff7fc) !important;
+  border-color: var(--line, rgba(255,255,255,.085)) !important;
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .notifications-main .amora-notification,
+  html:not([data-theme]) .notifications-main .notification-loading,
+  html:not([data-theme]) .notifications-main .notifications-empty,
+  html:not([data-theme]) .notifications-main .notifications-search,
+  html:not([data-theme]) .notifications-main .notification-refresh-button {
+    background: var(--surface, #19121e) !important;
+    color: var(--text, #fff7fc) !important;
+    border-color: var(--line, rgba(255,255,255,.085)) !important;
+  }
+  html:not([data-theme]) .notifications-main .amora-notification.unread {
+    background: var(--surface2, #211727) !important;
+    border-color: rgba(255,114,183,.32) !important;
+  }
+  html:not([data-theme]) .notifications-main .notification-symbol {
+    background: rgba(255,114,183,.16) !important;
+    color: var(--pink, #ff72b7) !important;
+    border-color: var(--surface, #19121e) !important;
+  }
+}
