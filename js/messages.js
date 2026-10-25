@@ -260,7 +260,10 @@ function startLiveMessageUpdates(conversationId) {
     if (list && !wasNearBottom && !hasNewMessage) list.scrollTop = Math.max(0, list.scrollHeight - list.clientHeight - 40);
     lastMessageIds = ids;
     await loadChatConversations(false);
-    if (incoming.some(m => !m.sent_by_me && !m.read_at)) await supabase.rpc("mark_conversation_read", { p_conversation_id: conversationId });
+    if (incoming.some(m => !m.sent_by_me && !m.read_at)) {
+      await supabase.rpc("mark_conversation_messages_read", { p_conversation_id: conversationId });
+      await supabase.rpc("mark_conversation_read", { p_conversation_id: conversationId });
+    }
   }, 5000);
 }
 
@@ -297,6 +300,10 @@ async function loadChatMessages(conversationId) {
     setChatStatus("Messages update automatically.");
     startLiveMessageUpdates(conversationId);
 
+    // Message receipts and notification receipts are separate database updates.
+    await supabase.rpc("mark_conversation_messages_read", {
+      p_conversation_id: conversationId
+    });
     await supabase.rpc("mark_conversation_read", {
       p_conversation_id: conversationId
     });
@@ -413,6 +420,25 @@ async function handleSendMessage(event) {
   }
 }
 
+function initEmojiPicker() {
+  const form = $("#chat-message-form");
+  const input = $("#chat-message-text");
+  if (!form || !input || form.querySelector(".chat-emoji-toggle")) return;
+  const toggle = document.createElement("button");
+  toggle.type = "button"; toggle.className = "chat-emoji-toggle"; toggle.textContent = "☺";
+  toggle.setAttribute("aria-label", "Choose emoji"); toggle.setAttribute("aria-expanded", "false"); toggle.title = "Choose emoji";
+  const picker = document.createElement("div");
+  picker.className = "chat-emoji-picker"; picker.hidden = true; picker.setAttribute("role", "group"); picker.setAttribute("aria-label", "Emoji picker");
+  const emojis = ["😀","😂","🥹","😍","🥰","😘","😊","😉","😎","😭","😢","😡","🤔","🙈","🤗","🤭","😴","🥳","❤️","💕","💗","💖","💔","💋","💯","🔥","✨","🎉","👍","👎","🙏","👏","🤝","🫶","👀","💐","🌹","☀️","🌙","😅","😇","🤍","💜","💙","💚","🧡","🥺","😋","🤩","😌","😏","🤦","💃","🕺"];
+  emojis.forEach((emoji) => {
+    const button = document.createElement("button"); button.type = "button"; button.className = "chat-emoji-option"; button.textContent = emoji; button.setAttribute("aria-label", emoji);
+    button.addEventListener("click", () => { const start = input.selectionStart ?? input.value.length; const end = input.selectionEnd ?? start; input.setRangeText(emoji, start, end, "end"); input.focus(); });
+    picker.appendChild(button);
+  });
+  toggle.addEventListener("click", () => { const open = picker.hidden; picker.hidden = !open; toggle.setAttribute("aria-expanded", String(open)); });
+  document.addEventListener("click", (event) => { if (!form.contains(event.target)) { picker.hidden = true; toggle.setAttribute("aria-expanded", "false"); } });
+  form.insertBefore(toggle, input); form.insertBefore(picker, input);
+}
 function clearChat() {
   activeConversationId = null;
   stopLiveMessageUpdates();
@@ -474,6 +500,7 @@ function initMessages() {
     "submit",
     handleSendMessage
   );
+  initEmojiPicker();
   $("#mobile-inbox-back")?.addEventListener("click", () => {
     document.querySelector(".messages-workspace")?.classList.remove("chat-open");
   });
