@@ -114,7 +114,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   byId("settings-close-guest-recovery")?.addEventListener("click", () => closeAccountDialog(guestRecoveryDialog));
   guestRecoveryDialog?.addEventListener("click", event => { if (event.target === guestRecoveryDialog) closeAccountDialog(guestRecoveryDialog); });
   document.addEventListener("keydown", event => { if (event.key === "Escape" && guestRecoveryDialog && !guestRecoveryDialog.hidden) closeAccountDialog(guestRecoveryDialog); });
-  document.addEventListener("guest-account-link-success", () => closeAccountDialog(guestRecoveryDialog));
   byId("settings-open-username")?.addEventListener("click", () => openAccountDialog(usernameDialog, "settings-username-input"));
   byId("settings-open-display-name")?.addEventListener("click", () => openAccountDialog(displayNameDialog, "settings-display-name-input"));
   byId("settings-close-username")?.addEventListener("click", () => closeAccountDialog(usernameDialog));
