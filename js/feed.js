@@ -75,6 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let selectedImage = null;
   let activeFeed = "for-you";
+  let feedSearchQuery = "";
   let currentUser = null;
   let loading = false;
   let posts = [];
@@ -1018,12 +1019,20 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     let visible = posts;
+    if (activeFeed === "anonymous") visible = posts.filter(post => Boolean(post.is_anonymous));
     if (activeFeed === "following" && currentUser) {
       const { data, error } = await supabase.from("user_follows").select("followed_id").eq("follower_id", currentUser.id);
       if (!error) {
         const followed = new Set((data || []).map((row) => row.followed_id));
         visible = posts.filter((post) => post.is_anonymous || followed.has(post.author_id));
       }
+    }
+    if (feedSearchQuery.trim()) {
+      const query = feedSearchQuery.trim().toLowerCase();
+      visible = visible.filter(post => {
+        const profile = post.is_anonymous ? null : profileCache.get(post.author_id);
+        return [post.content, post.is_anonymous ? "anonymous" : "", profile?.username, profile?.display_name].filter(Boolean).join(" ").toLowerCase().includes(query);
+      });
     }
     if (!visible.length) {
       const empty = document.createElement("div");
@@ -1032,9 +1041,9 @@ document.addEventListener("DOMContentLoaded", () => {
       art.className = "empty-art";
       art.textContent = "♡";
       const heading = document.createElement("h2");
-      heading.textContent = activeFeed === "following" ? "Your circle is growing" : "Your feed starts here";
+      heading.textContent = feedSearchQuery.trim() ? "No matching posts" : activeFeed === "anonymous" ? "No anonymous posts yet" : activeFeed === "following" ? "Your circle is growing" : "Your feed starts here";
       const copy = document.createElement("p");
-      copy.textContent = activeFeed === "following"
+      copy.textContent = feedSearchQuery.trim() ? "Try another search phrase." : activeFeed === "anonymous" ? "Anonymous posts from the community will appear here, without exposing their authors." : activeFeed === "following"
         ? "Posts from accounts you follow will appear here."
         : "Be the first to share a thought with the Amora community.";
       empty.append(art, heading, copy);
