@@ -11,6 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
   <script src="/js/settings.js" defer></script>
+  <script type="module" src="/js/guest-account-link.js?v=guest-recovery-settings-1"></script>
 </head>
 <body class="amora-feed-page settings-page">
   <div class="feed-shell">
@@ -44,7 +45,17 @@
             <p class="eyebrow">ACCOUNT</p><h2>Your account</h2>
             <article class="settings-item card"><button class="settings-traits-trigger" id="settings-open-username" type="button" aria-haspopup="dialog" aria-controls="settings-username-dialog"><span class="settings-icon">＠</span><span class="settings-traits-trigger-copy"><strong>Username</strong><small id="settings-username-summary">Manage your unique @username.</small></span><span class="settings-traits-trigger-arrow" aria-hidden="true">↗</span></button></article>
             <article class="settings-item card"><button class="settings-traits-trigger" id="settings-open-display-name" type="button" aria-haspopup="dialog" aria-controls="settings-display-name-dialog"><span class="settings-icon">✧</span><span class="settings-traits-trigger-copy"><strong>Display name</strong><small id="settings-display-name-summary">Manage the name shown on your profile.</small></span><span class="settings-traits-trigger-arrow" aria-hidden="true">↗</span></button></article>
-            <a class="settings-item card settings-link" href="/pages/messages.html#guest-chat-recovery"><span class="settings-icon">✉</span><div><h3>Guest chat recovery</h3><p>Recover guest conversations using your recovery token.</p></div><span>↗</span></a>
+            <section class="guest-account-link-panel card" id="guest-chat-recovery" aria-labelledby="guest-account-link-title">
+              <h3 id="guest-account-link-title">Guest chat recovery</h3>
+              <p>Recover guest conversations using your 64-character recovery token. You must be signed in with a verified email and explicitly consent to linking.</p>
+              <form id="guest-account-link-form">
+                <label class="sr-only" for="guest-account-link-token">Guest recovery token</label>
+                <input id="guest-account-link-token" type="password" autocomplete="off" spellcheck="false" maxlength="64" pattern="[a-f0-9]{64}" required placeholder="64-character recovery token" aria-label="Guest recovery token">
+                <label><input id="guest-account-link-consent" type="checkbox" required> I consent to link this guest identity and its conversation history to my account.</label>
+                <button type="submit">Link guest history</button>
+              </form>
+              <p id="guest-account-link-status" role="status" aria-live="polite"></p>
+            </section>
             <a class="settings-item card settings-link" href="/pages/password-reset.html"><span class="settings-icon">⌑</span><div><h3>Password and security</h3><p>Use the password recovery flow if you need to reset your password.</p></div><span>↗</span></a>
           </section>
           <section class="settings-group" id="privacy">
