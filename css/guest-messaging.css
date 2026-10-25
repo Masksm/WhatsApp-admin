@@ -11,3 +11,40 @@ body.guest-link-modal-open::before{content:"";position:fixed;inset:0;z-index:999
 .guest-account-link-panel.guest-link-modal{position:fixed;z-index:9999;left:50%;top:50%;transform:translate(-50%,-50%);width:min( calc(100vw - 28px), 520px);max-height:calc(100dvh - 32px);overflow:auto;margin:0;padding:26px 20px 20px;border:1px solid var(--line,#4b3a50);border-radius:20px;background:var(--surface,#211729);box-shadow:0 24px 90px #0009}
 .guest-account-link-panel.guest-link-modal h3{padding-right:35px}
 @media(max-width:480px){.guest-account-link-panel.guest-link-modal{padding:24px 16px 16px}}
+
+/* Guest inbox refresh: compact, responsive cards that follow Amora's theme. */
+.guest-inbox-shell{width:min(100% - 28px,980px);margin:0 auto;padding:22px 0 100px;color:var(--text)}
+.guest-inbox-hero{position:relative;overflow:hidden;padding:24px;border:1px solid var(--line);border-radius:24px;background:radial-gradient(ellipse at 100% 0%,rgba(232,62,140,.18),transparent 48%),var(--surface);margin:18px 0 20px}
+.guest-inbox-hero:after{content:"♡";position:absolute;right:18px;bottom:-32px;font-size:140px;line-height:1;color:rgba(232,62,140,.09);pointer-events:none}
+.guest-inbox-back{display:inline-flex;align-items:center;gap:8px;color:var(--muted);text-decoration:none;font-weight:650}
+.guest-inbox-hero h1{margin:20px 0 8px;font:800 clamp(27px,5vw,38px) 'Manrope',sans-serif;letter-spacing:-1px}
+.guest-inbox-hero p{max-width:560px;margin:0;color:var(--muted);line-height:1.6}
+.guest-inbox-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:30px;background:rgba(232,62,140,.12);color:var(--pink,#e83e8c);font-size:12px;font-weight:750}
+.guest-inbox-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.guest-inbox-card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:20px;background:var(--surface)}
+.guest-inbox-card-head{padding:18px 18px 14px;border-bottom:1px solid var(--line)}
+.guest-inbox-card-head h2{margin:0 0 5px;font:750 18px 'Manrope',sans-serif}
+.guest-inbox-card-head p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+.guest-inbox-list{display:grid;gap:9px;padding:12px}
+.guest-inbox-list:empty{display:block}
+.guest-row{width:100%;box-sizing:border-box;padding:15px;border:1px solid var(--line);border-radius:15px;background:var(--surface2);color:var(--text);text-align:left;cursor:pointer;transition:border-color .18s,transform .18s}
+.guest-row:hover,.guest-row.active{border-color:var(--pink,#e83e8c)}
+.guest-row.active{box-shadow:0 0 0 2px rgba(232,62,140,.10)}
+.guest-row:focus-visible,.guest-inbox-back:focus-visible,.guest-form button:focus-visible{outline:2px solid var(--pink,#e83e8c);outline-offset:3px}
+.guest-box{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:20px;background:var(--surface);padding:18px;margin:0 0 16px}
+.guest-box h2{font:750 18px 'Manrope',sans-serif;margin:0 0 12px}
+.guest-msg{max-width:88%;padding:12px 14px;border-radius:16px;background:var(--surface2);color:var(--text);margin:9px 0;overflow-wrap:anywhere}
+.guest-msg.mine{margin-left:auto;background:linear-gradient(135deg,#8b5bc4,#c45691);color:#fff}
+.guest-msg p{white-space:pre-wrap;line-height:1.5;margin:0}
+.guest-form{display:grid;gap:10px;margin-top:14px}
+.guest-form textarea{width:100%;box-sizing:border-box;min-height:84px;resize:vertical;padding:13px 14px;border:1px solid var(--line);border-radius:15px;background:var(--surface2);color:var(--text);font:inherit;outline:0}
+.guest-form textarea:focus{border-color:var(--pink,#e83e8c)}
+.guest-form button{min-height:46px;border:0;border-radius:14px;background:linear-gradient(135deg,#ff72b7,#9a75ef);color:#fff;font:750 14px inherit;cursor:pointer}
+.guest-form button:disabled,.guest-form textarea:disabled{opacity:.5;cursor:not-allowed}
+.guest-status{min-height:1.3em;margin:8px 0 0;color:var(--muted);font-size:13px}
+.anonymous-link-message{padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--surface2);margin:9px 0;overflow-wrap:anywhere}
+.anonymous-link-message p{white-space:pre-wrap;line-height:1.5}
+.anonymous-link-message a{color:var(--pink,#e83e8c);font-weight:700}
+.guest-inbox-bottom{margin-top:16px}
+@media(max-width:700px){.guest-inbox-shell{width:min(100% - 22px,600px);padding-top:12px}.guest-inbox-hero{padding:20px;border-radius:20px}.guest-inbox-grid{grid-template-columns:1fr}.guest-inbox-card{border-radius:18px}.guest-inbox-card-head{padding:16px}.guest-inbox-list{padding:10px}.guest-box{padding:14px;border-radius:18px}.guest-msg{max-width:94%}}
+@media(prefers-reduced-motion:reduce){.guest-row{transition:none}}
