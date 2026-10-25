@@ -157,7 +157,7 @@ function render() {
       } else if (item.actor_username && item.notification_type === "new_follower") {
         window.location.href = "/pages/profile.html?username=" + encodeURIComponent(item.actor_username);
       } else if (item.post_id || item.comment_id) {
-        window.location.href = "/pages/social-home.html?post=" + encodeURIComponent(item.post_id) + (item.comment_id ? "&comment=" + encodeURIComponent(item.comment_id) : "");
+        window.location.href = "/pages/post.html?id=" + encodeURIComponent(item.post_id || item.comment_post_id) + (item.comment_id ? "&comment=" + encodeURIComponent(item.comment_id) : "");
       }
     });
 
