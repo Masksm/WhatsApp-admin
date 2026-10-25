@@ -102,10 +102,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   async function getSignedUrl(story) {
     if (signedUrlCache.has(story.id)) return signedUrlCache.get(story.id);
-    const { data, error } = await db.storage.from(BUCKET).createSignedUrl(story.media_path, 300);
-    if (error) throw error;
-    signedUrlCache.set(story.id, data.signedUrl);
-    return data.signedUrl;
+    const storage = db.storage.from(BUCKET);
+    const signed = await storage.createSignedUrl(story.media_path, 300);
+    if (!signed.error && signed.data?.signedUrl) {
+      signedUrlCache.set(story.id, signed.data.signedUrl);
+      return signed.data.signedUrl;
+    }
+    console.warn("Amora signed story URL failed; trying authenticated media download:", signed.error?.message);
+    const downloaded = await storage.download(story.media_path);
+    if (downloaded.error || !downloaded.data) throw downloaded.error || new Error("Story media is unavailable.");
+    const objectUrl = URL.createObjectURL(downloaded.data);
+    signedUrlCache.set(story.id, objectUrl);
+    return objectUrl;
   }
   async function loadStories() {
     row.innerHTML = '<p class="stories-loading">Loading stories…</p>';
