@@ -462,3 +462,17 @@ html.amora-post-opening body.amora-post-page .feed-shell{visibility:hidden!impor
 body.amora-post-page .comments-dialog{z-index:10000}
 body.amora-post-page .post-more-backdrop{z-index:10011!important}
 body.amora-post-page .post-more-menu{z-index:10012!important}
+
+/* Comment edit controls: keep Cancel visually identical to Save. */
+.comment-edit-cancel{
+  padding:7px 13px!important;
+  border:0!important;
+  border-radius:9px!important;
+  background:linear-gradient(105deg,#ff70b5,#ba83ff)!important;
+  color:#fff!important;
+  font-weight:700!important;
+  cursor:pointer;
+}
+.comment-edit-cancel:hover{filter:brightness(1.06)}
+.comment-edit-cancel:disabled{opacity:.55;cursor:wait}
+.comments-dialog-anonymous[hidden]{display:none!important}
