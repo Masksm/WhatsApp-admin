@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff0f5">
+  <title>Private Guest Chat · Amora</title>
+  <link rel="stylesheet" href="/css/feed.css?v=messages-layout-1">
+  <link rel="stylesheet" href="/css/messages.css?v=chat-emoji-2">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-client.js" defer></script>
+  <script type="module" src="/js/guest-chat-page.js?v=guest-chat-1"></script>
+  <style>
+    .guest-shell{max-width:760px;margin:32px auto;padding:20px}
+    .guest-card{background:var(--card-bg,#fff);color:var(--text-color,#242526);border:1px solid var(--border-color,#eadde4);border-radius:18px;padding:20px;margin-bottom:16px}
+    .guest-card h1,.guest-card h2{margin-top:0}.guest-form{display:grid;gap:10px}.guest-form input,.guest-form textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #d9cbd3;border-radius:12px;font:inherit}.guest-form button,.guest-action{border:0;border-radius:12px;padding:11px 15px;background:#e83e8c;color:white;font-weight:600;cursor:pointer}.guest-form button:disabled{opacity:.5}.guest-token{overflow-wrap:anywhere;padding:12px;background:#fff0f5;border-radius:10px;font-family:monospace}.guest-list{display:grid;gap:8px}.guest-conversation{padding:12px;border:1px solid #eadde4;border-radius:12px;text-align:left;background:transparent;color:inherit;cursor:pointer}.guest-conversation.active{border-color:#e83e8c}.guest-status{min-height:1.4em}.guest-message{padding:10px 12px;border-radius:12px;margin:8px 0;background:#fce7f3;overflow-wrap:anywhere}.guest-message.mine{background:#e5e7eb}.guest-small{font-size:.9em;opacity:.8}
+  </style>
+</head>
+<body class="amora-feed-page">
+  <main class="guest-shell">
+    <a href="/" class="feed-brand"><span class="brand-mark">a</span><span>amora</span></a>
+    <section class="guest-card">
+      <h1>Private guest chat 💗</h1>
+      <p>Chat without creating an account. Your recovery token works on another device too, so keep it private and save a copy.</p>
+      <div id="guest-identity-controls" class="guest-form">
+        <button id="guest-create-identity" type="button" class="guest-action">Create a guest identity</button>
+        <label for="guest-recovery-token">Already have a recovery token?</label>
+        <input id="guest-recovery-token" autocomplete="off" spellcheck="false" placeholder="Paste your 64-character recovery token">
+        <button id="guest-recover-identity" type="button" class="guest-action">Recover guest chats</button>
+      </div>
+      <div id="guest-token-panel" hidden>
+        <p><strong>Your recovery token</strong>. It will not be shown again after you leave this page unless you saved it.</p>
+        <p id="guest-token-value" class="guest-token"></p>
+        <button id="guest-copy-token" type="button" class="guest-action">Copy recovery token</button>
+      </div>
+      <p id="guest-status" class="guest-status" role="status" aria-live="polite"></p>
+    </section>
+    <section class="guest-card" id="guest-compose-card" hidden>
+      <h2>Start a conversation</h2>
+      <form id="guest-first-message-form" class="guest-form">
+        <textarea id="guest-first-message" rows="3" maxlength="2000" required placeholder="Write a message…"></textarea>
+        <button type="submit" class="guest-action">Send privately</button>
+      </form>
+    </section>
+    <section class="guest-card" id="guest-chat-card" hidden>
+      <h2>Your guest conversations</h2>
+      <div id="guest-conversation-list" class="guest-list"></div>
+      <div id="guest-message-list" aria-live="polite"></div>
+      <form id="guest-reply-form" class="guest-form">
+        <textarea id="guest-reply-text" rows="2" maxlength="2000" required placeholder="Write a reply…" disabled></textarea>
+        <button id="guest-reply-send" type="submit" class="guest-action" disabled>Send reply</button>
+      </form>
+    </section>
+    <p class="guest-small">Never share your recovery token with anyone. Amora staff will never ask you for it.</p>
+  </main>
+</body>
+</html>
