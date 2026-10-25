@@ -140,3 +140,45 @@ html[data-theme="light"] .notifications-main .notification-filter.active {color:
 html[data-theme="light"] .notifications-main .secondary-button {background:#e4e6eb!important;color:#242526!important;border-color:#d8dadf!important}
 @media(prefers-color-scheme:dark){html:not([data-theme]) body.amora-feed-page,html:not([data-theme]) body.amora-feed-page .feed-shell,html:not([data-theme]) body.amora-feed-page .feed-main{background:#18191a!important;color:#f0f2f5!important;color-scheme:dark}html:not([data-theme]) .notifications-main .amora-notification{background:#242526!important;color:#f0f2f5!important;border-color:#3e4042!important}html:not([data-theme]) .notifications-main .amora-notification.unread{background:#263442!important}html:not([data-theme]) .notifications-main .notification-symbol{background:#263f59!important;color:#4599ff!important}}
 @media(prefers-color-scheme:light){html:not([data-theme]) body.amora-feed-page,html:not([data-theme]) body.amora-feed-page .feed-shell,html:not([data-theme]) body.amora-feed-page .feed-main{background:#f0f2f5!important;color:#242526!important;color-scheme:light}html:not([data-theme]) .notifications-main .amora-notification{background:#fff!important;color:#242526!important;border-color:#d8dadf!important}html:not([data-theme]) .notifications-main .amora-notification.unread{background:#e7f3ff!important}html:not([data-theme]) .notifications-main .notification-symbol{background:#e7f3ff!important;color:#1877f2!important}}
+
+/* Facebook-inspired activity center, adapted to Amora's existing palette. */
+.notifications-main{max-width:790px}
+.notifications-header-actions{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.notification-refresh-button{display:grid;place-items:center;width:42px;height:42px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);font-size:23px;cursor:pointer}
+.notification-refresh-button:disabled{opacity:.6}
+.notification-refresh-button.is-refreshing{animation:notification-spin .7s linear infinite}
+@keyframes notification-spin{to{transform:rotate(360deg)}}
+.notifications-search{display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:0 14px;min-height:46px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--muted)}
+.notifications-search span{font-size:24px;line-height:1}
+.notifications-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:inherit;font-size:14px}
+.notifications-search input::placeholder{color:var(--muted)}
+.notifications-filters{gap:6px;overflow-x:auto;scrollbar-width:none}
+.notifications-filters::-webkit-scrollbar{display:none}
+.notification-filter{white-space:nowrap;border-radius:10px 10px 0 0;padding:12px 14px}
+.notification-date-heading{margin:20px 2px 2px;font-size:16px;font-weight:800;letter-spacing:-.2px;color:var(--text)}
+.amora-notification{grid-template-columns:40px 42px minmax(0,1fr) auto;align-items:center;border:0;border-radius:12px;padding:13px 12px;gap:10px;transition:background .15s}
+.amora-notification:hover{filter:brightness(.98)}
+.notification-actor-avatar{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#ff72b7,#8c78ef);color:#fff;font-weight:800;font-size:15px}
+.notification-symbol{width:28px;height:28px;margin-left:-24px;margin-top:25px;z-index:1;border:2px solid var(--surface);font-size:13px}
+.notification-copy{gap:4px}
+.notification-copy strong{font-size:14px;font-weight:650;line-height:1.4}
+.notification-copy span{font-size:13px}
+.notification-copy small{font-size:12px}
+.notification-unread-dot{align-self:center;margin:0 5px;width:9px;height:9px}
+.notifications-empty{margin-top:12px}
+:root[data-theme="light"] .notifications-main .notifications-search{background:#fff;border-color:#d8dadf;color:#65676b}
+:root[data-theme="dark"] .notifications-main .notifications-search{background:#242526;border-color:#3e4042;color:#b0b3b8}
+:root[data-theme="light"] .notifications-main .notification-symbol{border-color:#fff}
+:root[data-theme="dark"] .notifications-main .notification-symbol{border-color:#242526}
+@media(max-width:700px){
+ .notifications-header-actions{width:100%}
+ .notifications-header-actions .secondary-button{flex:1;width:auto}
+ .notifications-header-actions .notification-refresh-button{flex:0 0 42px}
+ .notifications-main{padding-top:20px}
+ .amora-notification{grid-template-columns:34px 34px minmax(0,1fr) auto;gap:8px;padding:12px 8px}
+ .notification-actor-avatar{width:34px;height:34px;font-size:13px}
+ .notification-symbol{width:25px;height:25px;margin-left:-21px;margin-top:23px}
+ .notification-copy strong{font-size:13px}
+ .notification-copy span{font-size:12px}
+ .notification-filter{padding:10px 12px}
+}
