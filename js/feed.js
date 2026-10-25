@@ -1065,9 +1065,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     });
-    menuAction("⚑ Report post", async () => {
+    if (post.author_id && currentUser && post.author_id !== currentUser.id) menuAction("⚑ Report post", async () => {
       try {
         const reportUser = await requireUser();
+        if (post.author_id && post.author_id === reportUser.id) {
+          setStatus("You cannot report your own post.", true);
+          return;
+        }
         const reason = window.prompt("Why are you reporting this post? (1–1000 characters)");
         if (reason === null) return;
         const trimmedReason = reason.trim();
