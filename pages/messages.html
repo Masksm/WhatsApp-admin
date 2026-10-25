@@ -49,7 +49,8 @@
         <div class="inbox-panel">
           <div class="inbox-heading"><div><h2>Chats</h2><span>Private conversations and anonymous link messages</span></div><span class="inbox-lock" aria-label="Private">♡</span></div>
           <p><a href="/pages/guest-inbox.html">Open guest conversations</a></p>
-          <section class="guest-account-link-panel" aria-labelledby="guest-account-link-title">
+          <section class="guest-account-link-panel" id="guest-account-link-panel" aria-labelledby="guest-account-link-title">
+            <button type="button" class="guest-link-close" id="guest-link-close" aria-label="Close guest history linking panel" title="Close">×</button>
             <h3 id="guest-account-link-title">Link guest history to your account</h3>
             <p>Enter your 64-character recovery token. You must be signed in with a verified email and explicitly consent to linking.</p>
             <form id="guest-account-link-form">
@@ -58,6 +59,7 @@
               <button type="submit">Link guest history</button>
             </form>
             <p id="guest-account-link-status" role="status" aria-live="polite"></p>
+            <button type="button" class="guest-link-no-history" id="guest-link-no-history">I have no guest account</button>
           </section>
           <div id="conversation-list" class="conversation-list" aria-live="polite">Sign in to view your conversations.</div>
         </div>
