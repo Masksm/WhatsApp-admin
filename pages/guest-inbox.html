@@ -15,7 +15,7 @@
 </head>
 <body class="amora-feed-page">
   <main class="guest-inbox-shell">
-    <a class="guest-inbox-back" href="/pages/messages.html"><span aria-hidden="true">‹</span> Back to Messages</a>
+    <div class="guest-inbox-actions"><a class="guest-inbox-back" href="/pages/messages.html"><span aria-hidden="true">‹</span> Back to Messages</a><button id="guest-inbox-theme-toggle" class="guest-theme-toggle" type="button" aria-pressed="false">☀️ Light mode</button></div>
     <header class="guest-inbox-hero">
       <span class="guest-inbox-badge"><span aria-hidden="true">♡</span> PRIVATE GUEST INBOX</span>
       <h1>Guest conversations</h1>
@@ -24,16 +24,23 @@
 
     <section class="guest-inbox-card" aria-labelledby="guest-conversations-heading">
       <header class="guest-inbox-card-head">
-        <h2 id="guest-conversations-heading">All guest conversations</h2>
-        <p>Guest chats and messages sent to your anonymous link appear here.</p>
+        <h2 id="guest-conversations-heading">Your guest conversations</h2>
+        <p>Private guest chats are the main inbox. Switch to anonymous link messages when needed.</p>
       </header>
-      <div id="owner-guest-list" class="guest-list guest-inbox-list" aria-live="polite">Loading guest conversations…</div>
-      <p id="owner-guest-status" class="guest-status" role="status" aria-live="polite"></p>
-      <div class="guest-inbox-card-head">
-        <h3>Anonymous link messages</h3>
-        <p>These messages are shown alongside your guest inbox while the secure reply flow is being connected.</p>
+      <div class="guest-inbox-tabs" role="tablist" aria-label="Guest inbox type">
+        <button class="guest-inbox-tab active" id="guest-chat-tab" type="button" role="tab" aria-selected="true" aria-controls="guest-chat-panel">Private guest chats</button>
+        <button class="guest-inbox-tab" id="anonymous-message-tab" type="button" role="tab" aria-selected="false" aria-controls="anonymous-message-panel">Anonymous messages</button>
       </div>
-      <div id="owner-anonymous-link-list" class="guest-list guest-inbox-list" aria-live="polite">Loading anonymous link messages…</div>
+      <div id="guest-chat-panel" role="tabpanel" aria-labelledby="guest-chat-tab">
+        <div id="owner-guest-list" class="guest-list guest-inbox-list" aria-live="polite">Loading guest conversations…</div>
+      </div>
+      <div id="anonymous-message-panel" role="tabpanel" aria-labelledby="anonymous-message-tab" hidden>
+        <div class="guest-inbox-card-head">
+          <p>Anonymous link messages cannot be replied to here. They remain separate from private guest chats.</p>
+        </div>
+        <div id="owner-anonymous-link-list" class="guest-list guest-inbox-list" aria-live="polite">Loading anonymous link messages…</div>
+      </div>
+      <p id="owner-guest-status" class="guest-status" role="status" aria-live="polite"></p>
     </section>
 
     <section class="guest-box guest-inbox-bottom" aria-label="Selected guest conversation">
