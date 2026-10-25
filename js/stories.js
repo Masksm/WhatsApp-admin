@@ -70,7 +70,11 @@ document.addEventListener("DOMContentLoaded", () => {
       videoTime: currentVideo ? currentVideo.currentTime : null,
       wasVideo: Boolean(currentVideo)
     };
-    stopViewerTimers();
+    if (advanceTimer) clearTimeout(advanceTimer);
+    if (progressTimer) clearInterval(progressTimer);
+    advanceTimer = null;
+    progressTimer = null;
+    if (currentVideo) currentVideo.pause();
   }
   function resumeStoryAfterMenu() {
     if (!pausedStoryState || viewer.hidden || moreMenu?.hidden === false) return;
@@ -149,7 +153,20 @@ document.addEventListener("DOMContentLoaded", () => {
     create.type = "button"; create.className = "story-person is-own";
     create.setAttribute("aria-label", own ? "View your story or add another" : "Add your story");
     create.innerHTML = '<span class="story-ring"><span class="story-avatar">' + (own ? escapeHtml(initials(nameFor(own.profile))) : "＋") + '</span></span><span class="story-person-name">Your story</span>';
-    create.addEventListener("click", () => own ? openViewer(storyGroups.indexOf(own), 0) : fileInput.click());
+    create.addEventListener("click", () => {
+      if (own) {
+        openViewer(storyGroups.indexOf(own), 0);
+        return;
+      }
+      const composer = document.getElementById("composer-dialog");
+      const quickComposer = document.querySelector(".feed-quick-composer");
+      if (composer) {
+        composer.hidden = false;
+        requestAnimationFrame(() => composer.classList.add("is-expanded"));
+        quickComposer?.setAttribute("aria-expanded", "true");
+      }
+      window.setTimeout(() => fileInput.click(), composer ? 180 : 0);
+    });
     row.appendChild(create);
     storyGroups.filter(g => g.userId !== currentUser?.id).forEach(group => {
       const button = document.createElement("button");
