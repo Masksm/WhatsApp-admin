@@ -7,11 +7,11 @@
   <title>Chats · Amora</title>
   <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
   <link rel="stylesheet" href="/css/feed.css?v=messages-layout-1">
-  <link rel="stylesheet" href="/css/messages.css?v=messenger-refresh-3">
+  <link rel="stylesheet" href="/css/messages.css?v=messenger-refresh-4">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
   <script src="/js/moderator-nav.js?v=1" defer></script>
-  <script type="module" src="/js/messages-page.js?v=messenger-refresh-3"></script>
+  <script type="module" src="/js/messages-page.js?v=messenger-refresh-4"></script>
 </head>
 <body class="amora-feed-page">
   <div class="feed-shell">
@@ -44,11 +44,11 @@
       <div class="messages-tabs" role="tablist" aria-label="Conversation filter">
         <button class="messages-tab active" type="button" data-chat-filter="inbox" role="tab" aria-selected="true">Inbox</button>
         <button class="messages-tab" type="button" data-chat-filter="unread" role="tab" aria-selected="false">Unread</button>
-        <button class="messages-tab messages-tab-disabled" type="button" disabled aria-disabled="true" title="Message requests will be enabled when request permissions and backend handling are ready">Requests <span class="coming-soon-label">Soon</span></button>
+        <button class="messages-tab" type="button" data-chat-filter="anonymous" role="tab" aria-selected="false">Anonymous Messages <span id="anonymous-message-count" class="anonymous-message-count" hidden></span></button>
       </div>
       <section class="messages-workspace">
         <div class="inbox-panel">
-          <div class="inbox-heading"><div><h2>Chats</h2><span>Private conversations</span></div><span class="inbox-lock" aria-label="Private">♡</span></div>
+          <div class="inbox-heading"><div><h2>Chats</h2><span>Private conversations and anonymous link messages</span></div><span class="inbox-lock" aria-label="Private">♡</span></div>
           <div id="conversation-list" class="conversation-list" aria-live="polite">Sign in to view your conversations.</div>
         </div>
         <section class="chat-panel" aria-label="Conversation">
