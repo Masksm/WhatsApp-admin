@@ -222,9 +222,15 @@ function renderMessages(messages) {
         : message.sender_anonymous_name || "Anonymous";
 
     const date = formatChatDate(message.sent_at);
-    const receipt = message.sent_by_me && message.read_at ? " · Seen" : "";
-    meta.textContent = (date ? sender + " · " + date : sender) + receipt;
-    if (message.sent_by_me && message.read_at) { meta.classList.add("message-seen-indicator"); meta.setAttribute("aria-label", "Seen by recipient"); }
+    meta.textContent = date ? sender + " · " + date : sender;
+    if (message.sent_by_me) {
+      const receipt = document.createElement("span");
+      receipt.className = "chat-read-receipt" + (message.read_at ? " is-read" : "");
+      receipt.textContent = message.read_at ? "✓✓" : "✓";
+      receipt.setAttribute("aria-label", message.read_at ? "Read by recipient" : "Sent");
+      receipt.title = message.read_at ? "Read" : "Sent";
+      meta.append(" ", receipt);
+    }
 
     item.append(content, meta);
     list.appendChild(item);
@@ -243,10 +249,10 @@ function startLiveMessageUpdates(conversationId) {
   // Use the secured RPC because direct SELECT on chat_messages is intentionally restricted.
   activeMessageRefreshTimer = setInterval(async () => {
     if (document.hidden || activeConversationId !== conversationId || chatRequestInProgress) return;
-    const result = await supabase.rpc("get_conversation_messages", { p_conversation_id: conversationId });
+    const result = await supabase.rpc("get_conversation_messages_with_receipts", { p_conversation_id: conversationId });
     if (result.error || activeConversationId !== conversationId) return;
     const incoming = result.data || [];
-    const ids = new Set(incoming.map(m => m.id).filter(Boolean));
+    const ids = new Set(incoming.map(m => m.message_id || m.id).filter(Boolean));
     const hasNewMessage = [...ids].some(id => !lastMessageIds.has(id));
     const list = $("#message-list");
     const wasNearBottom = list ? list.scrollHeight - list.scrollTop - list.clientHeight < 100 : true;
@@ -277,7 +283,7 @@ async function loadChatMessages(conversationId) {
 
   try {
     const { data, error } = await supabase.rpc(
-      "get_conversation_messages",
+      "get_conversation_messages_with_receipts",
       { p_conversation_id: conversationId }
     );
 
@@ -286,7 +292,7 @@ async function loadChatMessages(conversationId) {
     if (activeConversationId !== conversationId) return;
 
     const messages = data || [];
-    lastMessageIds = new Set(messages.map(m => m.id).filter(Boolean));
+    lastMessageIds = new Set(messages.map(m => m.message_id || m.id).filter(Boolean));
     renderMessages(messages);
     setChatStatus("Messages update automatically.");
     startLiveMessageUpdates(conversationId);
