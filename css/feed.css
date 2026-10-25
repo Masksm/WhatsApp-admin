@@ -353,6 +353,19 @@ body.comments-dialog-open{overflow:hidden}
 @keyframes post-more-sheet-in{from{transform:translateY(18px);opacity:.7}to{transform:translateY(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){.post-more-menu{animation:none}}
 
+/* Post detail sheet: post-first layout, followed by actions and comments */
+.comments-dialog-panel{max-height:min(92dvh,940px);min-height:min(520px,78dvh)}
+.comments-dialog-header{flex:0 0 auto}
+.comments-dialog-post{flex:0 0 auto;max-height:42dvh;overflow-y:auto;white-space:normal;padding:0 19px 14px}
+.comments-dialog-post-text{margin:0;padding:14px 0;color:var(--text,#fff);font-size:.94rem;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.comments-dialog-post-image{display:block;width:100%;max-height:420px;object-fit:contain;background:#0e0c10;border-radius:10px;margin:0 0 8px}
+.comments-dialog-post-image:last-child{margin-bottom:0}
+.post-detail-actions{display:flex;align-items:center;justify-content:space-around;gap:4px;flex:0 0 auto;padding:9px 8px;border-top:1px solid var(--line,#ffffff12);border-bottom:1px solid var(--line,#ffffff12);background:var(--surface,#1b1b1e)}
+.post-detail-actions button{flex:1;min-width:0;padding:10px 3px;border:0;border-radius:9px;background:transparent;color:var(--text,#fff);font-size:.78rem;font-weight:750;cursor:pointer}
+.post-detail-actions button:hover{background:#ffffff0b}
+.comments-dialog-list{flex:1 1 auto;min-height:100px;overflow-y:auto;overscroll-behavior:contain;scroll-margin-top:8px}
+.comments-dialog-form{flex:0 0 auto}
+@media(max-width:600px){.comments-dialog-panel{height:92dvh;max-height:92dvh;min-height:70dvh}.comments-dialog-post{max-height:40dvh;padding-left:15px;padding-right:15px}.comments-dialog-post-image{max-height:340px}.post-detail-actions button{font-size:.72rem;padding:10px 1px}.comments-dialog-list{padding:12px 14px 18px}}
 /* Clickable post cards and Facebook-style post detail preview */
 .post-card{cursor:pointer}
 .post-card:focus-visible{outline:2px solid var(--pink,#ff79b9);outline-offset:3px}
