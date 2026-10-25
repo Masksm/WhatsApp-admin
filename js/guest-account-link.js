@@ -15,8 +15,10 @@ form?.addEventListener("submit",async event=>{
   if(!sessionData?.session){throw new Error("Sign in before linking guest history.");}
   const {data,error}=await supabase.rpc("guest_link_account",{p_token:token,p_consent:true});if(error)throw error;
   tokenInput.value="";consent.checked=false;
-  say("Guest history linked to your verified account. Existing conversations were not duplicated.");
-  const link=document.createElement("a");link.href="/pages/linked-guest-history.html";link.textContent="Open linked guest history";status?.append(" ",link);
+  const mergedChats = Number(data?.merged_conversations || 0);
+  const mergedMessages = Number(data?.merged_messages || 0);
+  say("Guest history linked. " + mergedChats + " conversation(s) and " + mergedMessages + " message(s) merged into your Chats.");
+  const link=document.createElement("a");link.href="/pages/messages.html";link.textContent="Open Messages";status?.append(" ",link);
  }catch(err){say(err.message||"Could not link guest history.",true);}
  finally{button.disabled=false;}
 });
