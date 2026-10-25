@@ -1143,6 +1143,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  document.querySelectorAll("[data-home-search]").forEach(input => {
+    input.addEventListener("input", () => {
+      feedSearchQuery = input.value || "";
+      document.querySelectorAll("[data-home-search]").forEach(other => { if (other !== input) other.value = input.value; });
+      renderFeed();
+    });
+  });
+
   feedTabs.forEach((tab) => {
     tab.addEventListener("click", async () => {
       activeFeed = tab.dataset.feed;
