@@ -327,28 +327,8 @@ document.addEventListener("DOMContentLoaded", () => {
         video.play().catch(() => {});
       } else {
         const img = document.createElement("img");
-        img.alt = "Story shared by " + nameFor(group.profile);
-        img.decoding = "async";
-        img.style.width = "100%";
-        img.style.height = "100%";
-        img.style.objectFit = "contain";
+        img.alt = "Story shared by " + nameFor(group.profile); img.src = url;
         viewerMedia.appendChild(img);
-        // Use Supabase's authenticated download API for images. This avoids
-        // broken/expired signed URLs and ensures private-bucket media is readable.
-        const downloaded = await db.storage.from(BUCKET).download(story.media_path);
-        if (viewer.hidden || storyGroups[activeGroup]?.items[activeIndex]?.id !== story.id) return;
-        if (downloaded.error || !downloaded.data) throw downloaded.error || new Error("Supabase returned no image data.");
-        const blobUrl = URL.createObjectURL(downloaded.data);
-        signedUrlCache.set(story.id, {url:blobUrl,expiresAt:Date.now()+1700000});
-        img.onload = () => { img.dataset.loaded = "true"; };
-        img.onerror = () => {
-          console.error("Amora downloaded story image could not decode:", {
-            storyId: story.id, path: story.media_path,
-            type: downloaded.data.type, size: downloaded.data.size
-          });
-          viewerMedia.textContent = "The story file downloaded but the browser could not display it.";
-        };
-        img.src = blobUrl;
         const segment = viewerProgress.children[activeIndex]?.firstElementChild;
         const start = Date.now();
         viewerStartedAt = start;
