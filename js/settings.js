@@ -109,6 +109,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const displayNameDialog = byId("settings-display-name-dialog");
   const closeAccountDialog = dialog => { if (dialog) dialog.hidden = true; document.body.classList.remove("traits-dialog-open"); };
   const openAccountDialog = (dialog, focusId) => { if (!dialog) return; dialog.hidden = false; document.body.classList.add("traits-dialog-open"); byId(focusId)?.focus(); };
+  const guestRecoveryDialog = byId("settings-guest-recovery-dialog");
+  byId("settings-open-guest-recovery")?.addEventListener("click", () => openAccountDialog(guestRecoveryDialog, "guest-account-link-token"));
+  byId("settings-close-guest-recovery")?.addEventListener("click", () => closeAccountDialog(guestRecoveryDialog));
+  guestRecoveryDialog?.addEventListener("click", event => { if (event.target === guestRecoveryDialog) closeAccountDialog(guestRecoveryDialog); });
+  document.addEventListener("keydown", event => { if (event.key === "Escape" && guestRecoveryDialog && !guestRecoveryDialog.hidden) closeAccountDialog(guestRecoveryDialog); });
+  document.addEventListener("guest-account-link-success", () => closeAccountDialog(guestRecoveryDialog));
   byId("settings-open-username")?.addEventListener("click", () => openAccountDialog(usernameDialog, "settings-username-input"));
   byId("settings-open-display-name")?.addEventListener("click", () => openAccountDialog(displayNameDialog, "settings-display-name-input"));
   byId("settings-close-username")?.addEventListener("click", () => closeAccountDialog(usernameDialog));
