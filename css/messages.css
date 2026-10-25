@@ -210,3 +210,6 @@ html.amora-chat-popup-mode .chat-status{flex:0 0 auto}
   html:not(.amora-chat-popup-mode) .messages-workspace.chat-open .chat-status{flex:0 0 auto}
   html:not(.amora-chat-popup-mode) .messages-workspace.chat-open .mobile-inbox-back{display:grid!important}
 }
+
+/* WhatsApp-inspired sent/read ticks for outgoing Amora messages. */
+.chat-read-receipt{display:inline-block;margin-left:3px;color:#8b909b;font-size:13px;font-weight:900;letter-spacing:-3px;padding-right:3px;vertical-align:baseline}.chat-read-receipt.is-read{color:#36a9f4}
