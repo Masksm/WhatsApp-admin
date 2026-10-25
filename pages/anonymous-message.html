@@ -1,11 +1,62 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#fff0f5"><meta name="description" content="Send an anonymous message with Amora.">
-<title>Send an anonymous message · Amora</title><link rel="stylesheet" href="/css/auth.css"><link rel="stylesheet" href="/css/guest-messaging.css?v=guest-ui-1">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/supabase-client.js" defer></script><script type="module" src="/js/public-anonymous-message.js?v=public-anon-1"></script></head>
-<body><main class="auth-layout"><section class="auth-card" style="max-width:560px;margin:7vh auto;padding:24px">
-<a href="/" class="feed-brand"><span class="brand-mark">a</span><span>amora</span></a>
-<h1>Send an anonymous message 💗</h1><p>Your identity is not shown to the person receiving your message.</p>
-<form id="public-anonymous-form" class="guest-messaging-form"><label for="public-anonymous-text">Your message</label><textarea id="public-anonymous-text" rows="5" maxlength="2000" required placeholder="Write what you want to say…"></textarea><button id="public-anonymous-submit" type="submit">Send anonymously</button></form>
-<p id="public-anonymous-status" role="status" aria-live="polite"></p>
-<section class="guest-account-link-panel"><h2>Want a private conversation?</h2><p>Start a recoverable guest chat. You can keep chatting across devices with your recovery token.</p><a id="public-guest-chat-link" href="/pages/guest-chat.html" class="primary-btn">Start a private guest chat</a></section>
-</section></main></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#100914">
+  <meta name="description" content="Send a private anonymous message with Amora.">
+  <title>Send an anonymous message · Amora</title>
+  <link rel="stylesheet" href="/css/auth.css">
+  <link rel="stylesheet" href="/css/guest-messaging.css?v=guest-ui-1">
+  <link rel="stylesheet" href="/css/anonymous-message.css?v=anonymous-design-1">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-client.js" defer></script>
+  <script type="module" src="/js/public-anonymous-message.js?v=public-anon-1"></script>
+</head>
+<body class="anonymous-message-page">
+  <main class="anonymous-shell">
+    <a href="/" class="anonymous-brand" aria-label="Amora home">
+      <span class="anonymous-brand-mark">a</span><span>amora<span class="anonymous-brand-dot">.</span></span>
+    </a>
+
+    <section class="anonymous-hero" aria-labelledby="anonymous-title">
+      <div class="anonymous-orbit anonymous-orbit-one" aria-hidden="true"></div>
+      <div class="anonymous-orbit anonymous-orbit-two" aria-hidden="true"></div>
+      <div class="anonymous-heart" aria-hidden="true">♡</div>
+      <p class="anonymous-eyebrow"><span></span> A little mystery, just for you</p>
+      <h1 id="anonymous-title">Say what you <span>really feel.</span></h1>
+      <p class="anonymous-intro">Send a thoughtful message without revealing who you are. Sometimes the words are easier when there’s a little mystery.</p>
+      <div class="anonymous-privacy-note"><span aria-hidden="true">✦</span><span><strong>Your identity stays private</strong><small>Your name and account details are not shown to the recipient.</small></span></div>
+    </section>
+
+    <section class="anonymous-compose-card" aria-label="Write an anonymous message">
+      <div class="anonymous-compose-heading">
+        <span class="anonymous-compose-icon" aria-hidden="true">✎</span>
+        <div><h2>Your message</h2><p>Make it kind. Make it honest. Make it yours.</p></div>
+      </div>
+      <form id="public-anonymous-form" class="guest-messaging-form anonymous-form">
+        <label class="visually-hidden" for="public-anonymous-text">Your anonymous message</label>
+        <textarea id="public-anonymous-text" rows="6" maxlength="2000" required placeholder="Write what you’ve been wanting to say…"></textarea>
+        <div class="anonymous-compose-footer"><span>♡ Sent anonymously</span><span id="anonymous-character-count">0 / 2000</span></div>
+        <button id="public-anonymous-submit" type="submit"><span>Send anonymously</span><span aria-hidden="true">↗</span></button>
+      </form>
+      <div id="public-anonymous-status" class="anonymous-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="anonymous-chat-card">
+      <div class="anonymous-chat-symbol" aria-hidden="true">♡</div>
+      <div class="anonymous-chat-copy"><p class="anonymous-chat-kicker">Keep the conversation going</p><h2>One message can become a real conversation.</h2><p>Start a private guest chat and keep your conversation recoverable with a recovery token.</p></div>
+      <a id="public-guest-chat-link" href="/pages/guest-chat.html" class="anonymous-chat-link">Start a private chat <span aria-hidden="true">→</span></a>
+    </section>
+
+    <footer class="anonymous-footer"><span>Made for the things that are hard to say.</span><a href="/">Back to Amora</a></footer>
+  </main>
+  <script>
+    (() => {
+      const input = document.getElementById("public-anonymous-text");
+      const count = document.getElementById("anonymous-character-count");
+      if (input && count) input.addEventListener("input", () => { count.textContent = input.value.length + " / 2000"; });
+    })();
+  </script>
+</body>
+</html>
