@@ -13,14 +13,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const feedTabs = [...document.querySelectorAll("[data-feed]")];
   const homeStateKey = "amora_home_navigation_state";
   const homeFeedCacheKey = "amora_home_feed_cache";
-  const homeFeedCacheMaxAge = 5 * 60 * 1000;
+  const homeFeedCacheMaxAge = 10 * 60 * 1000;
   const saveHomeState = () => {
     try {
+      const savedAt = Date.now();
       sessionStorage.setItem(homeStateKey, JSON.stringify({
         scrollY: window.scrollY,
         activeFeed: activeFeed,
-        savedAt: Date.now()
+        savedAt
       }));
+      const cached = JSON.parse(sessionStorage.getItem(homeFeedCacheKey) || "null");
+      if (cached && Array.isArray(cached.posts)) {
+        cached.savedAt = savedAt;
+        cached.activeFeed = activeFeed;
+        sessionStorage.setItem(homeFeedCacheKey, JSON.stringify(cached));
+      }
     } catch (_) {}
   };
   // Keep the current feed view when navigating away and back in this tab.
@@ -41,8 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const raw = sessionStorage.getItem(homeStateKey);
       if (!raw) return;
       const state = JSON.parse(raw);
-      if (!state || Date.now() - state.savedAt > 30 * 60 * 1000) {
+      if (!state || !Number.isFinite(Number(state.savedAt)) || Date.now() - state.savedAt > homeFeedCacheMaxAge) {
         sessionStorage.removeItem(homeStateKey);
+        sessionStorage.removeItem(homeFeedCacheKey);
         return;
       }
       if (state.activeFeed && feedTabs.some(tab => tab.dataset.feed === state.activeFeed)) {
