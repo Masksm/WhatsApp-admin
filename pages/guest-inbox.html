@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="/css/guest-messaging.css?v=guest-inbox-5">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
-  <script type="module" src="/js/guest-inbox-page.js?v=guest-inbox-4"></script>
+  <script type="module" src="/js/guest-inbox-page.js?v=guest-inbox-5"></script>
 </head>
 <body class="amora-feed-page">
   <div class="feed-shell guest-messages-shell">
@@ -52,7 +52,7 @@
           <p id="owner-guest-status" class="chat-status guest-status" role="status" aria-live="polite"></p>
         </div>
         <section class="chat-panel" aria-label="Selected guest conversation">
-          <header class="chat-panel-header"><button id="guest-inbox-mobile-back" class="mobile-inbox-back" type="button" aria-label="Back to conversations">‹</button><span class="chat-header-avatar">♡</span><div class="chat-header-copy"><h2 id="guest-chat-heading">Choose a guest chat</h2><p id="guest-chat-subtitle">Private guest conversation</p></div><span class="chat-header-lock" title="Private conversation" aria-label="Private conversation">♡</span></header>
+          <header class="chat-panel-header"><button id="guest-inbox-mobile-back" class="mobile-inbox-back" type="button" aria-label="Close conversation">×</button><span class="chat-header-avatar">♡</span><div class="chat-header-copy"><h2 id="guest-chat-heading">Choose a guest chat</h2><p id="guest-chat-subtitle">Private guest conversation</p></div><span class="chat-header-lock" title="Private conversation" aria-label="Private conversation">♡</span><button id="guest-chat-popup-close" class="guest-chat-popup-close" type="button" aria-label="Close conversation">×</button></header>
           <div id="owner-guest-messages" class="message-list" aria-live="polite"><div class="chat-empty"><span>♡</span><strong>Your guest conversations</strong><p>Select a private guest chat to read and reply.</p></div></div>
           <form id="owner-guest-reply-form" class="chat-composer">
             <label class="sr-only" for="owner-guest-reply">Write a reply</label>
