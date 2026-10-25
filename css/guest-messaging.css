@@ -59,3 +59,24 @@ body.guest-link-modal-open::before{content:"";position:fixed;inset:0;z-index:999
 #anonymous-message-panel[hidden],#guest-chat-panel[hidden]{display:none!important}
 #guest-chat-panel .guest-inbox-list{min-height:110px}
 @media(max-width:420px){.guest-inbox-tab{padding:10px 7px;font-size:12px}.guest-theme-toggle{padding:8px 10px}}
+
+
+/* Guest inbox uses the same Messages workspace layout and theme tokens. */
+.guest-messages-shell{grid-template-columns:220px minmax(0,1fr) 250px}
+.guest-inbox-main{min-width:0;padding:26px 0 36px}
+.guest-inbox-intro{margin:0 0 12px;color:var(--muted);font-size:13px;line-height:1.55}
+.guest-inbox-tabs{margin-top:6px}
+.guest-inbox-workspace{min-height:560px}
+.guest-inbox-workspace .inbox-panel{min-height:500px}
+.guest-inbox-workspace .conversation-list{max-height:650px}
+.guest-inbox-workspace .chat-panel{min-height:560px}
+.guest-inbox-workspace .message-list{flex:1;min-height:300px;max-height:none}
+.guest-inbox-workspace .chat-status{padding-bottom:10px}
+.guest-inbox-panel-note{padding:12px 14px;color:var(--muted);font-size:12px;line-height:1.5;border-bottom:1px solid var(--line)}
+.guest-inbox-workspace [hidden]{display:none!important}
+.guest-inbox-workspace .anonymous-inbox-item{cursor:default}
+.guest-inbox-workspace .anonymous-inbox-item .conversation-copy small{color:var(--muted);font-size:10px}
+.guest-inbox-workspace .anonymous-inbox-item .conversation-preview{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.guest-inbox-workspace .guest-status{min-height:20px}
+@media(max-width:1100px){.guest-messages-shell{grid-template-columns:210px minmax(0,1fr);gap:20px}.guest-messages-shell .feed-rightbar{display:none}}
+@media(max-width:760px){.guest-messages-shell{display:block;padding:0 16px}.guest-inbox-main{padding:18px 0 100px}.guest-inbox-workspace{display:flex;flex-direction:column;gap:14px;min-height:0}.guest-inbox-workspace .inbox-panel{order:1;min-height:0}.guest-inbox-workspace .chat-panel{order:2;min-height:420px}.guest-inbox-workspace .conversation-list{max-height:340px}.guest-inbox-workspace .message-list{min-height:250px;max-height:55vh}.guest-inbox-intro{margin-bottom:10px}}
