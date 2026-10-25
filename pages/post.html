@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#160d1c">
+  <meta name="description" content="Join Amora for anonymous messages, meaningful conversations and a little mystery.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Amora">
+  <meta property="og:title" content="Post · Amora">
+  <meta property="og:description" content="Share your thoughts, connect with people, and discover conversations that mean something.">
+  <meta property="og:url" content="https://amora-puce-seven.vercel.app/pages/post.html">
+  <meta property="og:image" content="https://amora-puce-seven.vercel.app/amora-preview.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Amora 💗 | A Little More Honest. A Little More You.">
+  <meta name="twitter:description" content="Share your thoughts, connect with people, and discover conversations that mean something.">
+  <meta name="twitter:image" content="https://amora-puce-seven.vercel.app/amora-preview.svg">
+  <title>Post · Amora</title>
+  <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}try{var p=new URLSearchParams(location.search);if(p.has("post"))document.documentElement.classList.add("notification-post-opening");if(p.has("id"))document.documentElement.classList.add("amora-post-opening");}catch(e){}})();</script>
+  <link rel="stylesheet" href="/css/feed.css?v=post-detail-page-1">
+  <link rel="stylesheet" href="/css/home-enhancements.css?v=1">
+  <link rel="stylesheet" href="/css/stories.css?v=story-anon-views-pause-14">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-client.js" defer></script>
+  <script src="/js/moderator-nav.js?v=1" defer></script>
+  <script src="/js/feed.js?v=post-detail-page-1" defer></script>
+  <script src="/js/stories.js?v=story-share-post-label-16" defer></script>
+  <link rel="stylesheet" href="/css/chat-popup.css?v=unread-bubbles-2">
+</head>
+<body class="amora-feed-page amora-post-page" data-post-only="true">
+  <div class="feed-shell">
+    <aside class="feed-sidebar" aria-label="Main navigation">
+      <a class="feed-brand" href="/pages/social-home.html" aria-label="Amora home"><span class="brand-mark">a</span><span>amora</span></a>
+      <nav class="main-nav">
+        <a class="nav-link active" href="/pages/social-home.html"><span class="nav-icon">⌂</span><span>Home</span></a>
+        <a class="nav-link" href="/pages/notifications.html"><span class="nav-icon">♡</span><span>Notifications</span></a>
+        <a class="nav-link" href="/pages/messages.html"><span class="nav-icon">✉</span><span>Messages</span></a>
+        <a class="nav-link" href="/pages/profile.html"><span class="nav-icon">◎</span><span>Profile</span></a>
+        <a class="nav-link moderator-nav-link" data-moderator-nav href="/pages/moderation.html" aria-label="Moderation dashboard" title="Moderation dashboard" hidden aria-hidden="true"><span class="nav-icon" aria-hidden="true">⬟</span><span>Moderation</span></a>
+      </nav>
+      <div class="sidebar-note"><span class="note-heart">♡</span><p>A little more honest.<br>A little more you.</p></div>
+      <a class="sidebar-account" href="/pages/profile.html"><span class="avatar avatar-you">?</span><span><strong>Your space</strong><small>Manage your profile</small></span><span class="more-dots">···</span></a>
+    </aside>
+
+    <main class="feed-main">
+      <header class="mobile-topbar">
+        <a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a>
+        <div class="header-account-actions"><label class="home-search-control"><span aria-hidden="true">⌕</span><input type="search" data-home-search placeholder="Search Amora" aria-label="Search Amora"></label><a class="icon-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a></div>
+      </header>
+      <div class="feed-heading feed-tools-heading"><div class="header-account-actions desktop-header-account-actions"><label class="home-search-control"><span aria-hidden="true">⌕</span><input type="search" data-home-search placeholder="Search posts" aria-label="Search posts and people"></label><a class="icon-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a></div></div>
+      <button class="feed-quick-composer card" type="button" data-focus-composer aria-label="Create a post">
+        <span class="avatar avatar-you quick-composer-avatar">?</span><span class="quick-composer-prompt">What’s on your mind?</span><span class="quick-composer-photo" aria-hidden="true">▧</span>
+      </button>
+      <section class="composer-inline-panel" id="composer-dialog" aria-labelledby="composer-dialog-title" hidden>
+        <div class="composer-screen" id="composer">
+          <header class="composer-screen-header">
+            <button class="composer-close" type="button" id="composer-close" aria-label="Close composer">×</button>
+            <h2 id="composer-dialog-title">New post</h2>
+            <button class="composer-more" type="button" disabled aria-label="More options">•••</button>
+          </header>
+          <div class="composer-screen-profile">
+            <span class="avatar avatar-you" id="composer-user-avatar">?</span>
+            <strong id="composer-display-name">Your profile</strong>
+          </div>
+          <div class="composer-chip-row" aria-label="Post options">
+            <button class="composer-chip" type="button" disabled><span>♙</span> Tag people</button>
+            <button class="composer-chip" type="button" disabled><span>⌖</span> Location</button>
+            <button class="composer-chip" type="button" disabled><span>♫</span> Music</button>
+            <button class="composer-chip" type="button" disabled><span>☻</span> Feeling/activity</button>
+          </div>
+          <label class="sr-only" for="post-text">What's on your mind?</label>
+          <textarea class="composer-large-text" id="post-text" rows="6" maxlength="2000" placeholder="What's on your mind?"></textarea>
+          <div class="image-preview composer-screen-preview" id="image-preview" hidden></div>
+          <div class="composer-screen-spacer"></div>
+          <div class="composer-screen-bottom">
+            <div class="composer-bottom-media" aria-label="Add media">
+              <label class="composer-bottom-media-item" for="post-image" title="Add photo" aria-label="Add photo"><span>▧</span><small>Photo</small><input id="post-image" type="file" accept="image/*" hidden></label>
+              <button class="composer-bottom-media-item" type="button" disabled title="Video posting is not available yet"><span>▣</span><small>Video</small></button>
+              <button class="composer-bottom-media-item" type="button" disabled title="GIF posting is not available yet"><span>GIF</span><small>GIF</small></button>
+              <button class="composer-bottom-media-item" id="story-create-composer-button" type="button" title="Create a 24-hour story"><span>◉</span><small>Add story</small></button><button class="composer-bottom-media-item" type="button" disabled title="More options coming soon"><span>⌕</span><small>More</small></button>
+            </div>
+            <div class="composer-anonymity-options">
+              <label class="identity-toggle"><input id="hide-identity" type="checkbox"><span class="toggle-track"></span><span>Anonymous post</span></label>
+              <label class="identity-toggle"><input id="force-anonymous-comments" type="checkbox"><span class="toggle-track"></span><span>Anonymous comments</span></label>
+            </div>
+            <button id="publish-post" class="primary-button composer-publish-button" type="button" disabled>Post</button>
+            <p id="composer-status" class="status-message" role="status"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="stories-section" aria-labelledby="stories-title">
+        <div id="stories-row" class="stories-row" aria-label="Active stories" aria-live="polite">
+          <p class="stories-loading">Loading stories…</p>
+        </div>
+        <p id="stories-status" class="stories-status" role="status" aria-live="polite"></p>
+        <input id="story-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" hidden>
+      </section>
+
+      <div class="feed-discovery-heading"><div><span class="eyebrow">YOUR WORLD</span><h2>Discover something real</h2></div><button id="refresh-feed" class="feed-refresh-button" type="button" aria-label="Refresh feed" title="Refresh feed">↻</button></div>
+      <div class="feed-tabs" role="tablist" aria-label="Choose your feed">
+        <button class="feed-tab active" role="tab" aria-selected="true" data-feed="for-you">For You</button>
+        <button class="feed-tab" role="tab" aria-selected="false" data-feed="following">Following</button>
+        <button class="feed-tab" role="tab" aria-selected="false" data-feed="public">Public</button>
+        <button class="feed-tab" role="tab" aria-selected="false" data-feed="anonymous">Anonymous posts</button>
+      </div>
+      <section id="feed-list" class="feed-list" aria-live="polite">
+        <div class="feed-empty card">
+          <div class="empty-art"><span>♡</span><i>✦</i><b>✧</b></div>
+          <h2>Your feed starts here</h2>
+          <p>Share a thought, tell a story, or start a conversation. This space is yours to shape.</p>
+          <button class="primary-button" type="button" data-focus-composer>Write the first post <span>↗</span></button>
+        </div>
+      </section>
+      <footer class="feed-footer">A softer place to be yourself <span>♡</span></footer>
+    </main>
+
+    <aside class="feed-rightbar">
+      <section class="welcome-card">
+        <span class="welcome-sparkle">✦</span><p class="eyebrow">WELCOME TO AMORA</p>
+        <h2>Be real.<br><span>Be whoever.</span></h2>
+        <p>Share your world, find your people, and join the conversation on your terms.</p>
+      </section>
+      <section class="right-card community-card">
+        <h3>Your community <span>♡</span></h3>
+        <p>People you follow and public conversations will appear here as your community grows.</p>
+        <div class="community-avatars"><span class="mini-avatar pink">♡</span><span class="mini-avatar purple">✦</span><span class="mini-avatar peach">☺</span><span class="mini-avatar muted">+</span></div>
+      </section>
+      <p class="legal-links"><a href="/pages/privacy.html">Privacy</a><span>·</span><a href="/pages/terms.html">Terms</a><span>·</span><span>© Amora</span></p>
+    </aside>
+  </div>
+
+  <section id="story-create-dialog" class="story-create-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="story-create-title">
+    <div class="story-create-card">
+      <header class="story-create-header"><h2 id="story-create-title">Create a story</h2><button id="story-create-close" type="button" aria-label="Close story creator">×</button></header>
+      <div id="story-create-preview" class="story-create-preview"><p>Choose a photo or video to start your story.</p></div>
+      <button id="story-create-choose" class="story-create-choose" type="button">＋ Add photo or video</button>
+      <label class="story-create-caption-label" for="story-create-caption">Add text to your story</label>
+      <textarea id="story-create-caption" maxlength="500" rows="3" placeholder="Write something to show at the bottom of your story…"></textarea>
+      <label class="story-option-toggle"><input id="story-allow-comments" type="checkbox" checked><span>Allow comments on this story</span></label>
+      <p class="story-create-hint">Your story disappears after 24 hours. You can view it, but you cannot comment on your own story.</p>
+      <button id="story-create-publish" class="primary-button" type="button" disabled>Share story</button>
+    </div>
+  </section>
+  <div id="story-viewer" class="story-viewer" hidden role="dialog" aria-modal="true" aria-label="Story viewer">
+    <div id="story-viewer-progress" class="story-viewer-progress"></div>
+    <button id="story-viewer-close" class="story-viewer-close" type="button" aria-label="Close stories">×</button>
+    <button id="story-viewer-prev" class="story-viewer-nav story-viewer-prev" type="button" aria-label="Previous story">‹</button>
+    <div class="story-viewer-content"><div class="story-viewer-author"><span id="story-viewer-avatar" class="story-avatar">♡</span><strong id="story-viewer-name">Amora member</strong><small id="story-viewer-time"></small></div><div id="story-viewer-media" class="story-viewer-media"></div><p id="story-viewer-caption" class="story-viewer-caption"></p><div class="story-viewer-actions"><span id="story-view-count" class="story-view-count" hidden></span><button id="story-like-button" type="button">♡ Like</button><button id="story-comment-toggle" type="button">Comment</button><button id="story-share-button" type="button">↗ Share to story</button><button id="story-more-button" type="button" aria-haspopup="menu" aria-expanded="false">••• More</button></div><section id="story-comments-panel" class="story-comments-panel" hidden aria-label="Story comments"><div id="story-comments-list" class="story-comments-list"></div><form id="story-comment-form" class="story-comment-form"><input id="story-comment-input" maxlength="1000" placeholder="Reply to this story…" aria-label="Comment on story" required><label class="story-anonymous-toggle"><input id="story-comment-anonymous" type="checkbox"><span>Anonymous</span></label><button type="submit">Send</button></form></section><div id="story-more-menu" class="story-more-menu" role="menu" hidden><button type="button" data-story-action="share-post" role="menuitem">Share story as post</button><button type="button" data-story-action="mention" role="menuitem">Mention people (@)</button><button type="button" data-story-action="report" role="menuitem">Report story</button><button type="button" data-story-action="delete" role="menuitem" hidden>Delete story</button><button type="button" data-story-action="mute" role="menuitem">Mute this person’s stories</button><button type="button" data-story-action="create" role="menuitem">Create a story</button></div></div>
+    <button id="story-viewer-next" class="story-viewer-nav story-viewer-next" type="button" aria-label="Next story">›</button>
+  </div>
+  <div id="media-lightbox" class="media-lightbox" hidden role="dialog" aria-modal="true" aria-label="Photo viewer"><button type="button" class="media-lightbox-close" aria-label="Close photo viewer">×</button><button type="button" class="media-lightbox-prev" aria-label="Previous photo">‹</button><img id="media-lightbox-image" alt="Expanded post photo"><button type="button" class="media-lightbox-next" aria-label="Next photo">›</button><p id="media-lightbox-counter"></p></div>
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <a class="mobile-nav-link active" href="/pages/social-home.html" aria-label="Home"><span class="mobile-nav-icon">⌂</span><span class="mobile-nav-label">Home</span></a>
+    <a class="mobile-nav-link" href="/pages/notifications.html" aria-label="Notifications"><span class="mobile-nav-icon">♡</span><span class="mobile-nav-label">Notifications</span></a>
+    <a class="mobile-nav-link" href="/pages/messages.html" aria-label="Messages"><span class="mobile-nav-icon">✉</span><span class="mobile-nav-label">Messages</span></a>
+    <a class="mobile-nav-link" href="/pages/profile.html" aria-label="Profile"><span class="mobile-nav-icon">◎</span><span class="mobile-nav-label">Profile</span></a>
+    <a class="mobile-nav-link moderator-nav-link" data-moderator-nav href="/pages/moderation.html" aria-label="Moderation dashboard" title="Moderation dashboard" hidden aria-hidden="true"><span class="mobile-nav-icon" aria-hidden="true">⬟</span><span class="mobile-nav-label">Moderation</span></a>
+  </nav>
+  <script type="module" src="/js/chat-popup.js?v=unread-bubbles-3"></script>
+</body>
+</html>
