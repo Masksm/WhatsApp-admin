@@ -682,7 +682,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="comments-dialog-list" aria-live="polite"></div>
         <form class="comments-dialog-form post-reply-composer">
-          <div class="comments-reply-context comment-reply-context" hidden></div>
+          <div class="comments-reply-context comment-reply-context" hidden><span class="comments-reply-label"></span><button type="button" class="comments-reply-cancel" aria-label="Cancel reply" title="Cancel reply">×</button><span class="comments-reply-quote"></span></div>
           <input name="comment-content" maxlength="3000" placeholder="Write a comment…" aria-label="Write a comment" required>
           <label class="comment-anonymous-choice comments-dialog-anonymous"><input type="checkbox" name="comment-anonymous"> Comment anonymously</label>
           <button type="submit">Reply</button>
@@ -695,6 +695,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (postOnlyMode) window.location.href = "/pages/notifications.html";
       else closeCommentsDialog();
     }));
+    commentsDialog.querySelector(".comments-reply-cancel").addEventListener("click", () => {
+      activeReplyParentId = null;
+      const context = commentsDialog.querySelector(".comments-reply-context");
+      context.hidden = true;
+      context.querySelector(".comments-reply-label").textContent = "";
+      context.querySelector(".comments-reply-quote").textContent = "";
+      const input = commentsDialog.querySelector('[name="comment-content"]');
+      input.placeholder = activeCommentsPost?.is_anonymous || activeCommentsPost?.force_anonymous_comments ? "Reply anonymously…" : "Write a comment…";
+      commentsDialog.querySelector('.comments-dialog-form button[type="submit"]').textContent = "Comment";
+      input.focus({ preventScroll: true });
+    });
     commentsDialog.querySelector(".comments-dialog-form").addEventListener("submit", event => {
       event.preventDefault();
       if (!activeCommentsPost) return;
@@ -799,7 +810,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     activeReplyParentId = null;
     const replyContext = dialog.querySelector(".comments-reply-context");
-    if (replyContext) { replyContext.hidden = true; replyContext.replaceChildren(); }
+    if (replyContext) {
+      replyContext.hidden = true;
+      replyContext.querySelector(".comments-reply-label").textContent = "";
+      replyContext.querySelector(".comments-reply-quote").textContent = "";
+    }
     const composerInput = dialog.querySelector('[name="comment-content"]');
     composerInput.placeholder = "Write a comment…";
     dialog.querySelector('.comments-dialog-form button[type="submit"]').textContent = "Comment";
@@ -869,12 +884,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!commentsDialog || activeCommentsPost?.id !== post.id) return;
     activeReplyParentId = comment.id;
     const context = commentsDialog.querySelector(".comments-reply-context");
-    context.replaceChildren();
-    const label = document.createElement("strong");
-    label.textContent = "Replying to " + (post.is_anonymous || comment.is_anonymous ? "Anonymous" : comment.author);
-    const quote = document.createElement("span");
-    quote.textContent = comment.content || "";
-    context.append(label, quote);
+    context.querySelector(".comments-reply-label").textContent = "Replying to " + (post.is_anonymous || comment.is_anonymous ? "Anonymous" : comment.author);
+    context.querySelector(".comments-reply-quote").textContent = comment.content || "";
     context.hidden = false;
     const input = commentsDialog.querySelector('[name="comment-content"]');
     input.placeholder = "Write a reply…";
