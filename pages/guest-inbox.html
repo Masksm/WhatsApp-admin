@@ -8,50 +8,70 @@
   <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
   <link rel="stylesheet" href="/css/feed.css?v=messages-layout-1">
   <link rel="stylesheet" href="/css/messages.css?v=chat-emoji-2">
-  <link rel="stylesheet" href="/css/guest-messaging.css?v=guest-inbox-3">
+  <link rel="stylesheet" href="/css/guest-messaging.css?v=guest-inbox-4">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
-  <script type="module" src="/js/guest-inbox-page.js?v=guest-inbox-2"></script>
+  <script type="module" src="/js/guest-inbox-page.js?v=guest-inbox-3"></script>
 </head>
 <body class="amora-feed-page">
-  <main class="guest-inbox-shell">
-    <div class="guest-inbox-actions"><a class="guest-inbox-back" href="/pages/messages.html"><span aria-hidden="true">‹</span> Back to Messages</a><button id="guest-inbox-theme-toggle" class="guest-theme-toggle" type="button" aria-pressed="false">☀️ Light mode</button></div>
-    <header class="guest-inbox-hero">
-      <span class="guest-inbox-badge"><span aria-hidden="true">♡</span> PRIVATE GUEST INBOX</span>
-      <h1>Guest conversations</h1>
-      <p>Keep the conversation going with people who contacted you anonymously. Their account identity stays hidden.</p>
-    </header>
-
-    <section class="guest-inbox-card" aria-labelledby="guest-conversations-heading">
-      <header class="guest-inbox-card-head">
-        <h2 id="guest-conversations-heading">Your guest conversations</h2>
-        <p>Private guest chats are the main inbox. Switch to anonymous link messages when needed.</p>
+  <div class="feed-shell guest-messages-shell">
+    <aside class="feed-sidebar" aria-label="Main navigation">
+      <a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a>
+      <nav class="main-nav">
+        <a class="nav-link" href="/pages/social-home.html"><span class="nav-icon">⌂</span><span>Home</span></a>
+        <a class="nav-link" href="/pages/notifications.html"><span class="nav-icon">♡</span><span>Notifications</span></a>
+        <a class="nav-link active" href="/pages/messages.html"><span class="nav-icon">✉</span><span>Messages</span></a>
+        <a class="nav-link" href="/pages/profile.html"><span class="nav-icon">◎</span><span>Profile</span></a>
+        <a class="nav-link moderator-nav-link" data-moderator-nav href="/pages/moderation.html" hidden aria-hidden="true"><span class="nav-icon">⬟</span><span>Moderation</span></a>
+      </nav>
+      <div class="sidebar-note"><span class="note-heart">♡</span><p>A little more honest.<br>A little more you.</p></div>
+      <a class="sidebar-account" href="/pages/profile.html"><span class="avatar avatar-you">?</span><span><strong>Your space</strong><small>Manage your profile</small></span><span class="more-dots">···</span></a>
+    </aside>
+    <main class="feed-main messages-main guest-inbox-main">
+      <header class="messages-topbar">
+        <a class="messages-back" href="/pages/messages.html" aria-label="Back to messages">‹</a>
+        <h1>Guest inbox</h1>
+        <a class="icon-button" href="/pages/settings.html" aria-label="Settings">⚙</a>
+        <button class="icon-button" id="refresh-guest-inbox" type="button" aria-label="Refresh guest inbox" title="Refresh guest inbox">↻</button>
       </header>
-      <div class="guest-inbox-tabs" role="tablist" aria-label="Guest inbox type">
-        <button class="guest-inbox-tab active" id="guest-chat-tab" type="button" role="tab" aria-selected="true" aria-controls="guest-chat-panel">Private guest chats</button>
-        <button class="guest-inbox-tab" id="anonymous-message-tab" type="button" role="tab" aria-selected="false" aria-controls="anonymous-message-panel">Anonymous messages</button>
+      <p class="guest-inbox-intro">Private conversations with guests who contacted you anonymously. Their account identity stays hidden.</p>
+      <div class="messages-tabs guest-inbox-tabs" role="tablist" aria-label="Guest inbox type">
+        <button class="messages-tab active" id="guest-chat-tab" type="button" role="tab" aria-selected="true" aria-controls="guest-chat-panel">Private guest chats</button>
+        <button class="messages-tab" id="anonymous-message-tab" type="button" role="tab" aria-selected="false" aria-controls="anonymous-message-panel">Anonymous messages</button>
       </div>
-      <div id="guest-chat-panel" role="tabpanel" aria-labelledby="guest-chat-tab">
-        <div id="owner-guest-list" class="guest-list guest-inbox-list" aria-live="polite">Loading guest conversations…</div>
-      </div>
-      <div id="anonymous-message-panel" role="tabpanel" aria-labelledby="anonymous-message-tab" hidden>
-        <div class="guest-inbox-card-head">
-          <p>Anonymous link messages cannot be replied to here. They remain separate from private guest chats.</p>
+      <section class="messages-workspace guest-inbox-workspace">
+        <div class="inbox-panel">
+          <div class="inbox-heading"><div><h2 id="guest-conversations-heading">Your guest conversations</h2><span id="guest-inbox-list-subtitle">Private chats you can reply to</span></div><span class="inbox-lock" aria-label="Private">♡</span></div>
+          <div id="guest-chat-panel" role="tabpanel" aria-labelledby="guest-chat-tab">
+            <div id="owner-guest-list" class="conversation-list guest-inbox-list" aria-live="polite">Loading guest conversations…</div>
+          </div>
+          <div id="anonymous-message-panel" role="tabpanel" aria-labelledby="anonymous-message-tab" hidden>
+            <div class="guest-inbox-panel-note">Anonymous link messages are separate from private guest chats and cannot be replied to from this list.</div>
+            <div id="owner-anonymous-link-list" class="conversation-list guest-inbox-list" aria-live="polite">Loading anonymous messages…</div>
+          </div>
+          <p id="owner-guest-status" class="chat-status guest-status" role="status" aria-live="polite"></p>
         </div>
-        <div id="owner-anonymous-link-list" class="guest-list guest-inbox-list" aria-live="polite">Loading anonymous link messages…</div>
-      </div>
-      <p id="owner-guest-status" class="guest-status" role="status" aria-live="polite"></p>
-    </section>
-
-    <section class="guest-box guest-inbox-bottom" aria-label="Selected guest conversation">
-      <h2>Conversation</h2>
-      <div id="owner-guest-messages" aria-live="polite"></div>
-      <form id="owner-guest-reply-form" class="guest-form">
-        <label class="sr-only" for="owner-guest-reply">Write a reply</label>
-        <textarea id="owner-guest-reply" rows="3" maxlength="2000" required placeholder="Write a thoughtful reply…" disabled></textarea>
-        <button id="owner-guest-send" type="submit" disabled>Send reply <span aria-hidden="true">➤</span></button>
-      </form>
-    </section>
-  </main>
+        <section class="chat-panel" aria-label="Selected guest conversation">
+          <header class="chat-panel-header"><button id="guest-inbox-mobile-back" class="mobile-inbox-back" type="button" aria-label="Back to conversations">‹</button><span class="chat-header-avatar">♡</span><div class="chat-header-copy"><h2 id="guest-chat-heading">Choose a guest chat</h2><p id="guest-chat-subtitle">Private guest conversation</p></div><span class="chat-header-lock" title="Private conversation" aria-label="Private conversation">♡</span></header>
+          <div id="owner-guest-messages" class="message-list" aria-live="polite"><div class="chat-empty"><span>♡</span><strong>Your guest conversations</strong><p>Select a private guest chat to read and reply.</p></div></div>
+          <form id="owner-guest-reply-form" class="chat-composer">
+            <label class="sr-only" for="owner-guest-reply">Write a reply</label>
+            <textarea id="owner-guest-reply" rows="1" maxlength="2000" required placeholder="Write a reply…" disabled></textarea>
+            <button id="owner-guest-send" type="submit" disabled aria-label="Send reply">➤</button>
+          </form>
+        </section>
+      </section>
+    </main>
+    <aside class="feed-rightbar">
+      <section class="welcome-card"><span class="welcome-sparkle">✦</span><p class="eyebrow">YOUR LITTLE CORNER</p><h2>Some things<br><span>are better shared.</span></h2><p>Keep conversations respectful while protecting guest anonymity.</p></section>
+      <section class="right-card"><h3>A gentle reminder ♡</h3><p>Guest chats protect the sender’s account identity. Never ask for recovery tokens or share private conversations without permission.</p></section>
+    </aside>
+  </div>
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <a class="mobile-nav-link" href="/pages/social-home.html" aria-label="Home"><span class="mobile-nav-icon">⌂</span><span class="mobile-nav-label">Home</span></a>
+    <a class="mobile-nav-link" href="/pages/notifications.html" aria-label="Notifications"><span class="mobile-nav-icon">♡</span><span class="mobile-nav-label">Notifications</span></a>
+    <a class="mobile-nav-link active" href="/pages/messages.html" aria-label="Messages"><span class="mobile-nav-icon">✉</span><span class="mobile-nav-label">Messages</span></a>
+    <a class="mobile-nav-link" href="/pages/profile.html" aria-label="Profile"><span class="mobile-nav-icon">◎</span><span class="mobile-nav-label">Profile</span></a>
+  </nav>
 </body>
 </html>
