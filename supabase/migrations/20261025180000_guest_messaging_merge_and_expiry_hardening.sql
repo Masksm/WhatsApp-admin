@@ -160,8 +160,8 @@ begin
 end;
 $function$;
 
--- Guest-only identities expire 30 days after creation. Linked identities and their
--- history are excluded. Cascades remove only rows owned by an eligible guest identity.
+-- Guest-only identities expire after 30 days of inactivity. Linked identities and
+-- their history are excluded. Cascades remove only rows owned by an eligible guest identity.
 create or replace function public.expire_guest_history()
 returns bigint
 language plpgsql
@@ -175,7 +175,7 @@ begin
   delete from public.guest_identities g
   where g.linked_user_id is null
     and g.deleted_at is null
-    and g.created_at < now() - interval '30 days';
+    and g.last_seen_at < now() - interval '30 days';
 
   get diagnostics v_deleted = row_count;
   v_count := v_deleted;
