@@ -455,3 +455,10 @@ body.post-detail-more-open .post-more-menu{z-index:10012!important;visibility:vi
 body.post-detail-more-open .comments-dialog{z-index:10000}
 html.notification-post-opening .feed-shell{visibility:hidden!important;pointer-events:none!important}
 html.notification-post-opening .comments-dialog{visibility:visible!important}
+
+
+/* Dedicated post detail route: keep the shared shell available to feed.js but never show the home feed behind the post. */
+html.amora-post-opening body.amora-post-page .feed-shell{visibility:hidden!important;pointer-events:none!important}
+body.amora-post-page .comments-dialog{z-index:10000}
+body.amora-post-page .post-more-backdrop{z-index:10011!important}
+body.amora-post-page .post-more-menu{z-index:10012!important}
