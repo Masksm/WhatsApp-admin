@@ -213,3 +213,12 @@ html.amora-chat-popup-mode .chat-status{flex:0 0 auto}
 
 /* WhatsApp-inspired sent/read ticks for outgoing Amora messages. */
 .chat-read-receipt{display:inline-block;margin-left:3px;color:#8b909b;font-size:13px;font-weight:900;letter-spacing:-3px;padding-right:3px;vertical-align:baseline}.chat-read-receipt.is-read{color:#36a9f4}
+
+/* Chat emoji picker */
+.chat-composer{position:relative}
+.chat-emoji-toggle{flex:0 0 40px;width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:var(--surface2);color:var(--text);font-size:23px;cursor:pointer}
+.chat-emoji-picker{position:absolute;left:8px;bottom:calc(100% + 10px);z-index:1300;display:grid;grid-template-columns:repeat(8,minmax(32px,1fr));gap:4px;width:min(320px,calc(100vw - 36px));max-height:220px;overflow:auto;padding:10px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:0 8px 28px #0002}
+.chat-emoji-picker[hidden]{display:none!important}
+.chat-emoji-option{min-width:32px;min-height:34px;border:0;border-radius:8px;background:transparent;color:var(--text);font-size:21px;cursor:pointer}
+.chat-emoji-option:hover,.chat-emoji-option:focus-visible{background:var(--surface2);outline:2px solid #3987ff55}
+@media(max-width:420px){.chat-emoji-picker{grid-template-columns:repeat(7,minmax(30px,1fr));max-height:190px}}
