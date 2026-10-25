@@ -307,12 +307,11 @@ document.addEventListener("DOMContentLoaded", () => {
     viewerCaption.hidden = !story.caption;
     viewerMedia.innerHTML = '<span>Loading story…</span>';
     try {
+      const url = await getSignedUrl(story);
       if (viewer.hidden || storyGroups[activeGroup]?.items[activeIndex]?.id !== story.id) return;
       viewerMedia.innerHTML = "";
       refreshStoryLikeState();
       if (story.media_type === "video") {
-        const url = await getSignedUrl(story);
-        if (viewer.hidden || storyGroups[activeGroup]?.items[activeIndex]?.id !== story.id) return;
         const video = document.createElement("video");
         video.src = url; video.autoplay = true; video.playsInline = true; video.controls = true; video.preload = "metadata";
         viewerMedia.appendChild(video); currentVideo = video;
