@@ -81,7 +81,7 @@ import { supabase } from "./core.js";
         return;
       }
 
-      if (hasNew || (previousCount === 0 && ids.length > 0)) {
+      if (hasNew) {
         openPanel(ids, true);
       } else if (isOpen && ids.length > 1 && ids.join("|") !== lastTarget) {
         // If a second sender arrives while the chat is open, switch to the inbox overview.
