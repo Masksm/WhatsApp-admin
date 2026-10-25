@@ -298,7 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (button.dataset.storyAction === "report" || button.dataset.storyAction === "mute") button.hidden = story.user_id === currentUser?.id;
     });
     if (likeButton) { likeButton.disabled = !currentUser || story.user_id === currentUser.id; likeButton.textContent = "♡ Like"; }
-    if (commentToggle) commentToggle.disabled = !currentUser || story.user_id === currentUser.id;
+    if (commentToggle) commentToggle.disabled = !currentUser;
     if (shareButton) shareButton.disabled = !currentUser;
     viewerProgress.innerHTML = group.items.map((_,i) => '<span class="story-progress-segment"><span style="width:' + (i < activeIndex ? "100%" : "0%") + '"></span></span>').join("");
     viewerName.textContent = nameFor(group.profile);
@@ -418,7 +418,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   commentToggle?.addEventListener("click", async () => {
-    if (!currentUser || !activeStory || activeStory.user_id === currentUser.id) return;
+    if (!currentUser || !activeStory) return;
     const opening = commentsPanel.hidden;
     if (opening) pauseStoryForMenu();
     commentsPanel.hidden = !opening;
@@ -484,7 +484,42 @@ document.addEventListener("DOMContentLoaded", () => {
     moreMenu.hidden = true;
     moreButton?.setAttribute("aria-expanded", "false");
     if (action === "create") { resumeStoryAfterMenu(); beginCreateStory(); return; }
-    if (!currentUser) { say("Please sign in to manage story safety."); resumeStoryAfterMenu(); return; }
+    if (!currentUser) { say("Please sign in to use this story feature."); resumeStoryAfterMenu(); return; }
+    if (action === "mention") {
+      const username = window.prompt("Enter the username to mention (without @).");
+      if (!username || !commentInput) { resumeStoryAfterMenu(); return; }
+      const clean = username.trim().replace(/^@/, "");
+      if (!/^[A-Za-z0-9_]{3,30}$/.test(clean)) { say("Enter a valid username (3–30 letters, numbers, or underscores)."); resumeStoryAfterMenu(); return; }
+      const found = await db.from("profiles").select("username").ilike("username", clean).maybeSingle();
+      if (found.error || !found.data) { say("That username could not be found."); resumeStoryAfterMenu(); return; }
+      commentsPanel.hidden = false;
+      commentInput.value = (commentInput.value ? commentInput.value + " " : "") + "@" + found.data.username + " ";
+      commentInput.focus();
+      return;
+    }
+    if (action === "share-post") {
+      button.disabled = true;
+      let uploadedPath = null;
+      try {
+        const sourceUrl = await getSignedUrl(storyBeingManaged);
+        const response = await fetch(sourceUrl);
+        if (!response.ok) throw new Error("The story media could not be fetched.");
+        const blob = await response.blob();
+        const extension = (storyBeingManaged.media_path.split(".").pop() || (storyBeingManaged.media_type === "video" ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+        uploadedPath = currentUser.id + "/" + (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)) + "." + extension;
+        const upload = await db.storage.from("amora-post-images").upload(uploadedPath, blob, {contentType:blob.type || (storyBeingManaged.media_type === "video" ? "video/mp4" : "image/jpeg"), cacheControl:"300", upsert:false});
+        if (upload.error) throw upload.error;
+        const publicData = db.storage.from("amora-post-images").getPublicUrl(uploadedPath);
+        const caption = (storyBeingManaged.caption || "").trim();
+        const inserted = await db.from("posts").insert({author_id:currentUser.id,content:caption || "Shared a story 💗",media_urls:[publicData.data.publicUrl],visibility:"public",is_anonymous:false,force_anonymous_comments:false});
+        if (inserted.error) throw inserted.error;
+        say("Story shared as a post."); closeViewer(); window.location.href = "/pages/social-home.html";
+      } catch (err) {
+        if (uploadedPath) { try { await db.storage.from("amora-post-images").remove([uploadedPath]); } catch (_) {} }
+        say(err?.message || "Could not share this story as a post."); resumeStoryAfterMenu();
+      } finally { button.disabled = false; }
+      return;
+    }
     if (action === "delete") {
       if (storyBeingManaged.user_id !== currentUser.id) { say("You can only delete your own story."); resumeStoryAfterMenu(); return; }
       if (!window.confirm("Delete this story? This cannot be undone.")) { resumeStoryAfterMenu(); return; }
