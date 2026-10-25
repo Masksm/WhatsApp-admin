@@ -9,27 +9,15 @@ if (new URLSearchParams(window.location.search).get("popup") === "1") {
 
 function applyConversationFilters() {
   const query = ($("#conversation-search")?.value || "").trim().toLowerCase();
-  const list = $("#conversation-list");
-  if (!list) return;
-  const visible = conversations.filter((item) => {
-    const name = item.other_anonymous_name || "Anonymous";
-    const preview = item.last_message_preview || "";
-    const matchesQuery = (name + " " + preview).toLowerCase().includes(query);
-    const unread = Number(item.unread_count) > 0;
-    return matchesQuery && (filter !== "unread" || unread);
-  });
-  list.replaceChildren();
-  if (!visible.length) {
-    const empty = document.createElement("p");
-    empty.className = "conversation-empty";
-    empty.textContent = filter === "unread" ? "You're all caught up. No unread chats." : query ? "No conversations match your search." : "No conversations yet.";
-    list.appendChild(empty);
-    return;
-  }
-  // The existing messaging module owns secure conversation loading and sending.
-  // Keep the canonical rendered list from that module and use this view only for filtering.
-  const event = new CustomEvent("amora:filter-conversations", { detail: { filter, query } });
-  window.dispatchEvent(event);
+  if (!$("#conversation-list")) return;
+
+  // The messaging module owns rendering for both normal chats and the secure
+  // anonymous-message RPC. Always delegate, including empty states.
+  window.dispatchEvent(
+    new CustomEvent("amora:filter-conversations", {
+      detail: { filter, query }
+    })
+  );
 }
 
 document.querySelectorAll("[data-chat-filter]").forEach((button) => {
