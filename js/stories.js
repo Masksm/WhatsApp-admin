@@ -209,52 +209,69 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   const beginCreateStory = () => {
     if (!currentUser) { say("Please sign in before sharing a story."); return; }
-    fileInput.click();
+    pendingStoryFile = null;
+    if (storyComposerCaption) storyComposerCaption.value = "";
+    if (storyComposerPreview) storyComposerPreview.replaceChildren();
+    if (previewObjectUrl) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null; }
+    if (storyComposerPublish) storyComposerPublish.disabled = true;
+    if (storyComposer) storyComposer.hidden = false;
+    document.body.style.overflow = "hidden";
   };
   createButton?.addEventListener("click", beginCreateStory);
   composerStoryButton?.addEventListener("click", beginCreateStory);
-  fileInput.addEventListener("change", async () => {
-    const file = fileInput.files?.[0];
-    if (!file) return;
-    fileInput.value = "";
-    if (!currentUser) { say("Please sign in before sharing a story."); return; }
+  storyComposerChoose?.addEventListener("click", () => fileInput.click());
+  storyComposerClose?.addEventListener("click", () => {
+    if (storyComposer) storyComposer.hidden = true;
+    pendingStoryFile = null;
+    if (previewObjectUrl) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null; }
+    if (storyComposerPreview) storyComposerPreview.replaceChildren();
+    document.body.style.overflow = "";
+  });
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files?.[0]; fileInput.value = ""; if (!file) return;
     const allowed = ["image/jpeg","image/png","image/webp","image/gif","video/mp4","video/webm","video/quicktime"];
     if (!allowed.includes(file.type)) { say("Choose a JPG, PNG, WebP, GIF, MP4, WebM, or MOV file."); return; }
     if (file.size > MAX_FILE_BYTES) { say("Stories media must be 50 MB or smaller."); return; }
-    if (createButton) createButton.disabled = true;
-    if (composerStoryButton) composerStoryButton.disabled = true;
+    pendingStoryFile = file;
+    if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = URL.createObjectURL(file);
+    if (storyComposerPreview) {
+      storyComposerPreview.replaceChildren();
+      const preview = document.createElement(file.type.startsWith("video/") ? "video" : "img");
+      preview.src = previewObjectUrl; preview.alt = "Story preview";
+      if (preview.tagName === "VIDEO") { preview.controls = true; preview.playsInline = true; }
+      storyComposerPreview.appendChild(preview);
+    }
+    if (storyComposerPublish) storyComposerPublish.disabled = false;
+  });
+  storyComposerPublish?.addEventListener("click", async () => {
+    const file = pendingStoryFile; if (!file || !currentUser) return;
+    storyComposerPublish.disabled = true; if (storyComposerChoose) storyComposerChoose.disabled = true;
     say("Checking and uploading your story…");
     let uploadedPath = null;
     try {
       await validateVideo(file);
       const extension = (file.name.split(".").pop() || (file.type.startsWith("video/") ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g,"") || "bin";
-      const unique = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+      const unique = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
       uploadedPath = currentUser.id + "/" + unique + "." + extension;
-      const upload = await db.storage.from(BUCKET).upload(uploadedPath, file, {contentType:file.type, cacheControl:"300", upsert:false});
+      const upload = await db.storage.from(BUCKET).upload(uploadedPath,file,{contentType:file.type,cacheControl:"300",upsert:false});
       if (upload.error) throw upload.error;
       const created = new Date();
-      const expires = new Date(created.getTime() + 24 * 60 * 60 * 1000);
-      const inserted = await db.from("stories").insert({
-        user_id: currentUser.id, media_path: uploadedPath,
-        media_type: file.type.startsWith("video/") ? "video" : "image",
-        caption: "", visibility: "public", created_at: created.toISOString(), expires_at: expires.toISOString()
-      });
+      const caption = (storyComposerCaption?.value || "").trim().slice(0,500);
+      const inserted = await db.from("stories").insert({user_id:currentUser.id,media_path:uploadedPath,media_type:file.type.startsWith("video/")?"video":"image",caption,visibility:"public",created_at:created.toISOString(),expires_at:new Date(created.getTime()+86400000).toISOString()}).select("id").single();
       if (inserted.error) throw inserted.error;
+      if (storyComposer) storyComposer.hidden = true; document.body.style.overflow = ""; pendingStoryFile = null;
+      if (previewObjectUrl) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null; }
+      if (storyComposerPreview) storyComposerPreview.replaceChildren(); signedUrlCache.clear(); await loadStories();
       say("Your story is live for 24 hours.");
-      signedUrlCache.clear();
-      await loadStories();
+      const ownIndex = storyGroups.findIndex(group => group.userId === currentUser.id);
+      if (ownIndex >= 0) openViewer(ownIndex,Math.max(0,storyGroups[ownIndex].items.findIndex(item => item.id === inserted.data.id)));
     } catch (err) {
-      if (uploadedPath) {
-        try { await db.storage.from(BUCKET).remove([uploadedPath]); } catch (_) {}
-      }
-      console.error("Amora story upload failed:", err);
-      say(err?.message || "Your story could not be uploaded. Please try again.");
-    } finally {
-      if (createButton) createButton.disabled = !currentUser;
-      if (composerStoryButton) composerStoryButton.disabled = !currentUser;
-    }
+      if (uploadedPath) { try { await db.storage.from(BUCKET).remove([uploadedPath]); } catch (_) {} }
+      console.error("Amora story upload failed:",err); say(err?.message || "Your story could not be uploaded. Please try again.");
+      if (storyComposerPublish) storyComposerPublish.disabled = !pendingStoryFile;
+    } finally { if (storyComposerChoose) storyComposerChoose.disabled = false; }
   });
-
   async function openViewer(groupIndex, itemIndex) {
     if (groupIndex < 0 || groupIndex >= storyGroups.length) return;
     activeGroup = groupIndex; activeIndex = itemIndex;
