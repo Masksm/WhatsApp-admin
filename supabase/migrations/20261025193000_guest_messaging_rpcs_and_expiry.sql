@@ -155,11 +155,9 @@ begin
   exception when others then
     v_headers := '{}'::jsonb;
   end;
-  v_requester := coalesce(v_headers->>'x-real-ip', split_part(coalesce(v_headers->>'x-forwarded-for',''), ',', 1), 'unknown');
+  v_requester := coalesce(nullif(v_headers->>'x-real-ip',''), nullif(split_part(coalesce(v_headers->>'x-forwarded-for',''), ',', 1),''), 'unknown');
   v_hash := encode(extensions.digest(convert_to(v_requester, 'UTF8'), 'sha256'), 'hex');
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_hash || ':identity_create', 0));
-  delete from public.guest_message_rate_limits
-    where occurred_at < now() - interval '1 day';
   select count(*) into v_count
     from public.guest_message_rate_limits
     where requester_hash = v_hash and action = 'identity_create'
