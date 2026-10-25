@@ -12,6 +12,20 @@ function initGuestTheme(){
 }
 initGuestTheme();
 
+function openTokenPopup(){
+ const panel=$("#guest-token-panel");if(panel.hidden)return;
+ panel.hidden=false;panel.classList.add("guest-token-modal");document.body.classList.add("guest-token-modal-open");
+ $("#guest-token-modal-close")?.focus();
+}
+function closeTokenPopup(){
+ const panel=$("#guest-token-panel");panel.classList.remove("guest-token-modal");panel.hidden=true;document.body.classList.remove("guest-token-modal-open");
+}
+$("#guest-recovery-token-action")?.addEventListener("click",openTokenPopup);
+$("#guest-token-modal-close")?.addEventListener("click",closeTokenPopup);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.body.classList.contains("guest-token-modal-open"))closeTokenPopup();});
+document.addEventListener("click",e=>{if(e.target===document.body&&document.body.classList.contains("guest-token-modal-open"))closeTokenPopup();});
+
+
 const params = new URLSearchParams(location.search);
 const slug = params.get("slug");
 let token = "";
@@ -24,7 +38,9 @@ function status(message, error=false) {
 function saveToken(value) {
   token=value;
   try { sessionStorage.setItem(TOKEN_KEY,value); } catch {}
-  $("#guest-token-panel").hidden=false;
+  $("#guest-token-panel").hidden=true;
+  $("#guest-token-panel").classList.remove("guest-token-modal");
+  $("#guest-recovery-token-action").hidden=false;
   $("#guest-token-value").textContent=value;
   $("#guest-identity-controls").hidden=true;
   $("#guest-compose-card").hidden=!slug;
@@ -56,6 +72,7 @@ async function refreshConversations() {
 }
 async function openConversation(id) {
   activeConversationId=id;
+  $("#guest-compose-card").hidden=true;
   const {data,error}=await supabase.rpc("guest_get_messages",{p_token:token,p_conversation_id:id});
   if(error){status(error.message,true);return;}
   const list=$("#guest-message-list"); list.replaceChildren();
