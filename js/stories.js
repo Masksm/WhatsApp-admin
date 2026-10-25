@@ -100,18 +100,19 @@ document.addEventListener("DOMContentLoaded", () => {
     advanceTimer._amoraDueAt = Date.now() + remaining;
   }
   async function getSignedUrl(story) {
-    if (signedUrlCache.has(story.id)) return signedUrlCache.get(story.id);
+    const cached = signedUrlCache.get(story.id);
+    if (cached && cached.expiresAt > Date.now() + 15000) return cached.url;
     const storage = db.storage.from(BUCKET);
-    const signed = await storage.createSignedUrl(story.media_path, 300);
+    const signed = await storage.createSignedUrl(story.media_path, 1800);
     if (!signed.error && signed.data?.signedUrl) {
-      signedUrlCache.set(story.id, signed.data.signedUrl);
+      signedUrlCache.set(story.id, {url:signed.data.signedUrl,expiresAt:Date.now()+1700000});
       return signed.data.signedUrl;
     }
     console.warn("Amora signed story URL failed; trying authenticated media download:", signed.error?.message);
     const downloaded = await storage.download(story.media_path);
     if (downloaded.error || !downloaded.data) throw downloaded.error || new Error("Story media is unavailable.");
     const objectUrl = URL.createObjectURL(downloaded.data);
-    signedUrlCache.set(story.id, objectUrl);
+    signedUrlCache.set(story.id, {url:objectUrl,expiresAt:Date.now()+1700000});
     return objectUrl;
   }
   async function loadStories() {
@@ -281,6 +282,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   async function renderViewerStory() {
     stopViewerTimers();
+    storyPaused = false;
+    pausedStoryState = null;
     const group = storyGroups[activeGroup];
     const story = group?.items[activeIndex];
     if (!story) { closeViewer(); return; }
@@ -308,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const video = document.createElement("video");
         video.src = url; video.autoplay = true; video.playsInline = true; video.controls = true; video.preload = "metadata";
         viewerMedia.appendChild(video); currentVideo = video;
-        video.onended = () => nextStory();
+        video.onended = () => { if (!storyPaused && commentsPanel?.hidden !== false && moreMenu?.hidden !== false) nextStory(); };
         video.onloadedmetadata = () => {
           const duration = Math.min(60, video.duration || 60);
           const segment = viewerProgress.children[activeIndex]?.firstElementChild;
@@ -327,13 +330,13 @@ document.addEventListener("DOMContentLoaded", () => {
         progressTimer = setInterval(() => {
           if (segment) segment.style.width = Math.min(100, ((Date.now()-start)/5000)*100) + "%";
         }, 50);
-        advanceTimer = setTimeout(() => nextStory(), 5000);
+        advanceTimer = setTimeout(() => { if (!storyPaused && commentsPanel?.hidden !== false && moreMenu?.hidden !== false) nextStory(); }, 5000);
         advanceTimer._amoraDueAt = Date.now() + 5000;
       }
     } catch (err) {
       console.error("Amora story media could not open:", err);
-      viewerMedia.textContent = "This story is unavailable or has expired.";
-      advanceTimer = setTimeout(() => nextStory(), 1600);
+      viewerMedia.textContent = "This story media could not load. Close and retry.";
+      console.error("Story media failed:", story.id, story.media_path);
     }
   }
   function nextStory() {
@@ -353,6 +356,8 @@ document.addEventListener("DOMContentLoaded", () => {
     stopViewerTimers(); viewer.hidden = true; viewerMedia.innerHTML = ""; document.body.style.overflow = ""; activeStory = null;
     if (commentsPanel) commentsPanel.hidden = true;
     if (moreMenu) moreMenu.hidden = true;
+    storyPaused = false;
+    pausedStoryState = null;
   }
 
   async function refreshStoryLikeState() {
