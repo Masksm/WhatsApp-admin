@@ -1086,6 +1086,10 @@ document.addEventListener("DOMContentLoaded", () => {
           }
           posts = posts.filter(item => item.id !== post.id);
           commentCache.delete(post.id);
+          if (postOnlyMode) {
+            window.location.href = "/pages/notifications.html";
+            return;
+          }
           closeCommentsDialog();
           setStatus("Post deleted.");
           article.remove();
@@ -1097,7 +1101,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }, "post-more-delete");
     }
     menuAction("↗ Share post", async () => {
-      const shareUrl = window.location.origin + "/pages/social-home.html?post=" + encodeURIComponent(post.id);
+      const shareUrl = window.location.origin + "/pages/post.html?id=" + encodeURIComponent(post.id);
       try {
         if (navigator.share) await navigator.share({ title: "Amora post", text: post.content, url: shareUrl });
         else if (navigator.clipboard?.writeText) {
