@@ -45,17 +45,7 @@
             <p class="eyebrow">ACCOUNT</p><h2>Your account</h2>
             <article class="settings-item card"><button class="settings-traits-trigger" id="settings-open-username" type="button" aria-haspopup="dialog" aria-controls="settings-username-dialog"><span class="settings-icon">＠</span><span class="settings-traits-trigger-copy"><strong>Username</strong><small id="settings-username-summary">Manage your unique @username.</small></span><span class="settings-traits-trigger-arrow" aria-hidden="true">↗</span></button></article>
             <article class="settings-item card"><button class="settings-traits-trigger" id="settings-open-display-name" type="button" aria-haspopup="dialog" aria-controls="settings-display-name-dialog"><span class="settings-icon">✧</span><span class="settings-traits-trigger-copy"><strong>Display name</strong><small id="settings-display-name-summary">Manage the name shown on your profile.</small></span><span class="settings-traits-trigger-arrow" aria-hidden="true">↗</span></button></article>
-            <section class="guest-account-link-panel card" id="guest-chat-recovery" aria-labelledby="guest-account-link-title">
-              <h3 id="guest-account-link-title">Guest chat recovery</h3>
-              <p>Recover guest conversations using your 64-character recovery token. You must be signed in with a verified email and explicitly consent to linking.</p>
-              <form id="guest-account-link-form">
-                <label class="sr-only" for="guest-account-link-token">Guest recovery token</label>
-                <input id="guest-account-link-token" type="password" autocomplete="off" spellcheck="false" maxlength="64" pattern="[a-f0-9]{64}" required placeholder="64-character recovery token" aria-label="Guest recovery token">
-                <label><input id="guest-account-link-consent" type="checkbox" required> I consent to link this guest identity and its conversation history to my account.</label>
-                <button type="submit">Link guest history</button>
-              </form>
-              <p id="guest-account-link-status" role="status" aria-live="polite"></p>
-            </section>
+            <article class="settings-item card"><button class="settings-traits-trigger" id="settings-open-guest-recovery" type="button" aria-haspopup="dialog" aria-controls="settings-guest-recovery-dialog"><span class="settings-icon">↻</span><span class="settings-traits-trigger-copy"><strong>Guest chat recovery</strong><small>Recover guest conversations with your recovery token.</small></span><span class="settings-traits-trigger-arrow" aria-hidden="true">↗</span></button></article>
             <a class="settings-item card settings-link" href="/pages/password-reset.html"><span class="settings-icon">⌑</span><div><h3>Password and security</h3><p>Use the password recovery flow if you need to reset your password.</p></div><span>↗</span></a>
           </section>
           <section class="settings-group" id="privacy">
@@ -72,6 +62,21 @@
                 <span class="settings-traits-trigger-arrow" aria-hidden="true">↗</span>
               </button>
             </article>
+            <div class="settings-traits-backdrop" id="settings-guest-recovery-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-guest-recovery-title" hidden>
+              <section class="settings-traits-modal">
+                <button class="settings-traits-close" id="settings-close-guest-recovery" type="button" aria-label="Close guest chat recovery">×</button>
+                <p class="eyebrow">YOUR ACCOUNT</p>
+                <h3 id="settings-guest-recovery-title">Guest chat recovery</h3>
+                <p class="settings-traits-privacy">Recover guest conversations using your 64-character recovery token. You must be signed in with a verified email and explicitly consent to linking.</p>
+                <form id="guest-account-link-form" class="settings-username-form">
+                  <label class="sr-only" for="guest-account-link-token">Guest recovery token</label>
+                  <input id="guest-account-link-token" type="password" autocomplete="off" spellcheck="false" maxlength="64" pattern="[a-f0-9]{64}" required placeholder="64-character recovery token" aria-label="Guest recovery token">
+                  <label class="guest-recovery-consent" for="guest-account-link-consent"><input id="guest-account-link-consent" type="checkbox" required> <span>I consent to link this guest identity and its conversation history to my account.</span></label>
+                  <button type="submit" class="primary-button">Link guest history</button>
+                </form>
+                <p id="guest-account-link-status" class="settings-status" role="status" aria-live="polite"></p>
+              </section>
+            </div>
             <div class="settings-traits-backdrop" id="settings-username-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-username-dialog-title" hidden><section class="settings-traits-modal"><button class="settings-traits-close" id="settings-close-username" type="button" aria-label="Close username settings">×</button><p class="eyebrow">YOUR ACCOUNT</p><h3 id="settings-username-dialog-title">Change username</h3><p class="settings-traits-privacy">Your unique @username helps people find your account. It can be changed once every 12 hours.</p><form id="settings-username-form" class="settings-username-form"><label class="sr-only" for="settings-username-input">Username</label><div class="settings-username-field"><span aria-hidden="true">@</span><input id="settings-username-input" name="username" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" required autocomplete="username"></div><button type="submit" class="primary-button" id="settings-save-username">Save username</button></form><p class="settings-status" id="settings-username-status" role="status" aria-live="polite"></p></section></div>
 <div class="settings-traits-backdrop" id="settings-display-name-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-display-name-dialog-title" hidden><section class="settings-traits-modal"><button class="settings-traits-close" id="settings-close-display-name" type="button" aria-label="Close display name settings">×</button><p class="eyebrow">YOUR ACCOUNT</p><h3 id="settings-display-name-dialog-title">Change display name</h3><p class="settings-traits-privacy">Choose the name shown on your profile. It does not have to match your @username.</p><form id="settings-display-name-form" class="settings-username-form"><label class="sr-only" for="settings-display-name-input">Display name</label><input id="settings-display-name-input" name="display_name" minlength="2" maxlength="32" required autocomplete="nickname" placeholder="Choose a display name"><button type="button" class="secondary-button" id="settings-random-display-name">🎲 Random</button><button type="submit" class="primary-button" id="settings-save-display-name">Save display name</button></form><p class="settings-status" id="settings-display-name-status" role="status" aria-live="polite"></p></section></div>
             <div class="settings-traits-backdrop" id="settings-appearance-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-appearance-title" hidden>
