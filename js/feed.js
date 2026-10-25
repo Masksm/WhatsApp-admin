@@ -1458,7 +1458,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (error) throw error;
         post = data;
       }
-      if (!post) { document.documentElement.classList.remove("notification-post-opening"); setStatus("That post is unavailable or is no longer accessible.", true); return; }
+      if (!post) { document.documentElement.classList.remove("notification-post-opening", "amora-post-opening"); setStatus("That post is unavailable or is no longer accessible.", true); return; }
       if (!posts.some(item => item.id === post.id)) posts.unshift(post);
       activeFeed = "for-you";
       feedTabs.forEach(tab => { const selected = tab.dataset.feed === activeFeed; tab.classList.toggle("active", selected); tab.setAttribute("aria-selected", String(selected)); });
