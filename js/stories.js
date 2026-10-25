@@ -45,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeIndex = 0;
   let signedUrlCache = new Map();
   let advanceTimer = null;
+  let advanceDueAt = 0;
   let progressTimer = null;
   let viewerStartedAt = 0;
   let currentVideo = null;
@@ -67,14 +68,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function stopViewerTimers() {
     if (advanceTimer) clearTimeout(advanceTimer);
     if (progressTimer) clearInterval(progressTimer);
-    advanceTimer = null; progressTimer = null;
+    advanceTimer = null; advanceDueAt = 0; progressTimer = null;
     if (currentVideo) { currentVideo.pause(); currentVideo = null; }
   }
   function pauseStoryForMenu() {
     if (storyPaused) return;
     storyPaused = true;
     const segment = viewerProgress.children[activeIndex]?.firstElementChild;
-    pausedStoryState = { remaining: advanceTimer ? Math.max(0, (advanceTimer._amoraDueAt || Date.now()) - Date.now()) : 0, progress: segment ? Number.parseFloat(segment.style.width) || 0 : 0, videoTime: currentVideo ? currentVideo.currentTime : null, wasVideo: Boolean(currentVideo) };
+    pausedStoryState = { remaining: advanceTimer ? Math.max(0, (advanceDueAt || Date.now()) - Date.now()) : 0, progress: segment ? Number.parseFloat(segment.style.width) || 0 : 0, videoTime: currentVideo ? currentVideo.currentTime : null, wasVideo: Boolean(currentVideo) };
     if (advanceTimer) clearTimeout(advanceTimer);
     if (progressTimer) clearInterval(progressTimer);
     advanceTimer = null; progressTimer = null;
@@ -97,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const started = Date.now();
     progressTimer = setInterval(() => { if (!storyPaused && segment) segment.style.width = Math.min(100, saved.progress + ((Date.now() - started) / remaining) * (100 - saved.progress)) + "%"; }, 80);
     advanceTimer = setTimeout(() => { if (!storyPaused && commentsPanel?.hidden !== false && moreMenu?.hidden !== false) nextStory(); }, remaining);
-    advanceTimer._amoraDueAt = Date.now() + remaining;
+    advanceDueAt = Date.now() + remaining;
   }
   async function getSignedUrl(story) {
     const cached = signedUrlCache.get(story.id);
@@ -335,7 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (segment) segment.style.width = Math.min(100, ((Date.now()-start)/5000)*100) + "%";
         }, 50);
         advanceTimer = setTimeout(() => { if (!storyPaused && commentsPanel?.hidden !== false && moreMenu?.hidden !== false) nextStory(); }, 5000);
-        advanceTimer._amoraDueAt = Date.now() + 5000;
+        advanceDueAt = Date.now() + 5000;
       }
     } catch (err) {
       console.error("Amora story media could not open:", err);
