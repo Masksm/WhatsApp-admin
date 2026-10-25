@@ -549,22 +549,29 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentUser && comment.author_id === currentUser.id && !comment.is_anonymous && !post.is_anonymous) {
       const editButton = makeButton("Edit", "comment-reply-button comment-owner-action", async () => {
         if (item.querySelector(":scope > .comment-edit-form")) return;
+        const originalText = text.textContent;
+        text.contentEditable = "true";
+        text.setAttribute("role", "textbox");
+        text.setAttribute("aria-label", "Edit comment");
+        text.setAttribute("aria-multiline", "true");
+        text.classList.add("comment-inline-editing");
+        text.focus();
         const editForm = document.createElement("form");
-        editForm.className = "comment-edit-form";
-        const editInput = document.createElement("textarea");
-        editInput.maxLength = 3000;
-        editInput.required = true;
-        editInput.value = comment.content;
-        editInput.setAttribute("aria-label", "Edit comment");
+        editForm.className = "comment-edit-form comment-inline-edit-actions";
         const save = document.createElement("button");
         save.type = "submit";
         save.textContent = "Save";
-        const cancel = makeButton("Cancel", "comment-reply-button", () => editForm.remove());
-        editForm.append(editInput, save, cancel);
+        const cancel = makeButton("Cancel", "comment-reply-button", () => {
+          text.textContent = originalText;
+          text.contentEditable = "false";
+          text.classList.remove("comment-inline-editing");
+          editForm.remove();
+        });
+        editForm.append(save, cancel);
         editForm.addEventListener("submit", async event => {
           event.preventDefault();
-          const content = editInput.value.trim();
-          if (!content) return;
+          const content = text.textContent.trim();
+          if (!content) { setStatus("A comment cannot be empty.", true); return; }
           save.disabled = true;
           try {
             const user = await requireUser();
@@ -583,7 +590,6 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
         item.insertBefore(editForm, actions);
-        editInput.focus();
       });
       const deleteButton = makeButton("Delete", "comment-reply-button comment-owner-action", async () => {
         if (!window.confirm("Delete this comment? Any replies beneath it will also be deleted. This cannot be undone.")) return;
@@ -770,8 +776,8 @@ document.addEventListener("DOMContentLoaded", () => {
           const card = feedList.querySelector('[data-post-id="' + post.id + '"]');
           const cardMore = card?.querySelector(".post-more-trigger");
           if (cardMore) {
-            closeCommentsDialog();
             cardMore.click();
+            document.body.classList.add("post-detail-more-open");
           } else {
             setStatus("Post options are unavailable for this post.", true);
           }
