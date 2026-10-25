@@ -10,16 +10,25 @@
   <link rel="stylesheet" href="/css/messages.css?v=chat-emoji-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
-  <script type="module" src="/js/guest-chat-page.js?v=guest-chat-2"></script>
+  <script type="module" src="/js/guest-chat-page.js?v=guest-chat-3"></script>
   <style>
     .guest-shell{max-width:900px;margin:20px auto;padding:16px}.guest-page-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.guest-theme-toggle{border:1px solid var(--line,#eadde4);border-radius:999px;padding:9px 12px;background:var(--surface,#fff);color:var(--text,#242526);font:600 13px inherit;cursor:pointer}.guest-identity-card{padding:14px 16px;margin-bottom:12px}.guest-identity-card h1{font-size:clamp(21px,4vw,28px);margin-bottom:6px}.guest-identity-card>p{margin:6px 0 10px;font-size:14px;line-height:1.45}.guest-identity-card .guest-form{gap:7px}.guest-identity-card .guest-form input,.guest-identity-card .guest-form textarea{padding:10px}
     .guest-card{background:var(--surface,#fff);color:var(--text,#242526);border:1px solid var(--line,#eadde4);border-radius:18px;padding:18px;margin-bottom:14px}
     .guest-card h1,.guest-card h2{margin-top:0}.guest-form{display:grid;gap:10px}.guest-form input,.guest-form textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--line,#d9cbd3);border-radius:12px;background:var(--surface2,#fff);color:var(--text,#242526);font:inherit}.guest-form button,.guest-action{border:0;border-radius:12px;padding:11px 15px;background:#e83e8c;color:white;font-weight:600;cursor:pointer}.guest-form button:disabled{opacity:.5}.guest-token{overflow-wrap:anywhere;padding:12px;background:#fff0f5;border-radius:10px;font-family:monospace}.guest-list{display:grid;gap:8px}.guest-conversation{padding:12px;border:1px solid var(--line,#eadde4);border-radius:12px;text-align:left;background:var(--surface2,transparent);color:inherit;cursor:pointer}.guest-conversation.active{border-color:#e83e8c}.guest-status{min-height:1.4em}.guest-message{padding:10px 12px;border-radius:12px;margin:8px 0;background:var(--surface2,#fce7f3);overflow-wrap:anywhere}.guest-message.mine{background:rgba(232,62,140,.16)}.guest-small{font-size:.9em;opacity:.8}
+    .guest-top-actions{display:flex;align-items:center;gap:8px}
+    .guest-token-action{border:1px solid var(--line,#eadde4);border-radius:999px;padding:9px 12px;background:var(--surface,#fff);color:var(--text,#242526);font:600 13px inherit;cursor:pointer}
+    #guest-token-panel[hidden]{display:none!important}
+    body.guest-token-modal-open::before{content:"";position:fixed;inset:0;z-index:9998;background:rgba(8,5,12,.72);backdrop-filter:blur(4px)}
+    #guest-token-panel.guest-token-modal{position:fixed;z-index:9999;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100vw - 28px));max-height:calc(100dvh - 32px);overflow:auto;box-sizing:border-box;padding:26px 20px 20px;border:1px solid var(--line,#eadde4);border-radius:20px;background:var(--surface,#fff);color:var(--text,#242526);box-shadow:0 24px 90px #0009}
+    .guest-token-modal-close{position:absolute;right:12px;top:12px;width:36px;height:36px;border:1px solid var(--line,#eadde4);border-radius:50%;background:var(--surface2,#fff);color:var(--text,#242526);font-size:24px;line-height:1;cursor:pointer}
+    #guest-token-panel.guest-token-modal>p:first-of-type{padding-right:28px}
+    body.guest-token-modal-open{overflow:hidden}
+    @media(max-width:420px){.guest-page-top{align-items:flex-start}.guest-top-actions{gap:6px;flex-wrap:wrap;justify-content:flex-end}.guest-token-action,.guest-theme-toggle{padding:8px 10px;font-size:12px}}
   </style>
 </head>
 <body class="amora-feed-page">
   <main class="guest-shell">
-    <div class="guest-page-top"><a href="/" class="feed-brand"><span class="brand-mark">a</span><span>amora</span></a><button id="guest-chat-theme-toggle" class="guest-theme-toggle" type="button" aria-pressed="false">🌙 Dark mode</button></div>
+    <div class="guest-page-top"><a href="/" class="feed-brand"><span class="brand-mark">a</span><span>amora</span></a><div class="guest-top-actions"><button id="guest-recovery-token-action" class="guest-token-action" type="button" hidden>Recovery token</button><button id="guest-chat-theme-toggle" class="guest-theme-toggle" type="button" aria-pressed="false">🌙 Dark mode</button></div></div>
     <section class="guest-card guest-identity-card">
       <h1>Private guest chat 💗</h1>
       <p>Chat without creating an account. Your recovery token works on another device too, so keep it private and save a copy.</p>
@@ -29,8 +38,9 @@
         <input id="guest-recovery-token" autocomplete="off" spellcheck="false" placeholder="Paste your 64-character recovery token">
         <button id="guest-recover-identity" type="button" class="guest-action">Recover guest chats</button>
       </div>
-      <div id="guest-token-panel" hidden>
-        <p><strong>Your recovery token</strong>. It will not be shown again after you leave this page unless you saved it.</p>
+      <div id="guest-token-panel" role="dialog" aria-modal="true" aria-labelledby="guest-token-title" hidden>
+        <button id="guest-token-modal-close" class="guest-token-modal-close" type="button" aria-label="Close recovery token popup">×</button>
+        <p><strong id="guest-token-title">Your recovery token</strong>. It will not be shown again after you leave this page unless you saved it.</p>
         <p id="guest-token-value" class="guest-token"></p>
         <button id="guest-copy-token" type="button" class="guest-action">Copy recovery token</button>
       </div>
