@@ -1,11 +1,23 @@
 import { supabase } from "./core.js";
 const $=s=>document.querySelector(s);let active=null;
 function say(t,err=false){$("#owner-guest-status").textContent=t;$("#owner-guest-status").style.color=err?"#b42318":"";}
+function setActiveTab(which){
+ const chat=which==="chat";const chatTab=$("#guest-chat-tab"),anonTab=$("#anonymous-message-tab");
+ $("#guest-chat-panel").hidden=!chat;$("#anonymous-message-panel").hidden=chat;
+ chatTab.classList.toggle("active",chat);anonTab.classList.toggle("active",!chat);
+ chatTab.setAttribute("aria-selected",String(chat));anonTab.setAttribute("aria-selected",String(!chat));
+ $("#guest-inbox-list-subtitle").textContent=chat?"Private chats you can reply to":"Anonymous link messages";
+}
 async function listConversations(){
  const {data,error}=await supabase.rpc("owner_get_guest_conversations");if(error)throw error;
  const list=$("#owner-guest-list");list.replaceChildren();
  if(!data?.length){const p=document.createElement("p");p.textContent="No guest conversations yet.";list.append(p);return;}
- data.forEach(c=>{const b=document.createElement("button");b.type="button";b.className="guest-row"+(active===c.conversation_id?" active":"");const title=document.createElement("strong");title.textContent=c.guest_anonymous_name||"Guest";const preview=document.createElement("div");preview.textContent=c.last_message_preview||"No messages yet";b.append(title,preview);b.addEventListener("click",()=>openChat(c.conversation_id));list.append(b);});
+ data.forEach(c=>{const b=document.createElement("button");b.type="button";b.className="guest-row"+(active===c.conversation_id?" active":"");b.className="conversation-item"+(active===c.conversation_id?" active":"");
+ const avatar=document.createElement("span");avatar.className="conversation-avatar";avatar.textContent=(c.guest_anonymous_name||"G").slice(0,1).toUpperCase();
+ const copy=document.createElement("span");copy.className="conversation-copy";
+ const title=document.createElement("strong");title.textContent=c.guest_anonymous_name||"Guest";
+ const preview=document.createElement("span");preview.className="conversation-preview";preview.textContent=c.last_message_preview||"No messages yet";
+ copy.append(title,preview);b.replaceChildren(avatar,copy);b.addEventListener("click",()=>openChat(c.conversation_id));list.append(b);});
 }
 async function listAnonymousLinkMessages(){
  const target=$("#owner-anonymous-link-list");
@@ -14,12 +26,10 @@ async function listAnonymousLinkMessages(){
  target.replaceChildren();
  if(!data?.length){const p=document.createElement("p");p.textContent="No anonymous link messages yet.";target.append(p);return;}
  data.forEach(m=>{
-  const card=document.createElement("article");card.className="anonymous-link-message";
+  const card=document.createElement("article");card.className="conversation-item anonymous-inbox-item";const avatar=document.createElement("span");avatar.className="conversation-avatar";avatar.textContent="♡";const copy=document.createElement("span");copy.className="conversation-copy";
   const meta=document.createElement("small");
   meta.textContent=new Date(m.created_at).toLocaleString()+" · "+(m.is_read?"Read":"Unread");
-  const body=document.createElement("p");body.textContent=m.message_text||"";
-  const link=document.createElement("a");link.href="/pages/messages.html";link.textContent="Open Anonymous Messages";
-  card.append(meta,body,link);target.append(card);
+  const body=document.createElement("span");body.className="conversation-preview";body.textContent=m.message_text||"";copy.append(meta,body);card.append(avatar,copy);target.append(card);
  });
 }
 async function openChat(id){
@@ -30,18 +40,5 @@ async function openChat(id){
 }
 $("#owner-guest-reply-form").addEventListener("submit",async e=>{e.preventDefault();if(!active)return;const text=$("#owner-guest-reply").value.trim();if(!text)return;$("#owner-guest-send").disabled=true;try{const {data,error}=await supabase.rpc("owner_send_guest_message",{p_conversation_id:active,p_message:text});if(error)throw error;if(data?.status==="blocked")throw new Error(data.message||"Message blocked by moderation.");$("#owner-guest-reply").value="";say("Reply sent.");await openChat(active);}catch(err){say(err.message||"Could not send reply.",true);}finally{$("#owner-guest-send").disabled=false;}});
 
-function initThemeToggle(){
- const button=$("#guest-inbox-theme-toggle");if(!button)return;
- const apply=theme=>{document.documentElement.setAttribute("data-theme",theme);try{localStorage.setItem("amora_appearance",theme);}catch{}button.textContent=theme==="dark"?"☀️ Light mode":"🌙 Dark mode";button.setAttribute("aria-pressed",String(theme==="dark"));};
- let current=document.documentElement.getAttribute("data-theme");if(current!=="light"&&current!=="dark"){try{current=localStorage.getItem("amora_appearance");}catch{}}
- apply(current==="light"?"light":"dark");
- button.addEventListener("click",()=>apply(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"));
-}
-function initInboxTabs(){
- const chatTab=$("#guest-chat-tab"),anonTab=$("#anonymous-message-tab"),chatPanel=$("#guest-chat-panel"),anonPanel=$("#anonymous-message-panel");
- const activate=which=>{const chat=which==="chat";chatTab.classList.toggle("active",chat);anonTab.classList.toggle("active",!chat);chatTab.setAttribute("aria-selected",String(chat));anonTab.setAttribute("aria-selected",String(!chat));chatPanel.hidden=!chat;anonPanel.hidden=chat;};
- chatTab?.addEventListener("click",()=>activate("chat"));anonTab?.addEventListener("click",()=>activate("anonymous"));
-}
-
-initThemeToggle();initInboxTabs();
+setActiveTab("chat");$("#guest-chat-tab")?.addEventListener("click",()=>setActiveTab("chat"));$("#anonymous-message-tab")?.addEventListener("click",()=>setActiveTab("anonymous"));$("#refresh-guest-inbox")?.addEventListener("click",async()=>{try{say("Refreshing guest inbox…");await listConversations();await listAnonymousLinkMessages();say("Inbox refreshed.");}catch(e){say(e.message||"Could not refresh inbox.",true);}});
 (async()=>{if(!supabase){say("Connection unavailable.",true);return;}const {data,error}=await supabase.auth.getSession();if(error||!data?.session){say("Please sign in to view guest conversations.",true);setTimeout(()=>location.href="/pages/home.html?auth=login",900);return;}try{await listConversations();}catch(e){say(e.message||"Could not load guest conversations.",true);}try{await listAnonymousLinkMessages();}catch(e){const target=$("#owner-anonymous-link-list");target.textContent="Could not load anonymous link messages. "+(e.message||"Please try again.");}})();
