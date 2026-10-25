@@ -67,3 +67,10 @@
 [data-theme="light"] .home-search-control input{color:#28222d}
 @media(max-width:760px){.feed-tools-heading{display:none}.mobile-topbar{gap:8px}.mobile-topbar .feed-brand{font-size:1.35rem;gap:7px}.mobile-topbar .brand-mark{width:34px;height:34px}.home-search-control{width:100%}}
 @media(max-width:400px){.mobile-topbar .home-search-control{width:calc(100vw - 190px)}.story-viewer-actions{left:6px;right:6px;gap:4px}.story-viewer-actions button{padding:8px;font-size:11px}}
+
+/* Larger story circles; keep the row focused on actual stories only. */
+.story-person{flex-basis:84px;max-width:92px;gap:8px}
+.story-ring{width:76px;height:76px;padding:3px}
+.story-avatar{width:100%;height:100%;font-size:23px}
+.story-person-name{max-width:92px;font-size:12px}
+@media(max-width:600px){.story-person{flex-basis:82px;max-width:88px}.story-ring{width:74px;height:74px}}
