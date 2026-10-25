@@ -281,6 +281,7 @@ document.addEventListener("DOMContentLoaded", () => {
       menu.closest(".post-actions")?.querySelector(".post-more-trigger")?.setAttribute("aria-expanded", "false");
     });
     document.querySelectorAll(".post-more-backdrop:not([hidden])").forEach((backdrop) => { backdrop.hidden = true; });
+    document.body.classList.remove("post-detail-more-open");
   }
   document.addEventListener("click", (event) => {
     const clickedMoreTrigger = event.target.closest(".post-more-trigger");
@@ -1400,7 +1401,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const postId = params.get("post");
     const commentId = params.get("comment");
     const isUuid = value => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-    if (!isUuid(postId) || (commentId && !isUuid(commentId))) return;
+    if (!isUuid(postId) || (commentId && !isUuid(commentId))) { document.body.classList.remove("notification-post-opening"); return; }
     try {
       let post = posts.find(item => item.id === postId);
       if (!post) {
@@ -1408,16 +1409,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (error) throw error;
         post = data;
       }
-      if (!post) { setStatus("That post is unavailable or is no longer accessible.", true); return; }
+      if (!post) { document.body.classList.remove("notification-post-opening"); setStatus("That post is unavailable or is no longer accessible.", true); return; }
       if (!posts.some(item => item.id === post.id)) posts.unshift(post);
       activeFeed = "for-you";
       feedTabs.forEach(tab => { const selected = tab.dataset.feed === activeFeed; tab.classList.toggle("active", selected); tab.setAttribute("aria-selected", String(selected)); });
       await loadPublicProfiles([post.author_id].filter(Boolean));
       await renderFeed();
       const article = feedList.querySelector('[data-post-id="' + postId + '"]');
-      if (!article) { setStatus("That post could not be shown in this feed.", true); return; }
+      if (!article) { document.body.classList.remove("notification-post-opening"); setStatus("That post could not be shown in this feed.", true); return; }
       article.classList.add("notification-target-highlight");
       await openCommentsDialog(post, {scrollToComments:Boolean(commentId)});
+      document.body.classList.remove("notification-post-opening");
       if (commentId) {
         const findComment = rows => { for (const row of rows || []) { if (row.id === commentId) return row; const nested = findComment(row.replies); if (nested) return nested; } return null; };
         const target = findComment(await loadComments(post.id));
@@ -1430,7 +1432,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const cleanUrl = new URL(window.location.href); cleanUrl.searchParams.delete("post"); cleanUrl.searchParams.delete("comment");
       window.history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
-    } catch (error) { await logClientError("open_notification_target", error); setStatus("Could not open that notification post. It may have been deleted or access may be restricted.", true); }
+    } catch (error) { document.body.classList.remove("notification-post-opening"); await logClientError("open_notification_target", error); setStatus("Could not open that notification post. It may have been deleted or access may be restricted.", true); }
   }
 
   // Photo viewer for feed media. Uses only URLs already rendered on accessible posts.
