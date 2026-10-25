@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#242526">
   <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
   <title>Notifications · Amora</title>
-  <link rel="stylesheet" href="/css/feed.css?v=notifications-theme-final">
-  <link rel="stylesheet" href="/css/notifications.css?v=notifications-theme-final">
+  <link rel="stylesheet" href="/css/feed.css?v=notifications-facebook-2">
+  <link rel="stylesheet" href="/css/notifications.css?v=notifications-facebook-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
   <script src="/js/moderator-nav.js?v=1" defer></script>
-  <script type="module" src="/js/notifications-page.js?v=notifications-theme-final"></script>
+  <script type="module" src="/js/notifications-page.js?v=notifications-facebook-2"></script>
 </head>
 <body class="amora-feed-page">
   <div class="feed-shell">
@@ -31,11 +31,15 @@
       <header class="mobile-topbar"><a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a></header>
       <section class="notifications-header">
         <div><p class="eyebrow">YOUR AMORA ACTIVITY</p><h1>Notifications</h1><p>Likes, replies, follows and messages, all in one place.</p></div>
-        <button class="secondary-button" id="mark-all-read" type="button">Mark all as read</button>
+        <div class="notifications-header-actions"><button class="notification-refresh-button" id="refresh-notifications" type="button" aria-label="Refresh notifications" title="Refresh">↻</button><button class="secondary-button" id="mark-all-read" type="button">Mark all as read</button></div>
       </section>
+      <label class="notifications-search"><span aria-hidden="true">⌕</span><input id="notifications-search" type="search" placeholder="Search notifications" autocomplete="off" aria-label="Search notifications"></label>
       <div class="notifications-filters" role="tablist" aria-label="Filter notifications">
         <button class="notification-filter active" type="button" data-filter="all" aria-selected="true">All</button>
         <button class="notification-filter" type="button" data-filter="unread" aria-selected="false">Unread</button>
+        <button class="notification-filter" type="button" data-filter="likes" aria-selected="false">Likes</button>
+        <button class="notification-filter" type="button" data-filter="comments" aria-selected="false">Comments</button>
+        <button class="notification-filter" type="button" data-filter="follows" aria-selected="false">Follows</button>
       </div>
       <section id="notifications-list" class="notifications-list" aria-live="polite">
         <div class="notification-loading">Loading your notifications…</div>
