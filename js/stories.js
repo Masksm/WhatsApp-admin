@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let progressTimer = null;
   let viewerStartedAt = 0;
   let currentVideo = null;
+  let pausedStoryState = null;
   let activeStory = null;
   let mutedUserIds = new Set();
 
@@ -59,6 +60,41 @@ document.addEventListener("DOMContentLoaded", () => {
     if (progressTimer) clearInterval(progressTimer);
     advanceTimer = null; progressTimer = null;
     if (currentVideo) { currentVideo.pause(); currentVideo = null; }
+  }
+  function pauseStoryForMenu() {
+    if (pausedStoryState) return;
+    const segment = viewerProgress.children[activeIndex]?.firstElementChild;
+    pausedStoryState = {
+      remaining: advanceTimer ? Math.max(0, (advanceTimer._amoraDueAt || Date.now()) - Date.now()) : 0,
+      progress: segment ? segment.style.width : "",
+      videoTime: currentVideo ? currentVideo.currentTime : null,
+      wasVideo: Boolean(currentVideo)
+    };
+    stopViewerTimers();
+  }
+  function resumeStoryAfterMenu() {
+    if (!pausedStoryState || viewer.hidden || moreMenu?.hidden === false) return;
+    const saved = pausedStoryState;
+    pausedStoryState = null;
+    const segment = viewerProgress.children[activeIndex]?.firstElementChild;
+    if (currentVideo) {
+      currentVideo.play().catch(() => {});
+      if (saved.wasVideo && currentVideo.duration) {
+        const duration = currentVideo.duration;
+        progressTimer = setInterval(() => {
+          if (segment) segment.style.width = Math.min(100, (currentVideo.currentTime / duration) * 100) + "%";
+        }, 80);
+      }
+      return;
+    }
+    const width = Number.parseFloat(saved.progress) || 0;
+    const remaining = saved.remaining || Math.max(250, 5000 * (1 - width / 100));
+    const start = Date.now();
+    progressTimer = setInterval(() => {
+      if (segment) segment.style.width = Math.min(100, width + ((Date.now() - start) / remaining) * (100 - width)) + "%";
+    }, 80);
+    advanceTimer = setTimeout(() => nextStory(), remaining);
+    advanceTimer._amoraDueAt = Date.now() + remaining;
   }
   async function getSignedUrl(story) {
     if (signedUrlCache.has(story.id)) return signedUrlCache.get(story.id);
@@ -251,6 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (segment) segment.style.width = Math.min(100, ((Date.now()-start)/5000)*100) + "%";
         }, 50);
         advanceTimer = setTimeout(() => nextStory(), 5000);
+        advanceTimer._amoraDueAt = Date.now() + 5000;
       }
     } catch (err) {
       console.error("Amora story media could not open:", err);
@@ -373,8 +410,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } finally { shareButton.disabled = false; }
   });
   moreButton?.addEventListener("click", () => {
-    moreMenu.hidden = !moreMenu.hidden;
-    moreButton.setAttribute("aria-expanded", String(!moreMenu.hidden));
+    const opening = moreMenu.hidden;
+    if (opening) pauseStoryForMenu();
+    moreMenu.hidden = !opening;
+    moreButton.setAttribute("aria-expanded", String(opening));
+    if (!opening) resumeStoryAfterMenu();
   });
   moreMenu?.querySelectorAll("[data-story-action]").forEach(button => button.addEventListener("click", async () => {
     if (!activeStory) return;
