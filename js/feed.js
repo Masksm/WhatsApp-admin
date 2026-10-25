@@ -150,13 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
   document.getElementById("composer-close")?.addEventListener("click", closeComposer);
-  storyCreateButton?.addEventListener("click", () => {
-    if (!composerDialog) return;
-    composerDialog.hidden = false;
-    requestAnimationFrame(() => composerDialog.classList.add("is-expanded"));
-    quickComposer?.setAttribute("aria-expanded", "true");
-    window.setTimeout(() => document.getElementById("story-file-input")?.click(), 180);
-  });
+  // Story creation is handled by js/stories.js so it uses the dedicated story composer.
 
   function setStatus(message, isError = false) {
     composerStatus.textContent = message || "";
