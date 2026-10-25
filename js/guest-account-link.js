@@ -22,22 +22,4 @@ form?.addEventListener("submit",async event=>{
  }catch(err){say(err.message||"Could not link guest history.",true);}
  finally{button.disabled=false;}
 });
-
-
-// These controls only dismiss the optional recovery panel; they never alter guest data.
-const guestLinkPanel=document.querySelector("#guest-account-link-panel");
-const closeGuestLink=document.querySelector("#guest-link-close");
-const noGuestAccount=document.querySelector("#guest-link-no-history");
-closeGuestLink?.addEventListener("click",()=>{if(guestLinkPanel){guestLinkPanel.hidden=true;guestLinkPanel.classList.remove("guest-link-modal");document.body.classList.remove("guest-link-modal-open");}});
-noGuestAccount?.addEventListener("click",()=>{
- if(guestLinkPanel){guestLinkPanel.hidden=true;guestLinkPanel.classList.remove("guest-link-modal");document.body.classList.remove("guest-link-modal-open");}
-});
-
-// Show recovery as a first-visit prompt whenever Messages is entered or reloaded.
-if (guestLinkPanel) {
-  const fromSettings = window.location.hash === "#guest-chat-recovery";
-  guestLinkPanel.hidden = false;
-  guestLinkPanel.classList.add("guest-link-modal");
-  document.body.classList.add("guest-link-modal-open");
-  if (fromSettings) setTimeout(() => guestLinkPanel.scrollIntoView({behavior:"smooth",block:"center"}), 50);
-}
+ 
