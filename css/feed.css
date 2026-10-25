@@ -447,3 +447,11 @@ html[data-theme="light"] .comments-dialog .comment-edit-form button[type="submit
 }
 .comment-edit-inline-input:focus{border-color:var(--pink,#ec5b9a);box-shadow:0 0 0 2px #ec5b9a22}
 html[data-theme="light"] .comment-edit-inline-input{background:#fff;color:#34243b;border-color:#d9cbdc}
+
+
+/* Make post options a true overlay above the post-detail dialog. */
+body.post-detail-more-open .post-more-backdrop{z-index:10011!important}
+body.post-detail-more-open .post-more-menu{z-index:10012!important;visibility:visible!important;pointer-events:auto!important}
+body.post-detail-more-open .comments-dialog{z-index:10000}
+html.notification-post-opening .feed-shell{visibility:hidden!important;pointer-events:none!important}
+html.notification-post-opening .comments-dialog{visibility:visible!important}
