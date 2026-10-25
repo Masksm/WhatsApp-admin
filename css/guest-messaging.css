@@ -90,3 +90,5 @@ body.guest-chat-popup-open .guest-inbox-workspace .chat-panel{display:flex;posit
 body.guest-chat-popup-open .guest-inbox-workspace .chat-panel .message-list{min-height:0;max-height:none;overflow-y:auto}
 body.guest-chat-popup-open{overflow:hidden}
 @media(max-width:760px){body.guest-chat-popup-open .guest-inbox-workspace .chat-panel{width:calc(100vw - 20px);height:calc(100dvh - 24px);max-height:calc(100dvh - 24px);border-radius:18px}.guest-chat-popup-close{margin-left:auto}}
+
+@media(max-width:760px){body.guest-chat-popup-open .guest-inbox-workspace .chat-panel{width:calc(100vw - 20px)!important;height:calc(100dvh - 24px)!important;max-height:calc(100dvh - 24px)!important}}
