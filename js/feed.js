@@ -767,9 +767,14 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         if (action === "more") {
-          closeCommentsDialog();
           const card = feedList.querySelector('[data-post-id="' + post.id + '"]');
-          card?.querySelector(".post-more-trigger")?.click();
+          const cardMore = card?.querySelector(".post-more-trigger");
+          if (cardMore) {
+            closeCommentsDialog();
+            cardMore.click();
+          } else {
+            setStatus("Post options are unavailable for this post.", true);
+          }
           return;
         }
         try {
@@ -1406,9 +1411,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const article = feedList.querySelector('[data-post-id="' + postId + '"]');
       if (!article) { setStatus("That post could not be shown in this feed.", true); return; }
       article.classList.add("notification-target-highlight");
-      article.scrollIntoView({ behavior: "smooth", block: "center" });
+      await openCommentsDialog(post, {scrollToComments:Boolean(commentId)});
       if (commentId) {
-        await openCommentsDialog(post);
         const findComment = rows => { for (const row of rows || []) { if (row.id === commentId) return row; const nested = findComment(row.replies); if (nested) return nested; } return null; };
         const target = findComment(await loadComments(post.id));
         if (!target) setStatus("The post is open, but that comment is unavailable.", true);
