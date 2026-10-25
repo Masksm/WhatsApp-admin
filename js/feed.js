@@ -650,10 +650,16 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="comments-dialog-backdrop" data-comments-close></div>
       <section class="comments-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="comments-dialog-title">
         <header class="comments-dialog-header">
-          <div><h2 id="comments-dialog-title">Comments</h2><p class="comments-dialog-subtitle"></p></div>
-          <button type="button" class="comments-dialog-close" aria-label="Close comments" data-comments-close>×</button>
+          <div><h2 id="comments-dialog-title">Post</h2><p class="comments-dialog-subtitle"></p></div>
+          <button type="button" class="comments-dialog-close" aria-label="Close post" data-comments-close>×</button>
         </header>
         <div class="comments-dialog-post"></div>
+        <div class="post-detail-actions" aria-label="Post actions">
+          <button type="button" data-detail-action="like">♡ Like</button>
+          <button type="button" data-detail-action="comment">Comment</button>
+          <button type="button" data-detail-action="repost">⟳ Repost</button>
+          <button type="button" data-detail-action="more">••• More</button>
+        </div>
         <div class="comments-dialog-list" aria-live="polite"></div>
         <form class="comments-dialog-form post-reply-composer">
           <div class="comments-reply-context comment-reply-context" hidden></div>
@@ -709,11 +715,14 @@ document.addEventListener("DOMContentLoaded", () => {
     activeCommentsPost = null;
   }
 
-  async function openCommentsDialog(post) {
+  async function openCommentsDialog(post, options = {}) {
     activeCommentsPost = post;
     const dialog = ensureCommentsDialog();
     const profile = post.author_id ? profileCache.get(post.author_id) : null;
-    dialog.querySelector(".comments-dialog-subtitle").textContent = (profile?.display_name || profile?.username || "Amora post");
+    const postName = post.is_anonymous ? "Anonymous" : (profile?.username ? "@" + profile.username : (profile?.display_name || "Amora member"));
+    dialog.querySelector("#comments-dialog-title").textContent = postName;
+    const initialCounts = interactionCounts.get(post.id) || {likes:0,reposts:0,comments:0};
+    dialog.querySelector(".comments-dialog-subtitle").textContent = initialCounts.likes + " likes · " + initialCounts.comments + " comments · " + initialCounts.reposts + " reposts";
     const postPreview = dialog.querySelector(".comments-dialog-post");
     postPreview.replaceChildren();
     postPreview.classList.toggle("has-post-media", Array.isArray(post.media_urls) && post.media_urls.some(url => typeof url === "string" && url.startsWith("https://")));
@@ -743,9 +752,53 @@ document.addEventListener("DOMContentLoaded", () => {
     dialog.querySelector(".comments-dialog-anonymous").hidden = Boolean(post.is_anonymous || post.force_anonymous_comments);
     dialog.hidden = false;
     document.body.classList.add("comments-dialog-open");
+    const actionButtons = dialog.querySelectorAll("[data-detail-action]");
+    const likeButton = dialog.querySelector('[data-detail-action="like"]');
+    const commentButton = dialog.querySelector('[data-detail-action="comment"]');
+    const repostButton = dialog.querySelector('[data-detail-action="repost"]');
+    const moreButton = dialog.querySelector('[data-detail-action="more"]');
+    likeButton.textContent = likeCache.has(post.id) ? "♥ Liked" : "♡ Like";
+    repostButton.textContent = repostCache.has(post.id) ? "↻ Reposted" : "⟳ Repost";
+    actionButtons.forEach(button => {
+      button.onclick = async () => {
+        const action = button.dataset.detailAction;
+        if (action === "comment") {
+          dialog.querySelector(".comments-dialog-list").scrollIntoView({behavior:"smooth",block:"start"});
+          return;
+        }
+        if (action === "more") {
+          closeCommentsDialog();
+          const card = feedList.querySelector('[data-post-id="' + post.id + '"]');
+          card?.querySelector(".post-more-trigger")?.click();
+          return;
+        }
+        try {
+          if (action === "like") {
+            await toggleRow("post_likes",post.id,likeCache);
+            likeButton.textContent = likeCache.has(post.id) ? "♥ Liked" : "♡ Like";
+          } else if (action === "repost") {
+            await toggleRow("post_reposts",post.id,repostCache);
+            repostButton.textContent = repostCache.has(post.id) ? "↻ Reposted" : "⟳ Repost";
+          }
+          const article = feedList.querySelector('[data-post-id="' + post.id + '"]');
+          const counts = interactionCounts.get(post.id) || {likes:0,reposts:0,comments:0};
+          if (action === "like") counts.likes = Math.max(0,counts.likes + (likeCache.has(post.id) ? 1 : -1));
+          if (action === "repost") counts.reposts = Math.max(0,counts.reposts + (repostCache.has(post.id) ? 1 : -1));
+          interactionCounts.set(post.id,counts);
+          dialog.querySelector(".comments-dialog-subtitle").textContent = counts.likes + " likes · " + counts.comments + " comments · " + counts.reposts + " reposts";
+          const statSpans = article?.querySelectorAll(".post-stats span");
+          if(statSpans?.length===3){statSpans[0].textContent=counts.likes+" likes";statSpans[1].textContent=counts.reposts+" reposts";statSpans[2].textContent=counts.comments+" comments";}
+        } catch(error) {
+          await logClientError("post_detail_"+action,error);
+          setStatus("Couldn't update this post. Please try again.",true);
+        }
+      };
+    });
     requestAnimationFrame(() => dialog.classList.add("is-open"));
     await refreshCommentsDialog();
-    form.elements.namedItem("comment-content").focus({ preventScroll: true });
+    if (options.scrollToComments) {
+      requestAnimationFrame(() => dialog.querySelector(".comments-dialog-list").scrollIntoView({behavior:"smooth",block:"start"}));
+    }
   }
 
   function focusReplyComposer(comment, post) {
@@ -789,7 +842,10 @@ document.addEventListener("DOMContentLoaded", () => {
         empty.textContent = "No comments yet. Start the conversation.";
         list.append(empty);
       } else comments.forEach(comment => list.append(makeComment(comment, post)));
-      commentsDialog.querySelector("#comments-dialog-title").textContent = "Comments (" + comments.length + ")";
+      const currentCounts = interactionCounts.get(post.id) || {likes:0,reposts:0,comments:0};
+      currentCounts.comments = comments.length;
+      interactionCounts.set(post.id,currentCounts);
+      commentsDialog.querySelector(".comments-dialog-subtitle").textContent = currentCounts.likes + " likes · " + comments.length + " comments · " + currentCounts.reposts + " reposts";
       const article = feedList.querySelector('[data-post-id="' + post.id + '"]');
       const countLabel = article?.querySelector(".post-stats span:last-child");
       if (countLabel) countLabel.textContent = comments.length + (comments.length === 1 ? " comment" : " comments");
@@ -960,7 +1016,7 @@ document.addEventListener("DOMContentLoaded", () => {
           setStatus("Couldn't update your like. Please try again.", true);
         }
       }, likeCache.has(post.id)),
-      makeButton("Comments · " + comments.length, "post-action post-comments-trigger", () => openCommentsDialog(post)),
+      makeButton("Comments · " + comments.length, "post-action post-comments-trigger", () => openCommentsDialog(post, {scrollToComments:true})),
       makeButton(repostCache.has(post.id) ? "↻ Reposted" : "⟳ Repost", "post-action", async () => {
         try {
           await toggleRow("post_reposts", post.id, repostCache);
