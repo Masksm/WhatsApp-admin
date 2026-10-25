@@ -2,6 +2,16 @@ import { supabase } from "./core.js";
 
 const $ = (s) => document.querySelector(s);
 const TOKEN_KEY = "amora_guest_recovery_token";
+
+function initGuestTheme(){
+ const button=$("#guest-chat-theme-toggle");if(!button)return;
+ const apply=theme=>{document.documentElement.setAttribute("data-theme",theme);try{localStorage.setItem("amora_appearance",theme);}catch{}button.textContent=theme==="dark"?"☀️ Light mode":"🌙 Dark mode";button.setAttribute("aria-pressed",String(theme==="dark"));};
+ let current=document.documentElement.getAttribute("data-theme");if(current!=="light"&&current!=="dark"){try{current=localStorage.getItem("amora_appearance");}catch{}}
+ apply(current==="light"?"light":"dark");
+ button.addEventListener("click",()=>apply(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"));
+}
+initGuestTheme();
+
 const params = new URLSearchParams(location.search);
 const slug = params.get("slug");
 let token = "";
@@ -86,7 +96,7 @@ $("#guest-first-message-form")?.addEventListener("submit",async e=>{
   try{
     const {data,error}=await supabase.rpc("guest_send_first_message",{p_token:token,p_slug:slug,p_message:text});
     if(error)throw error;if(data?.status==="blocked")throw new Error(data.message||"Message blocked by moderation.");
-    $("#guest-first-message").value="";status("Private message sent.");await refreshConversations();
+    $("#guest-first-message").value="";$("#guest-compose-card").hidden=true;status("Private message sent.");await refreshConversations();
     if(data?.conversation_id)await openConversation(data.conversation_id);
   }catch(err){status(err.message||"Could not send message.",true);}
   finally{button.disabled=false;}
