@@ -6,50 +6,48 @@
   <meta name="theme-color" content="#100914">
   <meta name="description" content="Send a private anonymous message with Amora.">
   <title>Send an anonymous message · Amora</title>
-  <link rel="stylesheet" href="/css/auth.css">
+  <link rel="stylesheet" href="/css/auth.css?v=auth-202610">
   <link rel="stylesheet" href="/css/guest-messaging.css?v=guest-ui-1">
-  <link rel="stylesheet" href="/css/anonymous-message.css?v=anonymous-design-1">
+  <link rel="stylesheet" href="/css/anonymous-message.css?v=anonymous-design-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
-  <script type="module" src="/js/public-anonymous-message.js?v=public-anon-1"></script>
+  <script type="module" src="/js/public-anonymous-message.js?v=public-anon-2"></script>
 </head>
 <body class="anonymous-message-page">
   <main class="anonymous-shell">
-    <a href="/" class="anonymous-brand" aria-label="Amora home">
-      <span class="anonymous-brand-mark">a</span><span>amora<span class="anonymous-brand-dot">.</span></span>
-    </a>
+    <header class="anon-topbar">
+      <a href="/" class="anonymous-brand" aria-label="Amora home"><span class="anonymous-brand-mark">a</span><span>amora<span class="anonymous-brand-dot">.</span></span></a>
+      <a class="anon-home-link" href="/">Home <span aria-hidden="true">↗</span></a>
+    </header>
 
-    <section class="anonymous-hero" aria-labelledby="anonymous-title">
-      <div class="anonymous-orbit anonymous-orbit-one" aria-hidden="true"></div>
-      <div class="anonymous-orbit anonymous-orbit-two" aria-hidden="true"></div>
-      <div class="anonymous-heart" aria-hidden="true">♡</div>
-      <p class="anonymous-eyebrow"><span></span> A little mystery, just for you</p>
-      <h1 id="anonymous-title">Say what you <span>really feel.</span></h1>
-      <p class="anonymous-intro">Send a thoughtful message without revealing who you are. Sometimes the words are easier when there’s a little mystery.</p>
-      <div class="anonymous-privacy-note"><span aria-hidden="true">✦</span><span><strong>Your identity stays private</strong><small>Your name and account details are not shown to the recipient.</small></span></div>
+    <section class="anon-profile-hero" aria-labelledby="anonymous-title">
+      <div class="anon-profile-icon" aria-hidden="true">♡</div>
+      <p class="anon-eyebrow">AMORA · ANONYMOUS MESSAGES</p>
+      <h1 id="anonymous-title">A space to say it <span>without a name.</span></h1>
+      <p class="anon-intro">Send your message privately. Share a compliment, a confession, or something you have wanted to say.</p>
+      <div class="anon-privacy-note"><span aria-hidden="true">✦</span><span><strong>Your identity stays private</strong><small>Your account details are not displayed to the recipient.</small></span></div>
     </section>
 
-    <section class="anonymous-compose-card" aria-label="Write an anonymous message">
-      <div class="anonymous-compose-heading">
-        <span class="anonymous-compose-icon" aria-hidden="true">✎</span>
-        <div><h2>Your message</h2><p>Make it kind. Make it honest. Make it yours.</p></div>
-      </div>
+    <section class="anon-compose-panel" aria-label="Write an anonymous message">
+      <div class="anon-section-heading"><span class="anon-heading-icon" aria-hidden="true">✎</span><div><h2>Write a message</h2><p>Keep it honest. Keep it respectful.</p></div></div>
       <form id="public-anonymous-form" class="guest-messaging-form anonymous-form">
         <label class="visually-hidden" for="public-anonymous-text">Your anonymous message</label>
-        <textarea id="public-anonymous-text" rows="6" maxlength="2000" required placeholder="Write what you’ve been wanting to say…"></textarea>
+        <textarea id="public-anonymous-text" rows="5" maxlength="2000" required placeholder="What would you like them to know?"></textarea>
         <div class="anonymous-compose-footer"><span>♡ Sent anonymously</span><span id="anonymous-character-count">0 / 2000</span></div>
-        <button id="public-anonymous-submit" type="submit"><span>Send anonymously</span><span aria-hidden="true">↗</span></button>
+        <button id="public-anonymous-submit" type="submit"><span>Send message</span><span aria-hidden="true">↗</span></button>
       </form>
       <div id="public-anonymous-status" class="anonymous-status" role="status" aria-live="polite"></div>
     </section>
 
-    <section class="anonymous-chat-card">
-      <div class="anonymous-chat-symbol" aria-hidden="true">♡</div>
-      <div class="anonymous-chat-copy"><p class="anonymous-chat-kicker">Keep the conversation going</p><h2>One message can become a real conversation.</h2><p>Start a private guest chat and keep your conversation recoverable with a recovery token.</p></div>
-      <a id="public-guest-chat-link" href="/pages/guest-chat.html" class="anonymous-chat-link">Start a private chat <span aria-hidden="true">→</span></a>
+    <section class="anon-chat-panel">
+      <div class="anon-chat-icon" aria-hidden="true">↗</div>
+      <p class="anon-eyebrow">MORE THAN ONE MESSAGE</p>
+      <h2>Continue the conversation privately.</h2>
+      <p>Start a guest chat with a recovery token so you can return to your conversation later.</p>
+      <a id="public-guest-chat-link" href="/pages/guest-chat.html" class="anon-secondary-link">Start a private chat <span aria-hidden="true">→</span></a>
     </section>
 
-    <footer class="anonymous-footer"><span>Made for the things that are hard to say.</span><a href="/">Back to Amora</a></footer>
+    <footer class="anon-footer"><span>Made for the things that are hard to say.</span><a href="/">Back to Amora</a></footer>
   </main>
   <script>
     (() => {
