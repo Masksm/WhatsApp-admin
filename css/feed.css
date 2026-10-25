@@ -476,3 +476,12 @@ body.amora-post-page .post-more-menu{z-index:10012!important}
 .comment-edit-cancel:hover{filter:brightness(1.06)}
 .comment-edit-cancel:disabled{opacity:.55;cursor:wait}
 .comments-dialog-anonymous[hidden]{display:none!important}
+
+
+/* Clear reply mode from the shared comment composer. */
+.comments-reply-context{position:relative;display:flex;flex-direction:column;gap:5px;min-width:0;padding:10px 42px 10px 12px;border-left:4px solid #3987ff;border-radius:0 10px 10px 0;background:#1b2540;color:var(--text,#f7f1fb)}
+.comments-reply-context[hidden]{display:none!important}
+.comments-reply-label{font-weight:800;color:#9dc5ff;font-size:.82rem}
+.comments-reply-quote{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text,#f7f1fb);font-size:.78rem}
+.comments-reply-cancel{position:absolute;right:7px;top:7px;width:28px;height:28px;display:grid;place-items:center;border:1px solid var(--line,#ffffff25);border-radius:50%;background:var(--surface2,#302338);color:var(--text,#fff);font-size:20px;line-height:1;cursor:pointer}
+.comments-reply-cancel:focus-visible{outline:2px solid #3987ff;outline-offset:2px}
