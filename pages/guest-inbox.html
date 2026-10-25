@@ -1,10 +1,59 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#242526"><title>Guest conversations · Amora</title>
-<link rel="stylesheet" href="/css/feed.css?v=messages-layout-1"><link rel="stylesheet" href="/css/messages.css?v=chat-emoji-2">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/supabase-client.js" defer></script><script type="module" src="/js/guest-inbox-page.js?v=guest-inbox-1"></script>
-<style>.guest-inbox{max-width:900px;margin:24px auto;padding:16px}.guest-box{border:1px solid #eadde4;border-radius:16px;padding:16px;margin:12px 0}.guest-list{display:grid;gap:8px}.guest-row{padding:12px;border:1px solid #eadde4;border-radius:12px;text-align:left;background:transparent;color:inherit;cursor:pointer}.guest-row.active{border-color:#e83e8c}.guest-msg{padding:10px;border-radius:12px;background:#fce7f3;margin:8px 0;overflow-wrap:anywhere}.guest-msg.mine{background:#e5e7eb}.guest-form{display:grid;gap:8px}.guest-form textarea{width:100%;box-sizing:border-box;padding:12px;border-radius:10px}.guest-form button{padding:10px;border:0;border-radius:10px;background:#e83e8c;color:white}.guest-status{min-height:1.4em}.anonymous-link-message{padding:12px;border:1px solid #eadde4;border-radius:12px;margin:8px 0;overflow-wrap:anywhere}.anonymous-link-message p{white-space:pre-wrap}.anonymous-link-message small{display:block;opacity:.75;margin-bottom:6px}.anonymous-link-message a{color:#e83e8c}</style></head>
-<body class="amora-feed-page"><main class="guest-inbox"><a href="/pages/messages.html">← Back to Messages</a><h1>Guest conversations</h1><p>Reply to people chatting through your anonymous link. Their account identity is not shown.</p>
-<section class="guest-box"><h2>Guest conversations</h2><div id="owner-guest-list" class="guest-list">Loading guest conversations…</div><p id="owner-guest-status" class="guest-status" role="status"></p></section>
-<section class="guest-box"><h2>Anonymous link messages</h2><p>Messages sent to your anonymous link appear here too. Open Anonymous Messages to manage or reply where available.</p><div id="owner-anonymous-link-list" class="guest-list" aria-live="polite">Loading anonymous link messages…</div><p><a href="/pages/messages.html">Open Messages</a></p></section>
-<section class="guest-box"><div id="owner-guest-messages" aria-live="polite"></div><form id="owner-guest-reply-form" class="guest-form"><textarea id="owner-guest-reply" rows="2" maxlength="2000" required placeholder="Write a reply…" disabled></textarea><button id="owner-guest-send" type="submit" disabled>Send reply</button></form></section>
-</main></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#242526">
+  <title>Guest conversations · Amora</title>
+  <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
+  <link rel="stylesheet" href="/css/feed.css?v=messages-layout-1">
+  <link rel="stylesheet" href="/css/messages.css?v=chat-emoji-2">
+  <link rel="stylesheet" href="/css/guest-messaging.css?v=guest-inbox-2">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-client.js" defer></script>
+  <script type="module" src="/js/guest-inbox-page.js?v=guest-inbox-1"></script>
+</head>
+<body class="amora-feed-page">
+  <main class="guest-inbox-shell">
+    <a class="guest-inbox-back" href="/pages/messages.html"><span aria-hidden="true">‹</span> Back to Messages</a>
+    <header class="guest-inbox-hero">
+      <span class="guest-inbox-badge"><span aria-hidden="true">♡</span> PRIVATE GUEST INBOX</span>
+      <h1>Guest conversations</h1>
+      <p>Keep the conversation going with people who contacted you anonymously. Their account identity stays hidden.</p>
+    </header>
+
+    <div class="guest-inbox-grid">
+      <section class="guest-inbox-card" aria-labelledby="guest-conversations-heading">
+        <header class="guest-inbox-card-head">
+          <h2 id="guest-conversations-heading">Your guest chats</h2>
+          <p>Choose a conversation to read messages and reply.</p>
+        </header>
+        <div id="owner-guest-list" class="guest-list guest-inbox-list" aria-live="polite">Loading guest conversations…</div>
+        <p id="owner-guest-status" class="guest-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="guest-inbox-card" aria-labelledby="anonymous-link-heading">
+        <header class="guest-inbox-card-head">
+          <h2 id="anonymous-link-heading">Anonymous link messages</h2>
+          <p>Messages sent to your personal link are collected here too.</p>
+        </header>
+        <div id="owner-anonymous-link-list" class="guest-list guest-inbox-list" aria-live="polite">Loading anonymous link messages…</div>
+        <div class="guest-inbox-card-head">
+          <p>For more message controls, open the full anonymous message inbox.</p>
+          <a href="/pages/messages.html">Open Messages <span aria-hidden="true">↗</span></a>
+        </div>
+      </section>
+    </div>
+
+    <section class="guest-box guest-inbox-bottom" aria-label="Selected guest conversation">
+      <h2>Conversation</h2>
+      <div id="owner-guest-messages" aria-live="polite"></div>
+      <form id="owner-guest-reply-form" class="guest-form">
+        <label class="sr-only" for="owner-guest-reply">Write a reply</label>
+        <textarea id="owner-guest-reply" rows="3" maxlength="2000" required placeholder="Write a thoughtful reply…" disabled></textarea>
+        <button id="owner-guest-send" type="submit" disabled>Send reply <span aria-hidden="true">➤</span></button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
