@@ -77,3 +77,6 @@
 
 /* Stories navigate with horizontal swipes, not visible side arrows. */
 .story-viewer-nav{display:none!important}.story-viewer-content,.story-viewer-media{touch-action:pan-y}.story-comments-panel{touch-action:pan-y}
+
+/* Swipe to navigate stories; hide the old side arrows. */
+.story-viewer-nav{display:none!important}.story-viewer-content,.story-viewer-media{touch-action:pan-y}.story-comments-panel{touch-action:pan-y}
