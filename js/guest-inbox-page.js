@@ -29,4 +29,19 @@ async function openChat(id){
  $("#owner-guest-reply").disabled=false;$("#owner-guest-send").disabled=false;await listConversations();
 }
 $("#owner-guest-reply-form").addEventListener("submit",async e=>{e.preventDefault();if(!active)return;const text=$("#owner-guest-reply").value.trim();if(!text)return;$("#owner-guest-send").disabled=true;try{const {data,error}=await supabase.rpc("owner_send_guest_message",{p_conversation_id:active,p_message:text});if(error)throw error;if(data?.status==="blocked")throw new Error(data.message||"Message blocked by moderation.");$("#owner-guest-reply").value="";say("Reply sent.");await openChat(active);}catch(err){say(err.message||"Could not send reply.",true);}finally{$("#owner-guest-send").disabled=false;}});
+
+function initThemeToggle(){
+ const button=$("#guest-inbox-theme-toggle");if(!button)return;
+ const apply=theme=>{document.documentElement.setAttribute("data-theme",theme);try{localStorage.setItem("amora_appearance",theme);}catch{}button.textContent=theme==="dark"?"☀️ Light mode":"🌙 Dark mode";button.setAttribute("aria-pressed",String(theme==="dark"));};
+ let current=document.documentElement.getAttribute("data-theme");if(current!=="light"&&current!=="dark"){try{current=localStorage.getItem("amora_appearance");}catch{}}
+ apply(current==="light"?"light":"dark");
+ button.addEventListener("click",()=>apply(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"));
+}
+function initInboxTabs(){
+ const chatTab=$("#guest-chat-tab"),anonTab=$("#anonymous-message-tab"),chatPanel=$("#guest-chat-panel"),anonPanel=$("#anonymous-message-panel");
+ const activate=which=>{const chat=which==="chat";chatTab.classList.toggle("active",chat);anonTab.classList.toggle("active",!chat);chatTab.setAttribute("aria-selected",String(chat));anonTab.setAttribute("aria-selected",String(!chat));chatPanel.hidden=!chat;anonPanel.hidden=chat;};
+ chatTab?.addEventListener("click",()=>activate("chat"));anonTab?.addEventListener("click",()=>activate("anonymous"));
+}
+
+initThemeToggle();initInboxTabs();
 (async()=>{if(!supabase){say("Connection unavailable.",true);return;}const {data,error}=await supabase.auth.getSession();if(error||!data?.session){say("Please sign in to view guest conversations.",true);setTimeout(()=>location.href="/pages/home.html?auth=login",900);return;}try{await listConversations();}catch(e){say(e.message||"Could not load guest conversations.",true);}try{await listAnonymousLinkMessages();}catch(e){const target=$("#owner-anonymous-link-list");target.textContent="Could not load anonymous link messages. "+(e.message||"Please try again.");}})();
