@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentVideo) currentVideo.pause();
   }
   function resumeStoryAfterMenu() {
-    if (!pausedStoryState || viewer.hidden || moreMenu?.hidden === false) return;
+    if (!pausedStoryState || viewer.hidden || moreMenu?.hidden === false || commentsPanel?.hidden === false) return;
     const saved = pausedStoryState;
     pausedStoryState = null;
     const segment = viewerProgress.children[activeIndex]?.firstElementChild;
@@ -384,8 +384,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   commentToggle?.addEventListener("click", async () => {
     if (!currentUser || !activeStory || activeStory.user_id === currentUser.id) return;
-    commentsPanel.hidden = !commentsPanel.hidden;
-    if (!commentsPanel.hidden) { await loadStoryComments(); commentInput?.focus(); }
+    const opening = commentsPanel.hidden;
+    if (opening) pauseStoryForMenu();
+    commentsPanel.hidden = !opening;
+    if (opening) { await loadStoryComments(); commentInput?.focus(); }
+    else resumeStoryAfterMenu();
   });
   commentForm?.addEventListener("submit", async event => {
     event.preventDefault();
@@ -426,9 +429,15 @@ document.addEventListener("DOMContentLoaded", () => {
       say(err?.message || "Couldn't share this story.");
     } finally { shareButton.disabled = false; }
   });
-  moreButton?.addEventListener("click", () => {
+  moreButton?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!moreMenu || !activeStory) return;
     const opening = moreMenu.hidden;
-    if (opening) pauseStoryForMenu();
+    if (opening) {
+      pauseStoryForMenu();
+      commentsPanel.hidden = true;
+    }
     moreMenu.hidden = !opening;
     moreButton.setAttribute("aria-expanded", String(opening));
     if (!opening) resumeStoryAfterMenu();
@@ -467,6 +476,23 @@ document.addEventListener("DOMContentLoaded", () => {
   closeButton.addEventListener("click", closeViewer);
   nextButton.addEventListener("click", nextStory);
   prevButton.addEventListener("click", previousStory);
+  let swipeStartX = 0;
+  let swipeStartY = 0;
+  viewer.addEventListener("touchstart", event => {
+    if (viewer.hidden || moreMenu?.hidden === false || commentsPanel?.hidden === false) return;
+    const touch = event.changedTouches[0];
+    swipeStartX = touch.clientX;
+    swipeStartY = touch.clientY;
+  }, { passive: true });
+  viewer.addEventListener("touchend", event => {
+    if (viewer.hidden || moreMenu?.hidden === false || commentsPanel?.hidden === false) return;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - swipeStartX;
+    const dy = touch.clientY - swipeStartY;
+    if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    if (dx < 0) nextStory();
+    else previousStory();
+  }, { passive: true });
   viewer.addEventListener("click", e => { if (e.target === viewer) closeViewer(); });
   document.addEventListener("keydown", e => {
     if (viewer.hidden) return;
