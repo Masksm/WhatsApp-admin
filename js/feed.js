@@ -714,7 +714,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const dialog = ensureCommentsDialog();
     const profile = post.author_id ? profileCache.get(post.author_id) : null;
     dialog.querySelector(".comments-dialog-subtitle").textContent = (profile?.display_name || profile?.username || "Amora post");
-    dialog.querySelector(".comments-dialog-post").textContent = post.content || "";
+    const postPreview = dialog.querySelector(".comments-dialog-post");
+    postPreview.replaceChildren();
+    postPreview.classList.toggle("has-post-media", Array.isArray(post.media_urls) && post.media_urls.some(url => typeof url === "string" && url.startsWith("https://")));
+    if (post.content) {
+      const postText = document.createElement("p");
+      postText.className = "comments-dialog-post-text";
+      postText.textContent = post.content;
+      postPreview.append(postText);
+    }
+    (Array.isArray(post.media_urls) ? post.media_urls : []).slice(0, 4).forEach(url => {
+      if (typeof url !== "string" || !url.startsWith("https://")) return;
+      const image = document.createElement("img");
+      image.className = "comments-dialog-post-image";
+      image.src = url;
+      image.alt = "Image attached to post";
+      image.loading = "lazy";
+      postPreview.append(image);
+    });
     activeReplyParentId = null;
     const replyContext = dialog.querySelector(".comments-reply-context");
     if (replyContext) { replyContext.hidden = true; replyContext.replaceChildren(); }
@@ -1026,6 +1043,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     document.body.append(moreBackdrop, moreMenu);
     article.append(stats, actions);
+    article.addEventListener("click", event => {
+      if (event.target.closest("button,a,input,textarea,label,select,video,.post-image,.post-actions,.post-more-menu,.post-more-backdrop")) return;
+      openCommentsDialog(post);
+    });
+    article.tabIndex = 0;
+    article.setAttribute("role", "article");
+    article.setAttribute("aria-label", "Open post and comments");
+    article.addEventListener("keydown", event => {
+      if ((event.key === "Enter" || event.key === " ") && event.target === article) {
+        event.preventDefault();
+        openCommentsDialog(post);
+      }
+    });
     return article;
   }
 
