@@ -563,30 +563,45 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         form.dataset.editingCommentId = comment.id;
         form.dataset.editingOriginalValue = composer.value;
+        form.dataset.editingOriginalPlaceholder = composer.placeholder;
+        form.dataset.editingOriginalLabel = composer.getAttribute("aria-label") || "Write a comment";
         composer.value = comment.content;
         composer.placeholder = "Edit your comment…";
         composer.setAttribute("aria-label", "Edit your comment");
         const submitButton = form.querySelector('button[type="submit"]');
+        form.dataset.editingOriginalSubmitText = submitButton.textContent || "Reply";
         submitButton.textContent = "Save edit";
+        const anonymousToggle = form.querySelector(".comments-dialog-anonymous");
+        if (anonymousToggle) {
+          form.dataset.editingAnonymousToggleWasVisible = String(!anonymousToggle.hidden);
+          anonymousToggle.hidden = true;
+        }
         let cancel = form.querySelector("[data-cancel-comment-edit]");
         if (!cancel) {
           cancel = document.createElement("button");
           cancel.type = "button";
           cancel.dataset.cancelCommentEdit = "true";
-          cancel.className = "post-action";
+          cancel.className = "comment-edit-cancel";
           cancel.textContent = "Cancel";
           submitButton.insertAdjacentElement("afterend", cancel);
         }
         cancel.hidden = false;
-        cancel.onclick = () => {
+        const restoreComposerAfterEdit = () => {
           composer.value = form.dataset.editingOriginalValue || "";
+          composer.placeholder = form.dataset.editingOriginalPlaceholder || "Write a comment…";
+          composer.setAttribute("aria-label", form.dataset.editingOriginalLabel || "Write a comment");
+          submitButton.textContent = form.dataset.editingOriginalSubmitText || "Reply";
+          if (anonymousToggle) anonymousToggle.hidden = form.dataset.editingAnonymousToggleWasVisible !== "true";
           delete form.dataset.editingCommentId;
           delete form.dataset.editingOriginalValue;
-          composer.placeholder = "Write a comment…";
-          composer.setAttribute("aria-label", "Write a comment");
-          submitButton.textContent = "Reply";
+          delete form.dataset.editingOriginalPlaceholder;
+          delete form.dataset.editingOriginalLabel;
+          delete form.dataset.editingOriginalSubmitText;
+          delete form.dataset.editingAnonymousToggleWasVisible;
           cancel.hidden = true;
         };
+        cancel.onclick = restoreComposerAfterEdit;
+        form._restoreComposerAfterCommentEdit = restoreComposerAfterEdit;
         composer.focus();
         composer.scrollIntoView({block:"nearest",behavior:"smooth"});
       });
@@ -700,14 +715,10 @@ document.addEventListener("DOMContentLoaded", () => {
               .select("id").maybeSingle();
             if(error) throw error;
             if(!data) throw new Error("Comment update was not permitted.");
-            delete form.dataset.editingCommentId;
-            delete form.dataset.editingOriginalValue;
-            composer.value = "";
-            composer.placeholder = "Write a comment…";
-            composer.setAttribute("aria-label","Write a comment");
-            submitButton.textContent = "Reply";
-            const cancel = form.querySelector("[data-cancel-comment-edit]");
-            if(cancel) cancel.hidden = true;
+            if (typeof form._restoreComposerAfterCommentEdit === "function") {
+              form._restoreComposerAfterCommentEdit();
+              delete form._restoreComposerAfterCommentEdit;
+            }
             commentCache.delete(activeCommentsPost.id);
             await refreshCommentsDialog();
           } catch(error) {
