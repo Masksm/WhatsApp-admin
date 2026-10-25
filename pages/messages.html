@@ -15,7 +15,6 @@
   <script src="/js/moderator-nav.js?v=1" defer></script>
   <script type="module" src="/js/messages-page.js?v=anonymous-inbox-2"></script>
   <script src="/js/stories.js?v=story-ios-timer-fix-12" defer></script>
-  <script type="module" src="/js/guest-account-link.js?v=guest-link-1"></script>
 </head>
 <body class="amora-feed-page">
   <div class="feed-shell">
@@ -48,20 +47,7 @@
       <section class="messages-workspace">
         <div class="inbox-panel">
           <div class="inbox-heading"><div><h2>Chats</h2><span>Private conversations and anonymous link messages</span></div><span class="inbox-lock" aria-label="Private">♡</span></div>
-          <p><a href="/pages/guest-inbox.html">Open guest conversations</a></p>
-          <section class="guest-account-link-panel" id="guest-account-link-panel" aria-labelledby="guest-account-link-title">
-            <button type="button" class="guest-link-close" id="guest-link-close" aria-label="Close guest history linking panel" title="Close">×</button>
-            <h3 id="guest-account-link-title">Link guest history to your account</h3>
-            <p>Enter your 64-character recovery token. You must be signed in with a verified email and explicitly consent to linking.</p>
-            <form id="guest-account-link-form">
-              <input id="guest-account-link-token" type="password" autocomplete="off" spellcheck="false" maxlength="64" pattern="[a-f0-9]{64}" required placeholder="Guest recovery token" aria-label="Guest recovery token">
-              <label><input id="guest-account-link-consent" type="checkbox" required> I consent to link this guest identity and its conversation history to my account.</label>
-              <button type="submit">Link guest history</button>
-            </form>
-            <p id="guest-account-link-status" role="status" aria-live="polite"></p>
-            <button type="button" class="guest-link-no-history" id="guest-link-no-history">I have no guest account</button>
-          </section>
-          <div id="conversation-list" class="conversation-list" aria-live="polite">Sign in to view your conversations.</div>
+          <p><a href="/pages/guest-inbox.html">Open guest conversations</a></p><div id="conversation-list" class="conversation-list" aria-live="polite">Sign in to view your conversations.</div>
         </div>
         <section class="chat-panel" aria-label="Conversation">
           <header class="chat-panel-header"><button id="mobile-inbox-back" class="mobile-inbox-back" type="button" aria-label="Back to conversations">‹</button><span class="chat-header-avatar">♡</span><div class="chat-header-copy"><h2 id="active-conversation-heading">Choose a conversation</h2><p id="chat-header-subtitle">Private conversation</p></div><span class="chat-header-lock" title="Private conversation" aria-label="Private conversation">♡</span></header>
