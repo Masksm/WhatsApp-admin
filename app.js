@@ -1044,6 +1044,19 @@
 
     publicMessagePanel.hidden = false;
 
+    // Offer the new recoverable guest-chat path without changing the existing
+    // seven-day anonymous-message claim flow.
+    if (!byId("guest-chat-entry-link")) {
+      const guestEntry = document.createElement("p");
+      guestEntry.className = "guest-chat-entry";
+      const guestLink = document.createElement("a");
+      guestLink.id = "guest-chat-entry-link";
+      guestLink.href = "/pages/guest-chat.html?slug=" + encodeURIComponent(publicAnonymousSlug);
+      guestLink.textContent = "Want a private chat you can recover on another device? Start a guest chat";
+      guestEntry.appendChild(guestLink);
+      publicMessagePanel.appendChild(guestEntry);
+    }
+
     publicMessageForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
 
