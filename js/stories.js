@@ -15,6 +15,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const commentForm = document.getElementById("story-comment-form");
   const commentInput = document.getElementById("story-comment-input");
   const fileInput = document.getElementById("story-file-input");
+  const storyComposer = document.getElementById("story-create-dialog");
+  const storyComposerCaption = document.getElementById("story-create-caption");
+  const storyComposerPreview = document.getElementById("story-create-preview");
+  const storyComposerChoose = document.getElementById("story-create-choose");
+  const storyComposerPublish = document.getElementById("story-create-publish");
+  const storyComposerClose = document.getElementById("story-create-close");
+  let pendingStoryFile = null;
+  let previewObjectUrl = null;
+  let storyPaused = false;
   const viewer = document.getElementById("story-viewer");
   const viewerProgress = document.getElementById("story-viewer-progress");
   const viewerMedia = document.getElementById("story-viewer-media");
@@ -62,42 +71,32 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentVideo) { currentVideo.pause(); currentVideo = null; }
   }
   function pauseStoryForMenu() {
-    if (pausedStoryState) return;
+    if (storyPaused) return;
+    storyPaused = true;
     const segment = viewerProgress.children[activeIndex]?.firstElementChild;
-    pausedStoryState = {
-      remaining: advanceTimer ? Math.max(0, (advanceTimer._amoraDueAt || Date.now()) - Date.now()) : 0,
-      progress: segment ? segment.style.width : "",
-      videoTime: currentVideo ? currentVideo.currentTime : null,
-      wasVideo: Boolean(currentVideo)
-    };
+    pausedStoryState = { remaining: advanceTimer ? Math.max(0, (advanceTimer._amoraDueAt || Date.now()) - Date.now()) : 0, progress: segment ? Number.parseFloat(segment.style.width) || 0 : 0, videoTime: currentVideo ? currentVideo.currentTime : null, wasVideo: Boolean(currentVideo) };
     if (advanceTimer) clearTimeout(advanceTimer);
     if (progressTimer) clearInterval(progressTimer);
-    advanceTimer = null;
-    progressTimer = null;
+    advanceTimer = null; progressTimer = null;
     if (currentVideo) currentVideo.pause();
   }
   function resumeStoryAfterMenu() {
-    if (!pausedStoryState || viewer.hidden || moreMenu?.hidden === false || commentsPanel?.hidden === false) return;
-    const saved = pausedStoryState;
+    if (!storyPaused || viewer.hidden || moreMenu?.hidden === false || commentsPanel?.hidden === false) return;
+    storyPaused = false;
+    const saved = pausedStoryState || {remaining:0,progress:0,wasVideo:false};
     pausedStoryState = null;
     const segment = viewerProgress.children[activeIndex]?.firstElementChild;
-    if (currentVideo) {
-      currentVideo.play().catch(() => {});
-      if (saved.wasVideo && currentVideo.duration) {
-        const duration = currentVideo.duration;
-        progressTimer = setInterval(() => {
-          if (segment) segment.style.width = Math.min(100, (currentVideo.currentTime / duration) * 100) + "%";
-        }, 80);
-      }
+    if (currentVideo && saved.wasVideo) {
+      if (Number.isFinite(saved.videoTime)) currentVideo.currentTime = saved.videoTime;
+      const video = currentVideo;
+      video.play().catch(() => {});
+      progressTimer = setInterval(() => { if (segment && video.duration) segment.style.width = Math.min(100, (video.currentTime / video.duration) * 100) + "%"; }, 80);
       return;
     }
-    const width = Number.parseFloat(saved.progress) || 0;
-    const remaining = saved.remaining || Math.max(250, 5000 * (1 - width / 100));
-    const start = Date.now();
-    progressTimer = setInterval(() => {
-      if (segment) segment.style.width = Math.min(100, width + ((Date.now() - start) / remaining) * (100 - width)) + "%";
-    }, 80);
-    advanceTimer = setTimeout(() => nextStory(), remaining);
+    const remaining = Math.max(250, saved.remaining || 5000 * (1 - saved.progress / 100));
+    const started = Date.now();
+    progressTimer = setInterval(() => { if (!storyPaused && segment) segment.style.width = Math.min(100, saved.progress + ((Date.now() - started) / remaining) * (100 - saved.progress)) + "%"; }, 80);
+    advanceTimer = setTimeout(() => { if (!storyPaused && commentsPanel?.hidden !== false && moreMenu?.hidden !== false) nextStory(); }, remaining);
     advanceTimer._amoraDueAt = Date.now() + remaining;
   }
   async function getSignedUrl(story) {
