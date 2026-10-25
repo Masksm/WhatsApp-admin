@@ -13,7 +13,7 @@ function initGuestTheme(){
 initGuestTheme();
 
 function openTokenPopup(){
- const panel=$("#guest-token-panel");if(panel.hidden)return;
+ const panel=$("#guest-token-panel");
  panel.hidden=false;panel.classList.add("guest-token-modal");document.body.classList.add("guest-token-modal-open");
  $("#guest-token-modal-close")?.focus();
 }
