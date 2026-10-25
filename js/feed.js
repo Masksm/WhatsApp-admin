@@ -550,51 +550,41 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentUser && comment.author_id === currentUser.id && !comment.is_anonymous && !post.is_anonymous) {
       const editButton = makeButton("Edit", "comment-reply-button comment-owner-action", async () => {
         if (item.querySelector(":scope > .comment-edit-form")) return;
-        const originalText = text.textContent;
         const composer = commentsDialog.querySelector('[name="comment-content"]');
-        const editInput = document.createElement("input");
-        editInput.type = "text";
-        editInput.maxLength = 3000;
-        editInput.required = true;
-        editInput.value = comment.content;
-        editInput.className = "comment-edit-inline-input";
-        editInput.setAttribute("aria-label", "Edit comment");
-        const restoreText = () => { text.textContent = originalText; editInput.replaceWith(text); };
-        text.replaceWith(editInput);
-        const editForm = document.createElement("form");
-        editForm.className = "comment-edit-form comment-inline-edit-actions";
-        const save = document.createElement("button");
-        save.type = "submit";
-        save.textContent = "Save";
-        const cancel = makeButton("Cancel", "comment-reply-button", () => {
-          restoreText();
-          editForm.remove();
-        });
-        editForm.append(save, cancel);
-        editForm.addEventListener("submit", async event => {
-          event.preventDefault();
-          const content = editInput.value.trim();
-          if (!content) { setStatus("A comment cannot be empty.", true); return; }
-          save.disabled = true;
-          try {
-            const user = await requireUser();
-            const { data, error } = await supabase.from("post_comments")
-              .update({ content, edited_at: new Date().toISOString() })
-              .eq("id", comment.id).eq("author_id", user.id).eq("is_anonymous", false)
-              .select("id").maybeSingle();
-            if (error) throw error;
-            if (!data) throw new Error("Comment update was not permitted.");
-            commentCache.delete(post.id);
-            await refreshCommentsDialog();
-          } catch (error) {
-            await logClientError("edit_comment", error);
-            setStatus("Couldn't edit this comment. Check that you still own it and try again.", true);
-            save.disabled = false;
-          }
-        });
-        item.insertBefore(editForm, actions);
-        editInput.focus();
-        editInput.scrollIntoView({block:"nearest",behavior:"smooth"});
+        const form = commentsDialog.querySelector(".comments-dialog-form");
+        if (!composer || !form) return;
+        if (form.dataset.editingCommentId) {
+          setStatus("Finish or cancel the current comment edit first.", true);
+          return;
+        }
+        form.dataset.editingCommentId = comment.id;
+        form.dataset.editingOriginalValue = composer.value;
+        composer.value = comment.content;
+        composer.placeholder = "Edit your comment…";
+        composer.setAttribute("aria-label", "Edit your comment");
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.textContent = "Save edit";
+        let cancel = form.querySelector("[data-cancel-comment-edit]");
+        if (!cancel) {
+          cancel = document.createElement("button");
+          cancel.type = "button";
+          cancel.dataset.cancelCommentEdit = "true";
+          cancel.className = "post-action";
+          cancel.textContent = "Cancel";
+          submitButton.insertAdjacentElement("afterend", cancel);
+        }
+        cancel.hidden = false;
+        cancel.onclick = () => {
+          composer.value = form.dataset.editingOriginalValue || "";
+          delete form.dataset.editingCommentId;
+          delete form.dataset.editingOriginalValue;
+          composer.placeholder = "Write a comment…";
+          composer.setAttribute("aria-label", "Write a comment");
+          submitButton.textContent = "Reply";
+          cancel.hidden = true;
+        };
+        composer.focus();
+        composer.scrollIntoView({block:"nearest",behavior:"smooth"});
       });
       const deleteButton = makeButton("Delete", "comment-reply-button comment-owner-action", async () => {
         if (!window.confirm("Delete this comment? Any replies beneath it will also be deleted. This cannot be undone.")) return;
@@ -686,7 +676,41 @@ document.addEventListener("DOMContentLoaded", () => {
     commentsDialog.querySelector(".comments-dialog-form").addEventListener("submit", event => {
       event.preventDefault();
       if (!activeCommentsPost) return;
-      addComment(activeCommentsPost, activeReplyParentId, event.currentTarget.elements.namedItem("comment-content"), event.currentTarget);
+      const form = event.currentTarget;
+      const composer = form.elements.namedItem("comment-content");
+      const editingId = form.dataset.editingCommentId;
+      if (editingId) {
+        (async () => {
+          const submitButton = form.querySelector('button[type="submit"]');
+          submitButton.disabled = true;
+          try {
+            const user = await requireUser();
+            const content = composer.value.trim();
+            if (!content) throw new Error("A comment cannot be empty.");
+            const {data,error} = await supabase.from("post_comments")
+              .update({content,edited_at:new Date().toISOString()})
+              .eq("id",editingId).eq("author_id",user.id).eq("is_anonymous",false)
+              .select("id").maybeSingle();
+            if(error) throw error;
+            if(!data) throw new Error("Comment update was not permitted.");
+            delete form.dataset.editingCommentId;
+            delete form.dataset.editingOriginalValue;
+            composer.value = "";
+            composer.placeholder = "Write a comment…";
+            composer.setAttribute("aria-label","Write a comment");
+            submitButton.textContent = "Reply";
+            const cancel = form.querySelector("[data-cancel-comment-edit]");
+            if(cancel) cancel.hidden = true;
+            commentCache.delete(activeCommentsPost.id);
+            await refreshCommentsDialog();
+          } catch(error) {
+            await logClientError("edit_comment",error);
+            setStatus(error.message || "Couldn't edit this comment. Please try again.",true);
+          } finally { submitButton.disabled = false; }
+        })();
+        return;
+      }
+      addComment(activeCommentsPost, activeReplyParentId, composer, form);
     });
     const composerInput = commentsDialog.querySelector('[name="comment-content"]');
     composerInput.addEventListener("focus", () => {
