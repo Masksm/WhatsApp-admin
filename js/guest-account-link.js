@@ -22,3 +22,13 @@ form?.addEventListener("submit",async event=>{
  }catch(err){say(err.message||"Could not link guest history.",true);}
  finally{button.disabled=false;}
 });
+
+
+// These controls only dismiss the optional recovery panel; they never alter guest data.
+const guestLinkPanel=document.querySelector("#guest-account-link-panel");
+const closeGuestLink=document.querySelector("#guest-link-close");
+const noGuestAccount=document.querySelector("#guest-link-no-history");
+closeGuestLink?.addEventListener("click",()=>{if(guestLinkPanel) guestLinkPanel.hidden=true;});
+noGuestAccount?.addEventListener("click",()=>{
+ if(guestLinkPanel) guestLinkPanel.hidden=true;
+});
