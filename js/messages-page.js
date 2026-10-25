@@ -3,6 +3,10 @@ const $ = (selector) => document.querySelector(selector);
 let filter = "inbox";
 let conversations = [];
 
+if (new URLSearchParams(window.location.search).get("popup") === "1") {
+  document.documentElement.classList.add("amora-chat-popup-mode");
+}
+
 function applyConversationFilters() {
   const query = ($("#conversation-search")?.value || "").trim().toLowerCase();
   const list = $("#conversation-list");
