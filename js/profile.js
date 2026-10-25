@@ -612,6 +612,32 @@ document.addEventListener("DOMContentLoaded", () => {
     byId("profile-more-menu").hidden = true;
   });
 
+  byId("profile-message-button")?.addEventListener("click", async (event) => {
+    event.preventDefault();
+    const button = byId("profile-message-button");
+    if (!user || !currentUserId) {
+      window.location.href = "/index.html?auth=login";
+      return;
+    }
+    if (!viewedProfile?.username || viewedProfile.id === currentUserId) return;
+    button.disabled = true;
+    button.textContent = "Opening chat…";
+    showStatus("");
+    try {
+      const { data, error } = await supabase.rpc("open_direct_conversation", {
+        p_username: viewedProfile.username
+      });
+      if (error) throw error;
+      const result = Array.isArray(data) ? data[0] : data;
+      if (!result?.conversation_id) throw new Error("Could not open this conversation. Please try again.");
+      window.location.href = "/pages/messages.html?conversation=" + encodeURIComponent(result.conversation_id);
+    } catch (error) {
+      showStatus(error.message || "Could not open this conversation. Please try again.", true);
+      button.disabled = false;
+      button.textContent = "Message";
+    }
+  });
+
   byId("profile-create-anonymous-link")?.addEventListener("click", createProfileAnonymousLink);
   byId("profile-copy-anonymous-link")?.addEventListener("click", copyProfileAnonymousLink);
 
