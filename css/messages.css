@@ -156,3 +156,57 @@ html.amora-chat-popup-mode .message-list{min-height:0;max-height:none;flex:1}
 html.amora-chat-popup-mode .chat-panel-header{flex:0 0 auto}
 html.amora-chat-popup-mode .chat-composer{flex:0 0 auto}
 html.amora-chat-popup-mode .chat-status{flex:0 0 auto}
+
+
+/* Messenger-style conversation view: on phones, the selected chat takes over the full screen. */
+@media(max-width:760px){
+  html:not(.amora-chat-popup-mode) body:has(.messages-workspace.chat-open){overflow:hidden}
+  html:not(.amora-chat-popup-mode) .messages-workspace.chat-open{
+    position:static!important;
+    display:block!important;
+    min-height:0!important;
+    padding:0!important;
+  }
+  html:not(.amora-chat-popup-mode) .messages-workspace.chat-open .inbox-panel,
+  html:not(.amora-chat-popup-mode) .messages-workspace.chat-open~.messages-note-row{
+    display:none!important;
+  }
+  html:not(.amora-chat-popup-mode) .messages-workspace.chat-open .chat-panel{
+    position:fixed!important;
+    inset:0!important;
+    z-index:1200!important;
+    display:flex!important;
+    width:100vw!important;
+    height:100dvh!important;
+    min-height:0!important;
+    max-height:100dvh!important;
+    margin:0!important;
+    padding-bottom:env(safe-area-inset-bottom)!important;
+    border:0!important;
+    border-radius:0!important;
+    overflow:hidden!important;
+    background:var(--surface,#fff)!important;
+    flex-direction:column!important;
+  }
+  html:not(.amora-chat-popup-mode) .messages-workspace.chat-open .chat-panel-header{
+    flex:0 0 auto;
+    min-height:calc(64px + env(safe-area-inset-top));
+    padding-top:calc(12px + env(safe-area-inset-top));
+    padding-left:14px;
+    padding-right:14px;
+  }
+  html:not(.amora-chat-popup-mode) .messages-workspace.chat-open .message-list{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    height:auto!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+  }
+  html:not(.amora-chat-popup-mode) .messages-workspace.chat-open .chat-composer{
+    flex:0 0 auto!important;
+    padding-bottom:calc(12px + env(safe-area-inset-bottom));
+  }
+  html:not(.amora-chat-popup-mode) .messages-workspace.chat-open .chat-status{flex:0 0 auto}
+  html:not(.amora-chat-popup-mode) .messages-workspace.chat-open .mobile-inbox-back{display:grid!important}
+}
