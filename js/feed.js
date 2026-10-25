@@ -61,9 +61,20 @@ document.addEventListener("DOMContentLoaded", () => {
           tab.setAttribute("aria-selected", String(selected));
         });
       }
-      requestAnimationFrame(() => window.scrollTo({ top: Number(state.scrollY) || 0, behavior: "instant" }));
+      const savedScrollY = Math.max(0, Number(state.scrollY) || 0);
+      // Wait for feed layout, then restore again in case cards expand the page.
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: savedScrollY, behavior: "instant" });
+        requestAnimationFrame(() => window.scrollTo({ top: savedScrollY, behavior: "instant" }));
+      });
     } catch (_) {}
   };
+
+  window.addEventListener("pageshow", (event) => {
+    // If the browser preserved the page in its back/forward cache, keep it as-is.
+    if (event.persisted) return;
+    restoreHomeState();
+  });
 
   const supabase = window.amoraSupabase || null;
 
