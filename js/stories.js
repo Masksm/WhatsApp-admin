@@ -339,8 +339,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (err) {
       console.error("Amora story media could not open:", err);
-      viewerMedia.textContent = "This story media could not load. Close and retry.";
-      console.error("Story media failed:", story.id, story.media_path);
+      const detail = String(err?.message || err || "Unknown media error");
+      viewerMedia.textContent = "This story media could not load. " + detail + " Close and retry.";
+      console.error("Story media failed:", story.id, story.media_path, err);
     }
   }
   function nextStory() {
