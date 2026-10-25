@@ -7,11 +7,13 @@
   <title>Chats · Amora</title>
   <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
   <link rel="stylesheet" href="/css/feed.css?v=messages-layout-1">
-  <link rel="stylesheet" href="/css/messages.css?v=messenger-refresh-4">
+  <link rel="stylesheet" href="/css/messages.css?v=stories-only-circles-1">
+  <link rel="stylesheet" href="/css/stories.css?v=story-interactions-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
   <script src="/js/moderator-nav.js?v=1" defer></script>
   <script type="module" src="/js/messages-page.js?v=messenger-refresh-4"></script>
+  <script src="/js/stories.js?v=story-interactions-2" defer></script>
 </head>
 <body class="amora-feed-page">
   <div class="feed-shell">
@@ -35,16 +37,11 @@
         <button class="icon-button" id="refresh-conversations" type="button" aria-label="Refresh conversations" title="Refresh conversations">↻</button>
       </header>
       <label class="messages-search"><span aria-hidden="true">⌕</span><input id="conversation-search" type="search" placeholder="Search people and conversations" autocomplete="off"></label>
-      <div class="messages-note-heading"><span>YOUR CONNECTIONS</span><span>♡</span></div>
-      <div class="messages-note-row" aria-label="Amora notes">
-        <div class="note-person"><span class="note-avatar your-note">♡</span><span>Your note</span></div>
-        <div class="note-placeholder"><span class="note-avatar note-pink">✦</span><span>Little moments</span></div>
-        <div class="note-placeholder"><span class="note-avatar note-purple">♡</span><span>Stay close</span></div>
-      </div>
+      <section class="messages-stories-section" aria-label="Stories"><div id="stories-row" class="stories-row" aria-label="Active stories" aria-live="polite"><p class="stories-loading">Loading stories…</p></div><p id="stories-status" class="stories-status" role="status" aria-live="polite"></p><input id="story-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" hidden></section>
       <div class="messages-tabs" role="tablist" aria-label="Conversation filter">
         <button class="messages-tab active" type="button" data-chat-filter="inbox" role="tab" aria-selected="true">Inbox</button>
         <button class="messages-tab" type="button" data-chat-filter="unread" role="tab" aria-selected="false">Unread</button>
-        <button class="messages-tab" type="button" data-chat-filter="anonymous" role="tab" aria-selected="false">Anonymous Messages <span id="anonymous-message-count" class="anonymous-message-count" hidden></span></button>
+        <button class="messages-tab" type="button" data-chat-filter="anonymous" role="tab" aria-selected="false">Anonymous Messages</button>
       </div>
       <section class="messages-workspace">
         <div class="inbox-panel">
