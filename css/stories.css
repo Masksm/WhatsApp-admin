@@ -80,3 +80,21 @@
 
 /* Swipe to navigate stories; hide the old side arrows. */
 .story-viewer-nav{display:none!important}.story-viewer-content,.story-viewer-media{touch-action:pan-y}.story-comments-panel{touch-action:pan-y}
+
+/* Dedicated story composer */
+.story-create-dialog[hidden]{display:none!important}
+.story-create-dialog{position:fixed;inset:0;z-index:10030;display:grid;place-items:center;padding:18px;background:rgba(8,5,14,.78);backdrop-filter:blur(8px);color:var(--text,#fff)}
+.story-create-card{display:flex;flex-direction:column;gap:14px;width:min(480px,100%);max-height:calc(100dvh - 36px);overflow:auto;padding:20px;border:1px solid var(--line);border-radius:22px;background:var(--surface);box-shadow:0 24px 90px #0008}
+.story-create-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.story-create-header h2{margin:0;font-size:20px}
+.story-create-header button{width:38px;height:38px;border:0;border-radius:50%;background:var(--surface-raised,#8882);color:var(--text);font-size:26px;cursor:pointer}
+.story-create-preview{display:grid;place-items:center;min-height:180px;max-height:42dvh;overflow:hidden;border:1px dashed var(--line);border-radius:16px;background:var(--surface-raised,#8881);color:var(--muted);text-align:center}
+.story-create-preview p{padding:20px}
+.story-create-preview img,.story-create-preview video{display:block;max-width:100%;max-height:42dvh;object-fit:contain}
+.story-create-choose{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);font-weight:700;cursor:pointer}
+.story-create-caption-label{font-size:13px;font-weight:750}
+.story-create-card textarea{width:100%;resize:vertical;min-height:82px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);font:inherit}
+.story-create-hint{margin:0;color:var(--muted);font-size:12px}
+.story-create-card .primary-button{width:100%;min-height:44px}
+.story-viewer-caption{z-index:2;bottom:58px;max-height:34%;overflow:auto;padding:28px 18px 14px;background:linear-gradient(transparent,#000c);pointer-events:none}
+@media(max-width:600px){.story-create-card{padding:16px;border-radius:18px}.story-create-preview{min-height:150px}}
