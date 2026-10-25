@@ -5,3 +5,9 @@
 .guest-link-no-history{display:block;width:100%;margin-top:12px;padding:12px 16px;border:1px solid var(--line,#4b3a50);border-radius:12px;background:transparent;color:var(--text,#fff);font:inherit;font-weight:600;cursor:pointer}
 .guest-link-close:focus-visible,.guest-link-no-history:focus-visible{outline:2px solid #3987ff;outline-offset:3px}
 .guest-account-link-panel[hidden]{display:none!important}
+
+
+body.guest-link-modal-open::before{content:"";position:fixed;inset:0;z-index:9998;background:rgba(8,5,12,.72);backdrop-filter:blur(4px)}
+.guest-account-link-panel.guest-link-modal{position:fixed;z-index:9999;left:50%;top:50%;transform:translate(-50%,-50%);width:min( calc(100vw - 28px), 520px);max-height:calc(100dvh - 32px);overflow:auto;margin:0;padding:26px 20px 20px;border:1px solid var(--line,#4b3a50);border-radius:20px;background:var(--surface,#211729);box-shadow:0 24px 90px #0009}
+.guest-account-link-panel.guest-link-modal h3{padding-right:35px}
+@media(max-width:480px){.guest-account-link-panel.guest-link-modal{padding:24px 16px 16px}}
