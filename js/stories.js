@@ -307,11 +307,12 @@ document.addEventListener("DOMContentLoaded", () => {
     viewerCaption.hidden = !story.caption;
     viewerMedia.innerHTML = '<span>Loading story…</span>';
     try {
-      const url = await getSignedUrl(story);
       if (viewer.hidden || storyGroups[activeGroup]?.items[activeIndex]?.id !== story.id) return;
       viewerMedia.innerHTML = "";
       refreshStoryLikeState();
       if (story.media_type === "video") {
+        const url = await getSignedUrl(story);
+        if (viewer.hidden || storyGroups[activeGroup]?.items[activeIndex]?.id !== story.id) return;
         const video = document.createElement("video");
         video.src = url; video.autoplay = true; video.playsInline = true; video.controls = true; video.preload = "metadata";
         viewerMedia.appendChild(video); currentVideo = video;
@@ -328,27 +329,26 @@ document.addEventListener("DOMContentLoaded", () => {
         const img = document.createElement("img");
         img.alt = "Story shared by " + nameFor(group.profile);
         img.decoding = "async";
-        img.onload = () => { img.dataset.loaded = "true"; };
-        img.onerror = async () => {
-          if (img.dataset.fallbackTried === "true") {
-            viewerMedia.textContent = "This story image could not be loaded. Please try again later.";
-            console.error("Amora story image URL failed:", story.id, story.media_path);
-            return;
-          }
-          img.dataset.fallbackTried = "true";
-          try {
-            const downloaded = await db.storage.from(BUCKET).download(story.media_path);
-            if (downloaded.error || !downloaded.data) throw downloaded.error || new Error("Storage download returned no image.");
-            const blobUrl = URL.createObjectURL(downloaded.data);
-            signedUrlCache.set(story.id, {url:blobUrl,expiresAt:Date.now()+1700000});
-            img.src = blobUrl;
-          } catch (fallbackError) {
-            console.error("Amora story image fallback failed:", fallbackError);
-            viewerMedia.textContent = "This story image could not be loaded. Please try again later.";
-          }
-        };
-        img.src = url;
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.objectFit = "contain";
         viewerMedia.appendChild(img);
+        // Use Supabase's authenticated download API for images. This avoids
+        // broken/expired signed URLs and ensures private-bucket media is readable.
+        const downloaded = await db.storage.from(BUCKET).download(story.media_path);
+        if (viewer.hidden || storyGroups[activeGroup]?.items[activeIndex]?.id !== story.id) return;
+        if (downloaded.error || !downloaded.data) throw downloaded.error || new Error("Supabase returned no image data.");
+        const blobUrl = URL.createObjectURL(downloaded.data);
+        signedUrlCache.set(story.id, {url:blobUrl,expiresAt:Date.now()+1700000});
+        img.onload = () => { img.dataset.loaded = "true"; };
+        img.onerror = () => {
+          console.error("Amora downloaded story image could not decode:", {
+            storyId: story.id, path: story.media_path,
+            type: downloaded.data.type, size: downloaded.data.size
+          });
+          viewerMedia.textContent = "The story file downloaded but the browser could not display it.";
+        };
+        img.src = blobUrl;
         const segment = viewerProgress.children[activeIndex]?.firstElementChild;
         const start = Date.now();
         viewerStartedAt = start;
