@@ -136,14 +136,20 @@ async function loadAnonymousMessages() {
       count.textContent = unread > 99 ? "99+" : String(unread);
       count.setAttribute("aria-label", unread + " unread anonymous messages");
     }
-    if (!messages.length) {
+    const query = conversationSearch.trim().toLowerCase();
+    const visibleMessages = messages.filter(item =>
+      String(item.message_text || "").toLowerCase().includes(query)
+    );
+    if (!visibleMessages.length) {
       const empty = document.createElement("p");
       empty.className = "conversation-empty";
-      empty.textContent = "No anonymous link messages yet. Messages sent through your personal anonymous link will appear here.";
+      empty.textContent = query
+        ? "No anonymous messages match your search."
+        : "No anonymous link messages yet. Messages sent through your personal anonymous link will appear here.";
       list.appendChild(empty);
       return;
     }
-    messages.forEach(item => {
+    visibleMessages.forEach(item => {
       const card = document.createElement("article");
       card.className = "anonymous-inbox-item" + (item.is_read ? "" : " is-unread");
       const top = document.createElement("div");
@@ -452,6 +458,11 @@ function clearChat() {
   const heading = $("#active-conversation-heading");
   const input = $("#chat-message-text");
   const button = $("#send-chat-message");
+  const anonymousCount = $("#anonymous-message-count");
+  if (anonymousCount) {
+    anonymousCount.hidden = true;
+    anonymousCount.textContent = "0";
+  }
 
   if (conversations) {
     conversations.textContent = "Sign in to view your conversations.";
