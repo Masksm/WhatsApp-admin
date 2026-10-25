@@ -377,3 +377,24 @@ body.comments-dialog-open{overflow:hidden}
 
 /* Moderator navigation stays hidden until the server confirms Tier 2 or Tier 3. */
 .moderator-nav-link[hidden]{display:none!important}
+
+
+/* Keep the feed invisible while a notification's post popup is being prepared. */
+html.notification-post-opening .feed-shell{visibility:hidden!important}
+html.notification-post-opening .comments-dialog{visibility:visible!important}
+/* The More sheet must layer above, not replace, the post detail dialog. */
+body.post-detail-more-open .post-more-backdrop{z-index:10001}
+body.post-detail-more-open .post-more-menu{z-index:10002}
+body.post-detail-more-open .comments-dialog{z-index:10000}
+/* Owner edit/delete actions remain readable in light mode. */
+:root[data-theme="light"] .comment-owner-action,
+:root[data-theme="light"] .comment-edit-form button,
+:root[data-theme="light"] .post-more-menu-item{background:transparent;color:#34243b}
+:root[data-theme="light"] .comment-owner-action:hover,
+:root[data-theme="light"] .post-more-menu-item:hover{background:#f3eaf7;color:#7c245e}
+:root[data-theme="light"] .comment-edit-form button[type="submit"]{background:#a52b76;color:#fff}
+:root[data-theme="light"] .comment-edit-form button[type="button"]{border:1px solid #d9cbdc;background:#fff;color:#34243b}
+.comment-inline-editing{min-height:2.5em;padding:8px 10px;border:1px solid var(--pink,#ec5b9a);border-radius:9px;outline:none;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface2,#242027)}
+.comment-inline-edit-actions{margin-top:7px}
+.comment-inline-edit-actions button[type="button"]{padding:7px 13px;border:1px solid var(--line,#ffffff25);border-radius:9px;background:var(--surface2,#242027);color:var(--text,#fff);font-weight:650}
+@media(prefers-color-scheme:light){:root:not([data-theme]) .comment-owner-action,:root:not([data-theme]) .post-more-menu-item{background:transparent;color:#34243b}:root:not([data-theme]) .comment-owner-action:hover,:root:not([data-theme]) .post-more-menu-item:hover{background:#f3eaf7;color:#7c245e}:root:not([data-theme]) .comment-edit-form button[type="submit"]{background:#a52b76;color:#fff}}
