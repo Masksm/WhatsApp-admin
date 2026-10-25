@@ -61,7 +61,6 @@ create table if not exists public.guest_message_rate_limits (
   owner_user_id uuid null references auth.users(id) on delete cascade,
   requester_hash text null check (requester_hash is null or requester_hash ~ '^[a-f0-9]{64}$'),
   action text not null check (action in ('identity_create', 'send_message', 'recover', 'link_account')),
-    check (action in ('identity_create', 'send_message', 'recover', 'link_account')),
   occurred_at timestamptz not null default now(),
   constraint guest_rate_limit_actor_check
     check (identity_id is not null or owner_user_id is not null or requester_hash is not null)
@@ -99,7 +98,6 @@ revoke all on sequence public.guest_message_rate_limits_id_seq from anon, authen
 commit;
 ),
   action text not null
-    check (action in ('identity_create', 'send_message', 'recover', 'link_account')),
   occurred_at timestamptz not null default now(),
   constraint guest_rate_limit_actor_check
     check (identity_id is not null or owner_user_id is not null)
