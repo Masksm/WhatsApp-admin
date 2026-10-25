@@ -10,9 +10,9 @@ function displayAnonymousLink(slug) {
 
   if (!result || !urlInput) return;
 
-  const link = new URL(window.location.href);
-  link.search = "";
-  link.hash = "";
+  // Public links always open the dedicated sender page, not whichever
+  // dashboard screen happened to generate the link.
+  const link = new URL("/pages/anonymous-message.html", window.location.origin);
   link.searchParams.set("anon", slug);
 
   urlInput.value = link.toString();
