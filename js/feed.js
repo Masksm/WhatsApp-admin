@@ -284,6 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.remove("post-detail-more-open");
   }
   document.addEventListener("click", (event) => {
+    if (event.target.closest(".post-more-menu, .post-more-backdrop, .comments-dialog")) return;
     const clickedMoreTrigger = event.target.closest(".post-more-trigger");
     if (!clickedMoreTrigger) closeAllPostMoreMenus();
   });
@@ -947,31 +948,6 @@ document.addEventListener("DOMContentLoaded", () => {
     header.append(avatar, identity);
     const ownedDeletionToken = getOwnedHiddenToken(post.id);
     const ownsIdentifiedPost = Boolean(currentUser && post.author_id === currentUser.id && !post.is_anonymous);
-    if ((post.is_anonymous && ownedDeletionToken) || ownsIdentifiedPost) {
-      const deleteButton = makeButton("Delete", "post-delete-button", async () => {
-        if (!window.confirm("Delete this post permanently? This cannot be undone.")) return;
-        try {
-          if (post.is_anonymous) {
-            const { data, error } = await supabase.rpc("delete_hidden_post", { p_post_id: post.id, p_deletion_token: ownedDeletionToken });
-            if (error) throw error;
-            if (data !== true) throw new Error("The deletion token was not accepted.");
-            const tokens = readHiddenTokens();
-            delete tokens[post.id];
-            localStorage.setItem(hiddenTokenStorageKey, JSON.stringify(tokens));
-          } else {
-            const { error } = await supabase.from("posts").delete().eq("id", post.id).eq("author_id", currentUser.id).eq("is_anonymous", false);
-            if (error) throw error;
-          }
-          posts = posts.filter(item => item.id !== post.id);
-          setStatus("Post deleted.");
-          article.remove();
-          if (!feedList.querySelector(".post-card")) await renderFeed();
-        } catch (error) { await logClientError("delete_post", error); setStatus("Couldn't delete this post. Please try again.", true); }
-      });
-      deleteButton.setAttribute("aria-label", "Delete post");
-      deleteButton.title = "Delete your post";
-      header.append(deleteButton);
-    }
 
     const content = document.createElement("p");
     content.className = "post-content";
@@ -1082,6 +1058,34 @@ document.addEventListener("DOMContentLoaded", () => {
         setStatus("Couldn't save this post. Please try again.", true);
       }
     });
+    if ((post.is_anonymous && ownedDeletionToken) || ownsIdentifiedPost) {
+      menuAction("Delete post", async () => {
+        if (!window.confirm("Delete this post permanently? This cannot be undone.")) return;
+        try {
+          if (post.is_anonymous) {
+            const { data, error } = await supabase.rpc("delete_hidden_post", { p_post_id: post.id, p_deletion_token: ownedDeletionToken });
+            if (error) throw error;
+            if (data !== true) throw new Error("The deletion token was not accepted.");
+            const tokens = readHiddenTokens();
+            delete tokens[post.id];
+            localStorage.setItem(hiddenTokenStorageKey, JSON.stringify(tokens));
+          } else {
+            const user = await requireUser();
+            const { error } = await supabase.from("posts").delete().eq("id", post.id).eq("author_id", user.id).eq("is_anonymous", false);
+            if (error) throw error;
+          }
+          posts = posts.filter(item => item.id !== post.id);
+          commentCache.delete(post.id);
+          closeCommentsDialog();
+          setStatus("Post deleted.");
+          article.remove();
+          if (!feedList.querySelector(".post-card")) await renderFeed();
+        } catch (error) {
+          await logClientError("delete_post", error);
+          setStatus("Couldn’t delete this post. Please try again.", true);
+        }
+      }, "post-more-delete");
+    }
     menuAction("↗ Share post", async () => {
       const shareUrl = window.location.origin + "/pages/social-home.html?post=" + encodeURIComponent(post.id);
       try {
