@@ -43,8 +43,9 @@ function saveToken(value) {
   $("#guest-recovery-token-action").hidden=false;
   $("#guest-token-value").textContent=value;
   $("#guest-identity-controls").hidden=true;
-  $("#guest-compose-card").hidden=!slug;
+  $("#guest-compose-card").hidden=!slug || activeConversationId!==null;
   $("#guest-chat-card").hidden=false;
+  $("#guest-recovery-token-action").hidden=false;
 }
 async function recover(value) {
   if (!/^[a-f0-9]{64}$/.test(value)) throw new Error("Enter a valid 64-character recovery token.");
@@ -133,5 +134,6 @@ $("#guest-reply-form")?.addEventListener("submit",async e=>{
   try{const saved=sessionStorage.getItem(TOKEN_KEY);if(saved)await recover(saved);}
   catch{sessionStorage.removeItem(TOKEN_KEY);}
   if(!slug) { $("#guest-compose-card").hidden=true; }
-  else if(!token) status("Create or recover a guest identity to start a private conversation.");
+  else if(!token) { $("#guest-compose-card").hidden=false; status("Create or recover a guest identity to start a private conversation."); }
+  if(token) { $("#guest-chat-card").hidden=false; $("#guest-recovery-token-action").hidden=false; }
 })();
