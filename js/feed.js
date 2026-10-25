@@ -803,10 +803,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (action === "more") {
           const card = feedList.querySelector('[data-post-id="' + post.id + '"]');
-          const cardMore = card?.querySelector(".post-more-trigger");
-          if (cardMore) {
-            cardMore.click();
-            document.body.classList.add("post-detail-more-open");
+          const menu = card?.querySelector(".post-more-menu");
+          const backdrop = card?.querySelector(".post-more-backdrop");
+          if (menu && backdrop) {
+            closeAllPostMoreMenus();
+            menu.hidden = false;
+            backdrop.hidden = false;
+            card.querySelector(".post-more-trigger")?.setAttribute("aria-expanded","true");
+            document.body.classList.add("post-more-open","post-detail-more-open");
           } else {
             setStatus("Post options are unavailable for this post.", true);
           }
@@ -1446,10 +1450,6 @@ document.addEventListener("DOMContentLoaded", () => {
       activeFeed = "for-you";
       feedTabs.forEach(tab => { const selected = tab.dataset.feed === activeFeed; tab.classList.toggle("active", selected); tab.setAttribute("aria-selected", String(selected)); });
       await loadPublicProfiles([post.author_id].filter(Boolean));
-      await renderFeed();
-      const article = feedList.querySelector('[data-post-id="' + postId + '"]');
-      if (!article) { document.documentElement.classList.remove("notification-post-opening"); setStatus("That post could not be shown in this feed.", true); return; }
-      article.classList.add("notification-target-highlight");
       await openCommentsDialog(post, {scrollToComments:Boolean(commentId)});
       document.documentElement.classList.remove("notification-post-opening");
       if (commentId) {
