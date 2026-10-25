@@ -98,3 +98,13 @@
 .story-create-card .primary-button{width:100%;min-height:44px}
 .story-viewer-caption{z-index:2;bottom:58px;max-height:34%;overflow:auto;padding:28px 18px 14px;background:linear-gradient(transparent,#000c);pointer-events:none}
 @media(max-width:600px){.story-create-card{padding:16px;border-radius:18px}.story-create-preview{min-height:150px}}
+
+
+/* Story comment preferences, anonymous replies and owner-only views */
+.story-option-toggle,.story-anonymous-toggle{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text,#fff)}
+.story-option-toggle{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-raised,#8881)}
+.story-option-toggle input,.story-anonymous-toggle input{accent-color:#ec5b9a;width:16px;height:16px;flex:0 0 auto}
+.story-comment-form .story-anonymous-toggle{flex:0 0 auto;padding:0 4px;color:#fff;font-size:11px}
+.story-view-count{align-self:center;padding:7px 9px;border:1px solid #ffffff40;border-radius:18px;background:#111827c9;color:#fff;font-size:11px;font-weight:800;white-space:nowrap}
+.story-view-count[hidden]{display:none!important}
+.story-comment-form[hidden]{display:none!important}
