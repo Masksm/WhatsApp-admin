@@ -21,7 +21,7 @@ import { supabase } from "./core.js";
   const frame = panel.querySelector("iframe");
   const title = panel.querySelector("#amora-chat-popup-title");
   let unreadConversationIds = [];
-  let previousUnreadIds = new Set();
+  let previousUnreadCounts = new Map();
   let lastTarget = "";
   let isOpen = false;
   let pollTimer = null;
@@ -63,10 +63,9 @@ import { supabase } from "./core.js";
       if (error) throw error;
       const unread = (data || []).filter(item => Number(item.unread_count) > 0);
       const ids = unread.map(item => item.conversation_id);
-      const nextIds = new Set(ids);
-      const hasNew = ids.some(id => !previousUnreadIds.has(id));
-      const previousCount = previousUnreadIds.size;
-      previousUnreadIds = nextIds;
+      const nextCounts = new Map(unread.map(item => [item.conversation_id, Number(item.unread_count || 0)]));
+      const hasNew = unread.some(item => Number(item.unread_count || 0) > (previousUnreadCounts.get(item.conversation_id) || 0));
+      previousUnreadCounts = nextCounts;
       unreadConversationIds = ids;
 
       launcher.hidden = ids.length === 0;
@@ -78,14 +77,13 @@ import { supabase } from "./core.js";
       }
 
       if (!ids.length) {
-        closePanel();
-        lastTarget = "";
+        // Reading a message removes the unread badge, not the chat the user is currently viewing.
         return;
       }
 
       if (hasNew || (previousCount === 0 && ids.length > 0)) {
         openPanel(ids, true);
-      } else if (isOpen && ids.length && ids.join("|") !== lastTarget) {
+      } else if (isOpen && ids.length > 1 && ids.join("|") !== lastTarget) {
         // If a second sender arrives while the chat is open, switch to the inbox overview.
         openPanel(ids);
       }
