@@ -1039,12 +1039,28 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     let visible = posts;
-    if (activeFeed === "anonymous") visible = posts.filter(post => Boolean(post.is_anonymous));
-    if (activeFeed === "following" && currentUser) {
-      const { data, error } = await supabase.from("user_follows").select("followed_id").eq("follower_id", currentUser.id);
-      if (!error) {
-        const followed = new Set((data || []).map((row) => row.followed_id));
-        visible = posts.filter((post) => post.is_anonymous || followed.has(post.author_id));
+    if (activeFeed === "anonymous") {
+      // Anonymous posts belong only in the dedicated Anonymous feed.
+      visible = posts.filter(post => Boolean(post.is_anonymous));
+    } else if (activeFeed === "following" || activeFeed === "public") {
+      // Keep Following, Public and Anonymous mutually exclusive. The For You
+      // feed intentionally remains the combined discovery feed.
+      const { data, error } = await supabase.from("user_follows")
+        .select("followed_id").eq("follower_id", currentUser.id);
+      if (error) {
+        visible = [];
+        setStatus("Couldn't load the accounts you follow. Please refresh.", true);
+      } else {
+        const followed = new Set((data || []).map(row => row.followed_id));
+        if (activeFeed === "following") {
+          visible = posts.filter(post => !post.is_anonymous && followed.has(post.author_id));
+        } else {
+          visible = posts.filter(post =>
+            !post.is_anonymous &&
+            post.visibility === "public" &&
+            !followed.has(post.author_id)
+          );
+        }
       }
     }
     if (feedSearchQuery.trim()) {
@@ -1127,6 +1143,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .order("created_at", { ascending: false })
           .limit(50);
         if (activeFeed === "public") query = query.eq("visibility", "public");
+        if (activeFeed === "anonymous") query = query.eq("is_anonymous", true);
         const { data, error } = await query;
         if (error) throw error;
         posts = data || [];
