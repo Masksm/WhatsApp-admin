@@ -145,8 +145,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const ids = [...new Set(stories.map(s => s.user_id))];
     let profiles = [];
     if (ids.length) {
-      const result = await db.from("profiles").select("id,username,display_name").in("id", ids);
+      const result = await db.rpc("get_public_profiles", { p_user_ids: ids });
       if (!result.error) profiles = result.data || [];
+      else console.warn("Public story profile lookup failed:", result.error.message);
     }
     const profileMap = new Map(profiles.map(p => [p.id, p]));
     const grouped = new Map();
@@ -158,13 +159,29 @@ document.addEventListener("DOMContentLoaded", () => {
       .sort((a,b) => (a.userId === currentUser.id ? -1 : b.userId === currentUser.id ? 1 : new Date(b.items[b.items.length-1].created_at) - new Date(a.items[a.items.length-1].created_at)));
     renderRow();
   }
+  async function loadStoryPreview(container, story) {
+    if (!container || !story || story.media_type !== "image") return;
+    try {
+      const url = await getSignedUrl(story);
+      if (!container.isConnected) return;
+      const preview = document.createElement("img");
+      preview.src = url;
+      preview.alt = "";
+      preview.loading = "lazy";
+      preview.decoding = "async";
+      container.replaceChildren(preview);
+    } catch (err) {
+      console.warn("Story preview could not load:", err?.message || err);
+    }
+  }
   function renderRow() {
     row.innerHTML = "";
     const own = storyGroups.find(g => g.userId === currentUser?.id);
     const create = document.createElement("button");
     create.type = "button"; create.className = "story-person is-own";
     create.setAttribute("aria-label", own ? "View your story or add another" : "Add your story");
-    create.innerHTML = '<span class="story-ring"><span class="story-avatar">' + (own ? escapeHtml(initials(nameFor(own.profile))) : "＋") + '</span></span><span class="story-person-name">Your story</span>';
+    create.innerHTML = '<span class="story-ring' + (own ? ' has-story' : '') + '"><span class="story-avatar">' + (own ? escapeHtml(initials(nameFor(own.profile))) : "＋") + '</span></span><span class="story-person-name">Your story</span>';
+    if (own) loadStoryPreview(create.querySelector(".story-avatar"), own.items[0]);
     create.addEventListener("click", () => {
       if (own) {
         openViewer(storyGroups.indexOf(own), 0);
@@ -186,6 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const label = nameFor(group.profile);
       button.setAttribute("aria-label", "View story by " + label);
       button.innerHTML = '<span class="story-ring has-story"><span class="story-avatar">' + escapeHtml(initials(label)) + '</span></span><span class="story-person-name">' + escapeHtml(label) + '</span>';
+      loadStoryPreview(button.querySelector(".story-avatar"), group.items[0]);
       button.addEventListener("click", () => openViewer(storyGroups.indexOf(group), 0));
       row.appendChild(button);
     });
