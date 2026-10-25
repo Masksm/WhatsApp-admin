@@ -118,3 +118,16 @@ html[data-theme="light"] .conversation-item:hover{background:#f4eef7}
 .chat-message.sent small{text-align:right}
 .conversation-list>p{padding:14px 10px;color:var(--muted);font-size:13px;line-height:1.5}
 .conversation-item:focus-visible,.messages-tab:focus-visible,.icon-button:focus-visible{outline:2px solid #3987ff;outline-offset:2px}
+
+/* Anonymous-link inbox: distinct from account-to-account chats. */
+.anonymous-message-count{display:inline-grid;place-items:center;min-width:19px;height:19px;margin-left:5px;padding:0 5px;border-radius:10px;background:#3987ff;color:#fff;font-size:10px;font-weight:800}
+.anonymous-inbox-item{display:block;margin:7px;padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--text)}
+.anonymous-inbox-item.is-unread{border-color:#3987ff70;background:color-mix(in srgb,var(--surface) 90%,#3987ff 10%)}
+.anonymous-inbox-item-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.anonymous-inbox-item-top strong{font-size:13px}
+.anonymous-inbox-state{padding:3px 7px;border-radius:8px;background:var(--surface2);color:var(--muted);font-size:10px;font-weight:750}
+.anonymous-inbox-item.is-unread .anonymous-inbox-state{background:#3987ff;color:white}
+.anonymous-inbox-text{margin:10px 0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.55}
+.anonymous-inbox-item small{color:var(--muted);font-size:10px}
+.messages-tabs{overflow-x:auto}
+.messages-tab{white-space:nowrap}
