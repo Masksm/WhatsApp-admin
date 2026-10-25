@@ -131,3 +131,9 @@ html[data-theme="light"] .conversation-item:hover{background:#f4eef7}
 .anonymous-inbox-item small{color:var(--muted);font-size:10px}
 .messages-tabs{overflow-x:auto}
 .messages-tab{white-space:nowrap}
+
+/* Real story row in Messages, replacing decorative connection notes. */
+.messages-stories-section{margin:0 0 18px;padding:4px 0 12px;border-bottom:1px solid var(--line);min-width:0}
+.messages-stories-section .stories-row{gap:17px;padding:6px 2px 10px}
+.messages-stories-section .stories-loading,.messages-stories-section .stories-empty{font-size:12px;color:var(--muted)}
+.messages-stories-section .stories-status{margin-top:0}
