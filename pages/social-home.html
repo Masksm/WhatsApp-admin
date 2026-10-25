@@ -6,14 +6,14 @@
   <meta name="theme-color" content="#160d1c">
   <title>Home · Amora</title>
   <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
-  <link rel="stylesheet" href="/css/feed.css?v=home-feed-cache-2">
+  <link rel="stylesheet" href="/css/feed.css?v=home-feed-search-anon-1">
   <link rel="stylesheet" href="/css/home-enhancements.css?v=1">
-  <link rel="stylesheet" href="/css/stories.css?v=1">
+  <link rel="stylesheet" href="/css/stories.css?v=story-interactions-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
   <script src="/js/moderator-nav.js?v=1" defer></script>
-  <script src="/js/feed.js?v=home-feed-cache-2" defer></script>
-  <script src="/js/stories.js?v=1" defer></script>
+  <script src="/js/feed.js?v=home-feed-search-anon-1" defer></script>
+  <script src="/js/stories.js?v=story-interactions-2" defer></script>
 </head>
 <body class="amora-feed-page">
   <div class="feed-shell">
@@ -33,9 +33,9 @@
     <main class="feed-main">
       <header class="mobile-topbar">
         <a class="feed-brand" href="/pages/social-home.html"><span class="brand-mark">a</span><span>amora</span></a>
-        <div class="header-account-actions"><a class="icon-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a></div>
+        <div class="header-account-actions"><label class="home-search-control"><span aria-hidden="true">⌕</span><input type="search" data-home-search placeholder="Search Amora" aria-label="Search Amora"></label><a class="icon-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a></div>
       </header>
-      <div class="feed-heading feed-tools-heading"><div class="header-account-actions desktop-header-account-actions"><a class="icon-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a></div></div>
+      <div class="feed-heading feed-tools-heading"><div class="header-account-actions desktop-header-account-actions"><label class="home-search-control"><span aria-hidden="true">⌕</span><input type="search" data-home-search placeholder="Search posts" aria-label="Search posts and people"></label><a class="icon-button" href="/pages/settings.html" aria-label="Settings" title="Settings">⚙</a></div></div>
       <button class="feed-quick-composer card" type="button" data-focus-composer aria-label="Create a post">
         <span class="avatar avatar-you quick-composer-avatar">?</span><span class="quick-composer-prompt">What’s on your mind?</span><span class="quick-composer-photo" aria-hidden="true">▧</span>
       </button>
@@ -65,7 +65,7 @@
               <label class="composer-bottom-media-item" for="post-image" title="Add photo" aria-label="Add photo"><span>▧</span><small>Photo</small><input id="post-image" type="file" accept="image/*" hidden></label>
               <button class="composer-bottom-media-item" type="button" disabled title="Video posting is not available yet"><span>▣</span><small>Video</small></button>
               <button class="composer-bottom-media-item" type="button" disabled title="GIF posting is not available yet"><span>GIF</span><small>GIF</small></button>
-              <button class="composer-bottom-media-item" type="button" disabled title="More options coming soon"><span>⌕</span><small>More</small></button>
+              <button class="composer-bottom-media-item" id="story-create-composer-button" type="button" title="Create a 24-hour story"><span>◉</span><small>Add story</small></button><button class="composer-bottom-media-item" type="button" disabled title="More options coming soon"><span>⌕</span><small>More</small></button>
             </div>
             <div class="composer-anonymity-options">
               <label class="identity-toggle"><input id="hide-identity" type="checkbox"><span class="toggle-track"></span><span>Anonymous post</span></label>
@@ -80,7 +80,7 @@
       <section class="stories-section" aria-labelledby="stories-title">
         <div class="stories-heading">
           <div><span class="eyebrow">LITTLE MOMENTS</span><h2 id="stories-title">Stories</h2><p>Photos and short videos that disappear after 24 hours.</p></div>
-          <button id="story-create-button" class="story-create-button" type="button"><span aria-hidden="true">＋</span> Add story</button>
+          
         </div>
         <div id="stories-row" class="stories-row" aria-label="Active stories" aria-live="polite">
           <p class="stories-loading">Loading stories…</p>
@@ -94,6 +94,7 @@
         <button class="feed-tab active" role="tab" aria-selected="true" data-feed="for-you">For You</button>
         <button class="feed-tab" role="tab" aria-selected="false" data-feed="following">Following</button>
         <button class="feed-tab" role="tab" aria-selected="false" data-feed="public">Public</button>
+        <button class="feed-tab" role="tab" aria-selected="false" data-feed="anonymous">Anonymous posts</button>
       </div>
       <section id="feed-list" class="feed-list" aria-live="polite">
         <div class="feed-empty card">
@@ -125,7 +126,7 @@
     <div id="story-viewer-progress" class="story-viewer-progress"></div>
     <button id="story-viewer-close" class="story-viewer-close" type="button" aria-label="Close stories">×</button>
     <button id="story-viewer-prev" class="story-viewer-nav story-viewer-prev" type="button" aria-label="Previous story">‹</button>
-    <div class="story-viewer-content"><div class="story-viewer-author"><span id="story-viewer-avatar" class="story-avatar">♡</span><strong id="story-viewer-name">Amora member</strong><small id="story-viewer-time"></small></div><div id="story-viewer-media" class="story-viewer-media"></div><p id="story-viewer-caption" class="story-viewer-caption"></p></div>
+    <div class="story-viewer-content"><div class="story-viewer-author"><span id="story-viewer-avatar" class="story-avatar">♡</span><strong id="story-viewer-name">Amora member</strong><small id="story-viewer-time"></small></div><div id="story-viewer-media" class="story-viewer-media"></div><p id="story-viewer-caption" class="story-viewer-caption"></p><div class="story-viewer-actions"><button id="story-like-button" type="button">♡ Like</button><button id="story-comment-toggle" type="button">Comment</button><button id="story-share-button" type="button">↗ Share to story</button><button id="story-more-button" type="button" aria-haspopup="menu" aria-expanded="false">••• More</button></div><section id="story-comments-panel" class="story-comments-panel" hidden aria-label="Story comments"><div id="story-comments-list" class="story-comments-list"></div><form id="story-comment-form" class="story-comment-form"><input id="story-comment-input" maxlength="1000" placeholder="Reply to this story…" aria-label="Comment on story" required><button type="submit">Send</button></form></section><div id="story-more-menu" class="story-more-menu" role="menu" hidden><button type="button" data-story-action="report" role="menuitem">Report story</button><button type="button" data-story-action="mute" role="menuitem">Mute this person’s stories</button><button type="button" data-story-action="create" role="menuitem">Create a story</button></div></div>
     <button id="story-viewer-next" class="story-viewer-nav story-viewer-next" type="button" aria-label="Next story">›</button>
   </div>
   <div id="media-lightbox" class="media-lightbox" hidden role="dialog" aria-modal="true" aria-label="Photo viewer"><button type="button" class="media-lightbox-close" aria-label="Close photo viewer">×</button><button type="button" class="media-lightbox-prev" aria-label="Previous photo">‹</button><img id="media-lightbox-image" alt="Expanded post photo"><button type="button" class="media-lightbox-next" aria-label="Next photo">›</button><p id="media-lightbox-counter"></p></div>
