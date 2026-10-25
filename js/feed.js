@@ -559,7 +559,7 @@ document.addEventListener("DOMContentLoaded", () => {
         editInput.value = comment.content;
         editInput.className = "comment-edit-inline-input";
         editInput.setAttribute("aria-label", "Edit comment");
-        const restoreText = () => { text.textContent = originalText; editInput.remove(); };
+        const restoreText = () => { text.textContent = originalText; editInput.replaceWith(text); };
         text.replaceWith(editInput);
         const editForm = document.createElement("form");
         editForm.className = "comment-edit-form comment-inline-edit-actions";
