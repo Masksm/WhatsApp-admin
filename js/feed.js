@@ -551,27 +551,29 @@ document.addEventListener("DOMContentLoaded", () => {
       const editButton = makeButton("Edit", "comment-reply-button comment-owner-action", async () => {
         if (item.querySelector(":scope > .comment-edit-form")) return;
         const originalText = text.textContent;
-        text.contentEditable = "true";
-        text.setAttribute("role", "textbox");
-        text.setAttribute("aria-label", "Edit comment");
-        text.setAttribute("aria-multiline", "true");
-        text.classList.add("comment-inline-editing");
-        text.focus();
+        const composer = commentsDialog.querySelector('[name="comment-content"]');
+        const editInput = document.createElement("input");
+        editInput.type = "text";
+        editInput.maxLength = 3000;
+        editInput.required = true;
+        editInput.value = comment.content;
+        editInput.className = "comment-edit-inline-input";
+        editInput.setAttribute("aria-label", "Edit comment");
+        const restoreText = () => { text.textContent = originalText; editInput.remove(); };
+        text.replaceWith(editInput);
         const editForm = document.createElement("form");
         editForm.className = "comment-edit-form comment-inline-edit-actions";
         const save = document.createElement("button");
         save.type = "submit";
         save.textContent = "Save";
         const cancel = makeButton("Cancel", "comment-reply-button", () => {
-          text.textContent = originalText;
-          text.contentEditable = "false";
-          text.classList.remove("comment-inline-editing");
+          restoreText();
           editForm.remove();
         });
         editForm.append(save, cancel);
         editForm.addEventListener("submit", async event => {
           event.preventDefault();
-          const content = text.textContent.trim();
+          const content = editInput.value.trim();
           if (!content) { setStatus("A comment cannot be empty.", true); return; }
           save.disabled = true;
           try {
@@ -591,6 +593,8 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
         item.insertBefore(editForm, actions);
+        editInput.focus();
+        editInput.scrollIntoView({block:"nearest",behavior:"smooth"});
       });
       const deleteButton = makeButton("Delete", "comment-reply-button comment-owner-action", async () => {
         if (!window.confirm("Delete this comment? Any replies beneath it will also be deleted. This cannot be undone.")) return;
