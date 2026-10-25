@@ -27,6 +27,8 @@ create table if not exists public.guest_conversations (
   guest_identity_id uuid not null
     references public.guest_identities(id) on delete cascade,
   owner_user_id uuid not null references auth.users(id) on delete cascade,
+  guest_anonymous_name text not null default ('Guest-' || pg_catalog.substr(pg_catalog.replace(gen_random_uuid()::text, '-', ''), 1, 6)),
+  owner_anonymous_name text not null default ('Anonymous-' || pg_catalog.substr(pg_catalog.replace(gen_random_uuid()::text, '-', ''), 1, 6)),
   created_at timestamptz not null default now(),
   last_message_at timestamptz not null default now(),
   closed_at timestamptz null,
