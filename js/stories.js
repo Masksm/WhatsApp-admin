@@ -292,213 +292,50 @@ document.addEventListener("DOMContentLoaded", () => {
     if (commentsList) commentsList.replaceChildren();
     if (moreMenu) moreMenu.hidden = true;
     if (moreButton) moreButton.setAttribute("aria-expanded", "false");
-    if (likeButton) { likeButton.disabled = !currentUser || story.user_id === currentUser.id; likeButton.textContent = "♡ Like"; }
-    if (commentToggle) commentToggle.disabled = !currentUser || story.user_id === currentUser.id;
-    if (shareButton) shareButton.disabled = !currentUser;
-    viewerProgress.innerHTML = group.items.map((_,i) => '<span class="story-progress-segment"><span style="width:' + (i < activeIndex ? "100%" : "0%") + '"></span></span>').join("");
-    viewerName.textContent = nameFor(group.profile);
-    viewerAvatar.textContent = initials(nameFor(group.profile));
-    viewerTime.textContent = elapsed(story.created_at);
-    viewerCaption.textContent = story.caption || "";
-    viewerCaption.hidden = !story.caption;
-    viewerMedia.innerHTML = '<span>Loading story…</span>';
-    try {
-      const url = await getSignedUrl(story);
-      if (viewer.hidden || storyGroups[activeGroup]?.items[activeIndex]?.id !== story.id) return;
-      viewerMedia.innerHTML = "";
-      refreshStoryLikeState();
-      if (story.media_type === "video") {
-        const video = document.createElement("video");
-        video.src = url; video.autoplay = true; video.playsInline = true; video.controls = true; video.preload = "metadata";
-        viewerMedia.appendChild(video); currentVideo = video;
-        video.onended = () => { if (!storyPaused && commentsPanel?.hidden !== false && moreMenu?.hidden !== false) nextStory(); };
-        video.onloadedmetadata = () => {
-          const duration = Math.min(60, video.duration || 60);
-          const segment = viewerProgress.children[activeIndex]?.firstElementChild;
-          if (!segment) return;
-          const start = performance.now();
-          progressTimer = setInterval(() => { segment.style.width = Math.min(100, ((performance.now()-start)/(duration*1000))*100) + "%"; }, 80);
-        };
-        video.play().catch(() => {});
-      } else {
-        const img = document.createElement("img");
-        img.alt = "Story shared by " + nameFor(group.profile); img.src = url;
-        viewerMedia.appendChild(img);
-        const segment = viewerProgress.children[activeIndex]?.firstElementChild;
-        const start = Date.now();
-        viewerStartedAt = start;
-        progressTimer = setInterval(() => {
-          if (segment) segment.style.width = Math.min(100, ((Date.now()-start)/5000)*100) + "%";
-        }, 50);
-        advanceTimer = setTimeout(() => { if (!storyPaused && commentsPanel?.hidden !== false && moreMenu?.hidden !== false) nextStory(); }, 5000);
-        advanceTimer._amoraDueAt = Date.now() + 5000;
-      }
-    } catch (err) {
-      console.error("Amora story media could not open:", err);
-      viewerMedia.textContent = "This story media could not load. Close and retry.";
-      console.error("Story media failed:", story.id, story.media_path);
-    }
-  }
-  function nextStory() {
-    stopViewerTimers();
-    const group = storyGroups[activeGroup];
-    if (group && activeIndex + 1 < group.items.length) { activeIndex++; renderViewerStory(); return; }
-    if (activeGroup + 1 < storyGroups.length) { activeGroup++; activeIndex = 0; renderViewerStory(); return; }
-    closeViewer();
-  }
-  function previousStory() {
-    stopViewerTimers();
-    if (activeIndex > 0) { activeIndex--; renderViewerStory(); return; }
-    if (activeGroup > 0) { activeGroup--; activeIndex = storyGroups[activeGroup].items.length - 1; renderViewerStory(); }
-    else renderViewerStory();
-  }
-  function closeViewer() {
-    stopViewerTimers(); viewer.hidden = true; viewerMedia.innerHTML = ""; document.body.style.overflow = ""; activeStory = null;
-    if (commentsPanel) commentsPanel.hidden = true;
-    if (moreMenu) moreMenu.hidden = true;
-    storyPaused = false;
-    pausedStoryState = null;
-  }
-
-  async function refreshStoryLikeState() {
-    if (!activeStory || !currentUser || !likeButton) return;
-    const { data, error } = await db.from("story_likes").select("story_id").eq("story_id", activeStory.id).eq("user_id", currentUser.id).maybeSingle();
-    if (error) { say("Couldn't load the story like status."); return; }
-    likeButton.textContent = data ? "♥ Liked" : "♡ Like";
-    likeButton.classList.toggle("is-liked", Boolean(data));
-  }
-  likeButton?.addEventListener("click", async () => {
-    if (!activeStory || !currentUser || activeStory.user_id === currentUser.id) return;
-    likeButton.disabled = true;
-    try {
-      const { data: existing, error: readError } = await db.from("story_likes").select("story_id").eq("story_id", activeStory.id).eq("user_id", currentUser.id).maybeSingle();
-      if (readError) throw readError;
-      if (existing) {
-        const { error } = await db.from("story_likes").delete().eq("story_id", activeStory.id).eq("user_id", currentUser.id);
-        if (error) throw error;
-      } else {
-        const { error } = await db.from("story_likes").insert({story_id:activeStory.id,user_id:currentUser.id});
-        if (error) throw error;
-      }
-      await refreshStoryLikeState();
-    } catch (err) { say(err?.message || "Couldn't update this story like."); }
-    finally { likeButton.disabled = false; }
-  });
-  async function loadStoryComments() {
-    if (!activeStory || !commentsList) return;
-    commentsList.replaceChildren();
-    const { data, error } = await db.from("story_comments").select("id,user_id,content,created_at").eq("story_id", activeStory.id).order("created_at", {ascending:true});
-    if (error) { commentsList.textContent = "Comments could not load."; return; }
-    const comments = data || [];
-    const userIds = [...new Set(comments.map(item => item.user_id))];
-    let profiles = [];
-    if (userIds.length) {
-      const result = await db.from("profiles").select("id,username,display_name").in("id", userIds);
-      if (!result.error) profiles = result.data || [];
-    }
-    const profileMap = new Map(profiles.map(profile => [profile.id,profile]));
-    if (!comments.length) { commentsList.textContent = "Be the first to comment."; return; }
-    comments.forEach(item => {
-      const entry = document.createElement("article");
-      entry.className = "story-comment";
-      const author = document.createElement("strong");
-      author.textContent = nameFor(profileMap.get(item.user_id));
-      const body = document.createElement("p");
-      body.textContent = item.content;
-      const time = document.createElement("small");
-      time.textContent = elapsed(item.created_at);
-      entry.append(author,body,time);
-      commentsList.appendChild(entry);
-    });
-  }
-  commentToggle?.addEventListener("click", async () => {
-    if (!currentUser || !activeStory || activeStory.user_id === currentUser.id) return;
-    const opening = commentsPanel.hidden;
-    if (opening) pauseStoryForMenu();
-    commentsPanel.hidden = !opening;
-    if (opening) { await loadStoryComments(); commentInput?.focus(); }
-    else resumeStoryAfterMenu();
-  });
-  commentForm?.addEventListener("submit", async event => {
-    event.preventDefault();
-    if (!activeStory || !currentUser) return;
-    const content = commentInput.value.trim();
-    if (!content) return;
-    const submit = commentForm.querySelector("button[type=submit]");
-    submit.disabled = true;
-    try {
-      const { error } = await db.from("story_comments").insert({story_id:activeStory.id,user_id:currentUser.id,content});
-      if (error) throw error;
-      commentInput.value = "";
-      await loadStoryComments();
-    } catch (err) { say(err?.message || "Couldn't send this comment."); }
-    finally { submit.disabled = false; }
-  });
-  shareButton?.addEventListener("click", async () => {
-    if (!activeStory || !currentUser) return;
-    shareButton.disabled = true;
-    let newPath = null;
-    try {
-      const sourceUrl = await getSignedUrl(activeStory);
-      const response = await fetch(sourceUrl);
-      if (!response.ok) throw new Error("The story media could not be fetched.");
-      const blob = await response.blob();
-      const extension = activeStory.media_path.split(".").pop() || (activeStory.media_type === "video" ? "mp4" : "jpg");
-      newPath = currentUser.id + "/" + (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)) + "." + extension;
-      const upload = await db.storage.from(BUCKET).upload(newPath, blob, {contentType:blob.type || (activeStory.media_type === "video" ? "video/mp4" : "image/jpeg"),cacheControl:"300",upsert:false});
-      if (upload.error) throw upload.error;
-      const created = new Date();
-      const inserted = await db.from("stories").insert({user_id:currentUser.id,media_path:newPath,media_type:activeStory.media_type,caption:"Shared story",visibility:"public",created_at:created.toISOString(),expires_at:new Date(created.getTime()+86400000).toISOString()});
-      if (inserted.error) throw inserted.error;
-      say("Shared to your story.");
-      signedUrlCache.clear();
-      await loadStories();
-    } catch (err) {
-      if (newPath) await db.storage.from(BUCKET).remove([newPath]);
-      say(err?.message || "Couldn't share this story.");
-    } finally { shareButton.disabled = false; }
-  });
-  moreButton?.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!moreMenu || !activeStory) return;
-    const opening = moreMenu.hidden;
-    if (opening) {
-      pauseStoryForMenu();
-      commentsPanel.hidden = true;
-    }
-    moreMenu.hidden = !opening;
-    moreButton.setAttribute("aria-expanded", String(opening));
-    if (!opening) resumeStoryAfterMenu();
-  });
-  moreMenu?.querySelectorAll("[data-story-action]").forEach(button => button.addEventListener("click", async () => {
+    moreMenu?.querySelectorAll("[data-story-action]").forEach(button => button.addEventListener("click", async () => {
     if (!activeStory) return;
     const action = button.dataset.storyAction;
+    const storyBeingManaged = activeStory;
     moreMenu.hidden = true;
     moreButton?.setAttribute("aria-expanded", "false");
-    if (action === "create") { beginCreateStory(); return; }
-    if (!currentUser) { say("Please sign in to manage story safety."); return; }
-    if (action === "mute") {
-      if (activeStory.user_id === currentUser.id) { say("You cannot mute your own stories."); return; }
+    if (action === "create") { resumeStoryAfterMenu(); beginCreateStory(); return; }
+    if (!currentUser) { say("Please sign in to manage story safety."); resumeStoryAfterMenu(); return; }
+    if (action === "delete") {
+      if (storyBeingManaged.user_id !== currentUser.id) { say("You can only delete your own story."); resumeStoryAfterMenu(); return; }
+      if (!window.confirm("Delete this story? This cannot be undone.")) { resumeStoryAfterMenu(); return; }
       try {
-        const { error } = await db.from("story_mutes").insert({user_id:currentUser.id,muted_user_id:activeStory.user_id});
-        if (error && error.code !== "23505") throw error;
-        say("Stories from this person are now muted.");
+        const result = await db.from("stories").delete().eq("id",storyBeingManaged.id).eq("user_id",currentUser.id);
+        if (result.error) throw result.error;
+        try { await db.storage.from(BUCKET).remove([storyBeingManaged.media_path]); } catch (storageError) { console.warn("Story media cleanup failed:",storageError); }
+        signedUrlCache.delete(storyBeingManaged.id);
         closeViewer();
         await loadStories();
-      } catch (err) { say(err?.message || "Couldn't mute this person's stories."); }
+        say("Your story was deleted.");
+      } catch (err) { say(err?.message || "Couldn't delete this story."); resumeStoryAfterMenu(); }
+      return;
+    }
+    if (action === "mute") {
+      if (storyBeingManaged.user_id === currentUser.id) { resumeStoryAfterMenu(); return; }
+      try {
+        const result = await db.from("story_mutes").insert({user_id:currentUser.id,muted_user_id:storyBeingManaged.user_id});
+        if (result.error && result.error.code !== "23505") throw result.error;
+        closeViewer();
+        await loadStories();
+        say("Stories from this person are now muted.");
+      } catch (err) { say(err?.message || "Couldn't mute this person's stories."); resumeStoryAfterMenu(); }
     } else if (action === "report") {
-      if (activeStory.user_id === currentUser.id) { say("You cannot report your own story."); return; }
+      if (storyBeingManaged.user_id === currentUser.id) { resumeStoryAfterMenu(); return; }
       const reason = window.prompt("Why are you reporting this story? Enter spam, harassment, nudity, violence, scam, or other.");
-      if (!reason) return;
+      if (!reason) { resumeStoryAfterMenu(); return; }
       const normalized = reason.trim().toLowerCase();
-      if (!["spam","harassment","nudity","violence","scam","other"].includes(normalized)) { say("Choose spam, harassment, nudity, violence, scam, or other."); return; }
+      if (!["spam","harassment","nudity","violence","scam","other"].includes(normalized)) { say("Choose spam, harassment, nudity, violence, scam, or other."); resumeStoryAfterMenu(); return; }
       const details = window.prompt("Add details (optional, up to 1000 characters).") || "";
       try {
-        const { error } = await db.from("story_reports").insert({story_id:activeStory.id,reporter_id:currentUser.id,reason:normalized,details:details.slice(0,1000)});
-        if (error) throw error;
+        const result = await db.from("story_reports").insert({story_id:storyBeingManaged.id,reporter_id:currentUser.id,reason:normalized,details:details.slice(0,1000)});
+        if (result.error) throw result.error;
         say("Report submitted. Thank you for helping keep Amora safe.");
       } catch (err) { say(err?.code === "23505" ? "You have already reported this story." : err?.message || "Couldn't report this story."); }
+      resumeStoryAfterMenu();
     }
   }));
 
