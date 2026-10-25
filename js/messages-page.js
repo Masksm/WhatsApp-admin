@@ -1,4 +1,4 @@
-import { initMessages, refreshInbox } from "./messages.js";
+import { initMessages, refreshInbox } from "./messages.js?v=read-receipts-1";
 const $ = (selector) => document.querySelector(selector);
 let filter = "inbox";
 let conversations = [];
