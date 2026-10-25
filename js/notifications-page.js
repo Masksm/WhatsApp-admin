@@ -194,7 +194,11 @@ async function loadNotifications() {
     return;
   }
 
-  allNotifications = (data || []).map(row => ({ ...row }));
+  // Chat messages belong in Messages, not the Notifications page.
+  // Keep underlying records intact for chat and unread logic.
+  allNotifications = (data || [])
+    .filter(row => row.notification_type !== "new_message")
+    .map(row => ({ ...row }));
   updateUnreadCount();
   render();
   setStatus("");
