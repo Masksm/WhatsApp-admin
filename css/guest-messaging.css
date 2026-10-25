@@ -48,3 +48,14 @@ body.guest-link-modal-open::before{content:"";position:fixed;inset:0;z-index:999
 .guest-inbox-bottom{margin-top:16px}
 @media(max-width:700px){.guest-inbox-shell{width:min(100% - 22px,600px);padding-top:12px}.guest-inbox-hero{padding:20px;border-radius:20px}.guest-inbox-grid{grid-template-columns:1fr}.guest-inbox-card{border-radius:18px}.guest-inbox-card-head{padding:16px}.guest-inbox-list{padding:10px}.guest-box{padding:14px;border-radius:18px}.guest-msg{max-width:94%}}
 @media(prefers-reduced-motion:reduce){.guest-row{transition:none}}
+
+
+/* Switchable guest inbox categories and appearance control. */
+.guest-inbox-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.guest-theme-toggle{border:1px solid var(--line);border-radius:999px;padding:9px 13px;background:var(--surface);color:var(--text);font:600 13px inherit;cursor:pointer}
+.guest-inbox-tabs{display:flex;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--surface)}
+.guest-inbox-tab{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:var(--surface2);color:var(--muted);font:700 13px inherit;cursor:pointer}
+.guest-inbox-tab.active{background:rgba(232,62,140,.14);border-color:var(--pink,#e83e8c);color:var(--text)}
+#anonymous-message-panel[hidden],#guest-chat-panel[hidden]{display:none!important}
+#guest-chat-panel .guest-inbox-list{min-height:110px}
+@media(max-width:420px){.guest-inbox-tab{padding:10px 7px;font-size:12px}.guest-theme-toggle{padding:8px 10px}}
