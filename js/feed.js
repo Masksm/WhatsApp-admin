@@ -77,6 +77,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const supabase = window.amoraSupabase || null;
+  const pageParams = new URLSearchParams(window.location.search);
+  const postOnlyMode = document.body.dataset.postOnly === "true";
+  const requestedPostId = pageParams.get("id") || pageParams.get("post");
 
   if (!composer || !textInput || !feedList || !publishButton) {
     console.error("[Amora] Home initialization stopped: required feed elements are missing.", {
@@ -803,14 +806,13 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         if (action === "more") {
-          const card = feedList.querySelector('[data-post-id="' + post.id + '"]');
-          const menu = card?.querySelector(".post-more-menu");
-          const backdrop = card?.querySelector(".post-more-backdrop");
+          const menu = [...document.querySelectorAll(".post-more-menu")].find(item => item.dataset.postId === post.id);
+          const backdrop = [...document.querySelectorAll(".post-more-backdrop")].find(item => item.dataset.postId === post.id);
           if (menu && backdrop) {
             closeAllPostMoreMenus();
             menu.hidden = false;
             backdrop.hidden = false;
-            card.querySelector(".post-more-trigger")?.setAttribute("aria-expanded","true");
+            feedList.querySelector('[data-post-id="' + post.id + '"] .post-more-trigger')?.setAttribute("aria-expanded","true");
             document.body.classList.add("post-more-open","post-detail-more-open");
           } else {
             setStatus("Post options are unavailable for this post.", true);
@@ -1002,10 +1004,12 @@ document.addEventListener("DOMContentLoaded", () => {
     moreButton.setAttribute("aria-expanded", "false");
     const moreBackdrop = document.createElement("div");
     moreBackdrop.className = "post-more-backdrop";
+    moreBackdrop.dataset.postId = post.id;
     moreBackdrop.hidden = true;
     moreBackdrop.addEventListener("click", closeAllPostMoreMenus);
     const moreMenu = document.createElement("div");
     moreMenu.className = "post-more-menu";
+    moreMenu.dataset.postId = post.id;
     moreMenu.hidden = true;
     moreMenu.setAttribute("role", "dialog");
     moreMenu.setAttribute("aria-label", "Post options");
@@ -1177,7 +1181,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     let visible = posts;
-    if (activeFeed === "anonymous") {
+    if (postOnlyMode) {
+      visible = posts;
+    } else if (activeFeed === "anonymous") {
       // Anonymous posts belong only in the dedicated Anonymous feed.
       visible = posts.filter(post => Boolean(post.is_anonymous));
     } else if (activeFeed === "following" || activeFeed === "public") {
@@ -1269,7 +1275,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const useCachedPosts = restoredFeedCache &&
+      const useCachedPosts = !postOnlyMode && restoredFeedCache &&
         restoredFeedCache.activeFeed === activeFeed &&
         Date.now() - restoredFeedCache.savedAt < homeFeedCacheMaxAge;
       if (useCachedPosts) {
@@ -1280,7 +1286,10 @@ document.addEventListener("DOMContentLoaded", () => {
           .select("id,author_id,content,media_urls,visibility,is_anonymous,force_anonymous_comments,created_at")
           .order("created_at", { ascending: false })
           .limit(50);
-        if (activeFeed === "public") query = query.eq("visibility", "public");
+        if (postOnlyMode) {
+          if (!requestedPostId) throw new Error("A post ID is required to open this page.");
+          query = query.eq("id", requestedPostId);
+        } else if (activeFeed === "public") query = query.eq("visibility", "public");
         if (activeFeed === "anonymous") query = query.eq("is_anonymous", true);
         const { data, error } = await query;
         if (error) throw error;
@@ -1438,10 +1447,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function openNotificationTarget() {
     const params = new URLSearchParams(window.location.search);
-    const postId = params.get("post");
+    const postId = params.get("id") || params.get("post");
     const commentId = params.get("comment");
     const isUuid = value => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-    if (!isUuid(postId) || (commentId && !isUuid(commentId))) { document.documentElement.classList.remove("notification-post-opening"); return; }
+    if (!isUuid(postId) || (commentId && !isUuid(commentId))) { document.documentElement.classList.remove("notification-post-opening", "amora-post-opening"); if (postOnlyMode) setStatus("This post link is invalid.", true); return; }
     try {
       let post = posts.find(item => item.id === postId);
       if (!post) {
@@ -1455,7 +1464,7 @@ document.addEventListener("DOMContentLoaded", () => {
       feedTabs.forEach(tab => { const selected = tab.dataset.feed === activeFeed; tab.classList.toggle("active", selected); tab.setAttribute("aria-selected", String(selected)); });
       await loadPublicProfiles([post.author_id].filter(Boolean));
       await openCommentsDialog(post, {scrollToComments:Boolean(commentId)});
-      document.documentElement.classList.remove("notification-post-opening");
+      document.documentElement.classList.remove("notification-post-opening", "amora-post-opening");
       if (commentId) {
         const findComment = rows => { for (const row of rows || []) { if (row.id === commentId) return row; const nested = findComment(row.replies); if (nested) return nested; } return null; };
         const target = findComment(await loadComments(post.id));
@@ -1466,9 +1475,9 @@ document.addEventListener("DOMContentLoaded", () => {
           if (target.parent_comment) commentsDialog.querySelector('[data-comment-id="' + target.parent_comment.id + '"]')?.classList.add("notification-target-highlight");
         }
       }
-      const cleanUrl = new URL(window.location.href); cleanUrl.searchParams.delete("post"); cleanUrl.searchParams.delete("comment");
+      const cleanUrl = new URL(window.location.href); cleanUrl.searchParams.delete("post"); cleanUrl.searchParams.delete("comment"); if (!postOnlyMode) cleanUrl.searchParams.delete("id");
       window.history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
-    } catch (error) { document.documentElement.classList.remove("notification-post-opening"); await logClientError("open_notification_target", error); setStatus("Could not open that notification post. It may have been deleted or access may be restricted.", true); }
+    } catch (error) { document.documentElement.classList.remove("notification-post-opening", "amora-post-opening"); await logClientError("open_notification_target", error); setStatus("Could not open that notification post. It may have been deleted or access may be restricted.", true); }
   }
 
   // Photo viewer for feed media. Uses only URLs already rendered on accessible posts.
