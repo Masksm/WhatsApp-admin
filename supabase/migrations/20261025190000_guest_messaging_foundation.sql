@@ -40,8 +40,8 @@ create table if not exists public.guest_messages (
   conversation_id uuid not null
     references public.guest_conversations(id) on delete cascade,
   sender_guest_identity_id uuid null
-    references public.guest_identities(id) on delete set null,
-  sender_user_id uuid null references auth.users(id) on delete set null,
+    references public.guest_identities(id) on delete cascade,
+  sender_user_id uuid null references auth.users(id) on delete cascade,
   message_text text not null
     check (char_length(btrim(message_text)) between 1 and 2000),
   moderation_status text not null default 'pending'
@@ -59,6 +59,44 @@ create table if not exists public.guest_message_rate_limits (
   id bigint generated always as identity primary key,
   identity_id uuid null references public.guest_identities(id) on delete cascade,
   owner_user_id uuid null references auth.users(id) on delete cascade,
+  requester_hash text null check (requester_hash is null or requester_hash ~ '^[a-f0-9]{64}
+    check (action in ('identity_create', 'send_message', 'recover', 'link_account')),
+  occurred_at timestamptz not null default now(),
+  constraint guest_rate_limit_actor_check
+    check (identity_id is not null or owner_user_id is not null or requester_hash is not null)
+);
+
+create index if not exists guest_conversations_owner_recent_idx
+  on public.guest_conversations (owner_user_id, last_message_at desc);
+create index if not exists guest_conversations_identity_recent_idx
+  on public.guest_conversations (guest_identity_id, last_message_at desc);
+create index if not exists guest_messages_conversation_recent_idx
+  on public.guest_messages (conversation_id, created_at desc)
+  where deleted_at is null;
+create index if not exists guest_messages_moderation_queue_idx
+  on public.guest_messages (created_at)
+  where moderation_status = 'pending' and deleted_at is null;
+create index if not exists guest_rate_limits_identity_action_time_idx
+  on public.guest_message_rate_limits (identity_id, action, occurred_at desc);
+create index if not exists guest_rate_limits_user_action_time_idx
+  on public.guest_message_rate_limits (owner_user_id, action, occurred_at desc);
+create index if not exists guest_rate_limits_requester_action_time_idx
+  on public.guest_message_rate_limits (requester_hash, action, occurred_at desc);
+
+alter table public.guest_identities enable row level security;
+alter table public.guest_conversations enable row level security;
+alter table public.guest_messages enable row level security;
+alter table public.guest_message_rate_limits enable row level security;
+
+-- No client-facing RLS policies or direct table grants by design.
+revoke all on table public.guest_identities from anon, authenticated;
+revoke all on table public.guest_conversations from anon, authenticated;
+revoke all on table public.guest_messages from anon, authenticated;
+revoke all on table public.guest_message_rate_limits from anon, authenticated;
+revoke all on sequence public.guest_message_rate_limits_id_seq from anon, authenticated;
+
+commit;
+),
   action text not null
     check (action in ('identity_create', 'send_message', 'recover', 'link_account')),
   occurred_at timestamptz not null default now(),
