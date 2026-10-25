@@ -2,6 +2,7 @@ const $ = (selector) => document.querySelector(selector);
 const supabase = window.amoraSupabase;
 let allNotifications = [];
 let activeFilter = "all";
+let searchQuery = "";
 
 function dateLabel(value) {
   if (!value) return "";
@@ -43,10 +44,27 @@ function notificationText(item) {
 
 function notificationSymbol(type) {
   if (type === "new_message") return "✉";
-  if (type === "new_follower") return "♙";
+  if (type === "new_follower") return "+";
   if (type === "post_comment" || type === "comment_reply") return "▤";
   if (type === "mention") return "@";
+  if (type === "comment_like") return "♥";
   return "♡";
+}
+function matchesFilter(item) {
+  if (activeFilter === "unread") return !item.read_at;
+  if (activeFilter === "likes") return ["post_like", "comment_like"].includes(item.notification_type);
+  if (activeFilter === "comments") return ["post_comment", "comment_reply"].includes(item.notification_type);
+  if (activeFilter === "follows") return item.notification_type === "new_follower";
+  return true;
+}
+function groupLabel(value) {
+  const date = new Date(value || 0);
+  if (Number.isNaN(date.getTime())) return "Earlier";
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const days = Math.floor((today.getTime() - day.getTime()) / 86400000);
+  return days <= 0 ? "Today" : days === 1 ? "Yesterday" : "Earlier";
 }
 
 function updateUnreadCount() {
@@ -63,7 +81,12 @@ function updateUnreadCount() {
 function render() {
   const list = $("#notifications-list");
   if (!list) return;
-  const items = allNotifications.filter(item => activeFilter !== "unread" || !item.read_at);
+  const query = searchQuery.trim().toLowerCase();
+  const items = allNotifications.filter(item => {
+    if (!matchesFilter(item)) return false;
+    if (!query) return true;
+    return [notificationText(item), item.message_preview, item.actor_name, item.actor_username, item.notification_type].filter(Boolean).join(" ").toLowerCase().includes(query);
+  }).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
   list.replaceChildren();
 
   if (!items.length) {
@@ -74,7 +97,16 @@ function render() {
     return;
   }
 
+  let previousGroup = "";
   for (const item of items) {
+    const group = groupLabel(item.created_at);
+    if (group !== previousGroup) {
+      const heading = document.createElement("h2");
+      heading.className = "notification-date-heading";
+      heading.textContent = group;
+      list.appendChild(heading);
+      previousGroup = group;
+    }
     const button = document.createElement("button");
     button.type = "button";
     button.className = "amora-notification" + (item.read_at ? "" : " unread");
@@ -84,6 +116,11 @@ function render() {
     symbol.setAttribute("aria-hidden", "true");
     symbol.textContent = notificationSymbol(item.notification_type);
 
+    const actor = actorLabel(item);
+    const avatar = document.createElement("span");
+    avatar.className = "notification-actor-avatar";
+    avatar.setAttribute("aria-hidden", "true");
+    avatar.textContent = (actor.trim().replace(/^@/, "").charAt(0) || "A").toUpperCase();
     const copy = document.createElement("span");
     copy.className = "notification-copy";
     const title = document.createElement("strong");
@@ -94,7 +131,7 @@ function render() {
     const timestamp = document.createElement("small");
     timestamp.textContent = dateLabel(item.created_at);
     copy.append(title, message, timestamp);
-    button.append(symbol, copy);
+    button.append(avatar, symbol, copy);
 
     if (!item.read_at) {
       const dot = document.createElement("span");
@@ -175,6 +212,18 @@ document.querySelectorAll("[data-filter]").forEach(button => {
   });
 });
 
+$("#notifications-search")?.addEventListener("input", event => {
+  searchQuery = event.target.value || "";
+  render();
+});
+$("#refresh-notifications")?.addEventListener("click", async event => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  button.classList.add("is-refreshing");
+  try { await loadNotifications(); }
+  finally { button.disabled = false; button.classList.remove("is-refreshing"); }
+});
+
 $("#mark-all-read")?.addEventListener("click", async () => {
   if (!supabase) return;
   const unread = allNotifications.filter(item => !item.read_at);
@@ -219,3 +268,5 @@ if (supabase) {
   });
 }
 loadNotifications();
+setInterval(() => { if (!document.hidden) loadNotifications(); }, 30000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) loadNotifications(); });
