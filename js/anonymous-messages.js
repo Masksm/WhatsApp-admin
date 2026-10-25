@@ -34,6 +34,19 @@ function showPublicAnonymousPage() {
   }
 
   panel.hidden = false;
+
+  // Preserve the existing seven-day claim flow and offer recoverable guest chat
+  // as a separate option, without sending duplicate messages automatically.
+  if (!document.getElementById("guest-chat-entry-link")) {
+    const entry = document.createElement("p");
+    entry.className = "guest-chat-entry";
+    const link = document.createElement("a");
+    link.id = "guest-chat-entry-link";
+    link.href = "/pages/guest-chat.html?slug=" + encodeURIComponent(slug);
+    link.textContent = "Want a private chat you can recover on another device? Start a guest chat";
+    entry.appendChild(link);
+    panel.appendChild(entry);
+  }
   return true;
 }
 
