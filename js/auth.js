@@ -334,10 +334,11 @@ async function handleAuthSubmit(event) {
       if (signupData?.error) throw new Error(signupData.error);
       result = { data: { session: null, user: null }, error: null };
     } else {
-      result = await supabase.auth.signInWithPassword(
-        { email, password },
-        { captchaToken }
-      );
+      result = await supabase.auth.signInWithPassword({
+        email,
+        password,
+        options: { captchaToken }
+      });
     }
 
     if (result.error) throw result.error;
