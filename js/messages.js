@@ -222,6 +222,23 @@ async function loadChatConversations(showLoading = true) {
   }
 
   currentConversations = data || [];
+  try {
+    const { data: guestRows, error: guestError } = await supabase.rpc("owner_get_guest_conversations");
+    if (!guestError) {
+      const unreadGuest = (guestRows || []).reduce((total, row) => total + (Number(row.unread_count) || 0), 0);
+      const guestEntry = document.querySelector(".guest-inbox-entry");
+      if (guestEntry) {
+        let badge = guestEntry.querySelector(".guest-inbox-unread-badge");
+        if (!badge) { badge = document.createElement("span"); badge.className = "guest-inbox-unread-badge"; guestEntry.append(badge); }
+        badge.hidden = unreadGuest < 1;
+        badge.textContent = unreadGuest > 99 ? "99+" : String(unreadGuest);
+        badge.setAttribute("aria-label", unreadGuest + " unread guest messages");
+      }
+      document.querySelectorAll("[data-guest-inbox-unread]").forEach(el => {
+        el.hidden = unreadGuest < 1; el.textContent = unreadGuest > 99 ? "99+" : String(unreadGuest);
+      });
+    }
+  } catch {}
   const { data: prefs, error: prefsError } = await supabase.from("conversation_user_preferences")
     .select("conversation_id,is_blocked,is_ignored,is_pinned").eq("conversation_type", "direct");
   if (!prefsError) conversationPreferences = new Map((prefs || []).map(p => [p.conversation_id, p]));
