@@ -254,6 +254,19 @@ document.addEventListener("DOMContentLoaded", () => {
       probe.src = url;
     });
   }
+  async function scanStoryImageForContactInfo(file) {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
+      reader.onerror = () => reject(new Error("Could not read image."));
+      reader.readAsDataURL(file);
+    });
+    const { data, error } = await db.functions.invoke("moderate-image", {
+      body: { imageBase64: base64, mimeType: file.type }
+    });
+    if (error) throw new Error("Image scanning is unavailable. Try again later.");
+    if (!data?.approved) throw new Error(data?.reason || data?.error || "This image was not approved.");
+  }
   const beginCreateStory = () => {
     if (!currentUser) { say("Please sign in before sharing a story."); return; }
     pendingStoryFile = null;
@@ -299,6 +312,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let uploadedPath = null;
     try {
       await validateVideo(file);
+      if (file.type.startsWith("image/")) {
+        say("Scanning image…");
+        await scanStoryImageForContactInfo(file);
+      }
       const extension = (file.name.split(".").pop() || (file.type.startsWith("video/") ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g,"") || "bin";
       const unique = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
       uploadedPath = currentUser.id + "/" + unique + "." + extension;
