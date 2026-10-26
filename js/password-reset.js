@@ -22,36 +22,6 @@ const authPanel = document.getElementById("auth-panel");
   const resetLoginLink = document.getElementById("reset-login-link");
   const recoveryAccount = document.getElementById("recovery-account");
   const recoveryAccountEmail = document.getElementById("recovery-account-email");
-  let resetCaptchaWidgetId = null;
-  let resetCaptchaToken = "";
-  const HCAPTCHA_SITE_KEY = "2a2a8cb8-9936-46ba-80b8-b9f2f74648ae";
-
-  function initResetCaptcha() {
-    const container = document.getElementById("amora-reset-hcaptcha");
-    if (!container || !window.hcaptcha || resetCaptchaWidgetId !== null) return;
-    resetCaptchaWidgetId = window.hcaptcha.render(container, {
-      sitekey: HCAPTCHA_SITE_KEY,
-      callback: (token) => { resetCaptchaToken = token; },
-      "expired-callback": () => { resetCaptchaToken = ""; },
-      "error-callback": () => { resetCaptchaToken = ""; }
-    });
-  }
-
-  function resetRecoveryCaptcha() {
-    resetCaptchaToken = "";
-    if (resetCaptchaWidgetId !== null && window.hcaptcha) {
-      window.hcaptcha.reset(resetCaptchaWidgetId);
-    }
-  }
-
-  function waitForHCaptcha() {
-    if (window.hcaptcha) {
-      initResetCaptcha();
-      return;
-    }
-    window.setTimeout(waitForHCaptcha, 150);
-  }
-  waitForHCaptcha();
 
   function isRecoveryLink() {
     const params = new URLSearchParams(window.location.search);
@@ -119,16 +89,12 @@ function showSection(sectionToShow) {
       event.preventDefault();
 
       const email = resetEmail.value.trim();
-      if (!resetCaptchaToken) {
-        resetStatus.textContent = "Please complete the security check before continuing.";
-        return;
-      }
       resetStatus.textContent = "Sending recovery email...";
 
       try {
         const { data, error } = await supabase.functions.invoke(
           "auth-email-request",
-          { body: { action: "recovery", email, captchaToken: resetCaptchaToken } }
+          { body: { action: "recovery", email } }
         );
 
         if (error) {
@@ -147,9 +113,6 @@ function showSection(sectionToShow) {
         console.error("Password recovery error:", error);
         resetStatus.textContent =
           error.message || "Could not send the recovery email. Please try again.";
-      } finally {
-        resetRecoveryCaptcha();
-      }
     });
   }
 
