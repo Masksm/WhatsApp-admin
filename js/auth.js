@@ -293,10 +293,23 @@ async function handleAuthSubmit(event) {
     setStatus(status, "Enter your email and password.", true);
     return;
   }
-  if (!captchaToken) {
-    setStatus(status, "Please complete the security check before continuing.", true);
+  // Always read the live hCaptcha response from the widget at submit time.
+  // This avoids sending an empty/stale closure value after a widget reset or mode switch.
+  const liveCaptchaToken = (() => {
+    try {
+      if (window.hcaptcha && captchaWidgetId !== null) {
+        return String(window.hcaptcha.getResponse(captchaWidgetId) || "").trim();
+      }
+    } catch (error) {
+      console.warn("Could not read hCaptcha response:", error);
+    }
+    return String(captchaToken || "").trim();
+  })();
+  if (!liveCaptchaToken) {
+    setStatus(status, "Complete the security check, then try again.", true);
     return;
   }
+  captchaToken = liveCaptchaToken;
 
   if (authMode === "signup" && !/^[A-Za-z0-9_]{3,30}$/.test(name)) {
     setStatus(
@@ -321,7 +334,7 @@ async function handleAuthSubmit(event) {
     if (authMode === "signup") {
       const { data: signupData, error: signupError } = await supabase.functions.invoke(
         "auth-email-request",
-        { body: { action: "signup", email, password, name, captchaToken } }
+        { body: { action: "signup", email, password, name, captchaToken: liveCaptchaToken } }
       );
       if (signupError) {
         let message = signupError.message || "Could not create your account.";
@@ -334,7 +347,7 @@ async function handleAuthSubmit(event) {
       if (signupData?.error) throw new Error(signupData.error);
       result = { data: { session: null, user: null }, error: null };
     } else {
-      const verifiedCaptchaToken = String(captchaToken || "").trim();
+      const verifiedCaptchaToken = liveCaptchaToken;
       if (!verifiedCaptchaToken) {
         throw new Error("Please complete the security check before continuing.");
       }
