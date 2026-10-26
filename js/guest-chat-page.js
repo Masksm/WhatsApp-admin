@@ -120,7 +120,8 @@ function showGuestMessageActions(m){
  add("Close",closeGuestMessageActions);document.body.append(menu);guestActionMenu=menu;
  setTimeout(()=>document.addEventListener("pointerdown",e=>{if(guestActionMenu&&!guestActionMenu.contains(e.target))closeGuestMessageActions();},{once:true}),0);
 }
-\n$("#guest-create-identity")?.addEventListener("click",async()=>{
+
+$("#guest-create-identity")?.addEventListener("click",async()=>{
  if(!supabase){status("Connection unavailable. Refresh and try again.",true);return;}
  try{
   $("#guest-create-identity").disabled=true;status("Creating your guest identity…");
