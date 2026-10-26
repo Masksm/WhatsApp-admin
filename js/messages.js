@@ -334,15 +334,6 @@ function showMessageActions(message) {
     preview.append(label, cancel);
     input.focus();
   });
-  add("Forward", async () => {
-    const text = message.message_text || "";
-    if (navigator.share) {
-      await navigator.share({ title: "Amora message", text });
-      return;
-    }
-    await navigator.clipboard.writeText(text);
-    setChatStatus("Sharing is unavailable here. Message copied so you can share it.");
-  });
   add("Copy", async () => {
     await navigator.clipboard.writeText(message.message_text || "");
     setChatStatus("Message copied.");
