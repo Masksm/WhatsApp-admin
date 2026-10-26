@@ -21,6 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const status = byId("profile-status");
   const saveButton = byId("save-profile");
   const postsContainer = byId("profile-posts");
+  const postStat = byId("post-stat");
+  postStat?.addEventListener("click", () => {
+    postsContainer?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
   const settingsButton = byId("profile-settings-button");
   const settingsSection = byId("identity-settings");
   const targetUsername = new URLSearchParams(window.location.search).get("username");
