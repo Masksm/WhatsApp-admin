@@ -334,10 +334,14 @@ async function handleAuthSubmit(event) {
       if (signupData?.error) throw new Error(signupData.error);
       result = { data: { session: null, user: null }, error: null };
     } else {
+      const verifiedCaptchaToken = String(captchaToken || "").trim();
+      if (!verifiedCaptchaToken) {
+        throw new Error("Please complete the security check before continuing.");
+      }
       result = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: { captchaToken }
+        options: { captchaToken: verifiedCaptchaToken }
       });
     }
 
