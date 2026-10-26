@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const storyComposerPreview = document.getElementById("story-create-preview");
   const storyComposerChoose = document.getElementById("story-create-choose");
   const storyComposerPublish = document.getElementById("story-create-publish");
+  const storyComposerStatus = document.getElementById("story-create-status");
   const storyAllowComments = document.getElementById("story-allow-comments");
   const storyCommentAnonymous = document.getElementById("story-comment-anonymous");
   const viewerViews = document.getElementById("story-view-count");
@@ -58,6 +59,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
   const say = (message) => { status.textContent = message || ""; };
+  const showComposerFeedback = (message, isError = false) => {
+    if (!storyComposerStatus) { say(message); return; }
+    storyComposerStatus.textContent = message || "";
+    storyComposerStatus.classList.toggle("is-error", Boolean(isError));
+    storyComposerStatus.hidden = !message;
+    if (message) storyComposerStatus.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  };
   const initials = (name) => (String(name || "A").trim().charAt(0) || "A").toUpperCase();
   const nameFor = (profile) => profile?.display_name || (profile?.username ? "@" + profile.username : "Amora member");
   const elapsed = (date) => {
@@ -274,6 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storyComposerCaption) storyComposerCaption.value = "";
     if (storyAllowComments) storyAllowComments.checked = true;
     if (storyComposerPreview) storyComposerPreview.replaceChildren();
+    showComposerFeedback("");
     if (previewObjectUrl) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null; }
     if (storyComposerPublish) storyComposerPublish.disabled = true;
     if (storyComposer) storyComposer.hidden = false;
@@ -292,8 +301,9 @@ document.addEventListener("DOMContentLoaded", () => {
   fileInput.addEventListener("change", () => {
     const file = fileInput.files?.[0]; fileInput.value = ""; if (!file) return;
     const allowed = ["image/jpeg","image/png","image/webp","image/gif","video/mp4","video/webm","video/quicktime"];
-    if (!allowed.includes(file.type)) { say("Choose a JPG, PNG, WebP, GIF, MP4, WebM, or MOV file."); return; }
-    if (file.size > MAX_FILE_BYTES) { say("Stories media must be 50 MB or smaller."); return; }
+    if (!allowed.includes(file.type)) { showComposerFeedback("This file type is not supported. Choose a JPG, PNG, WebP, GIF, MP4, WebM, or MOV file.", true); return; }
+    if (file.size > MAX_FILE_BYTES) { showComposerFeedback("This file is too large. Stories media must be 50 MB or smaller.", true); return; }
+    showComposerFeedback("");
     pendingStoryFile = file;
     if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
     previewObjectUrl = URL.createObjectURL(file);
@@ -309,12 +319,16 @@ document.addEventListener("DOMContentLoaded", () => {
   storyComposerPublish?.addEventListener("click", async () => {
     const file = pendingStoryFile; if (!file || !currentUser) return;
     storyComposerPublish.disabled = true; if (storyComposerChoose) storyComposerChoose.disabled = true;
-    say("Checking and uploading your story…");
+    showComposerFeedback("Checking your story against Amora’s community guidelines…");
     let uploadedPath = null;
     try {
+      const caption = (storyComposerCaption?.value || "").trim().slice(0,500);
+      if (caption && !isStoryContentAllowed(caption)) {
+        throw new Error("Your story text contains contact details or number fragments. Remove phone numbers, email addresses, links, social media handles, and standalone number sequences before sharing.");
+      }
       await validateVideo(file);
       if (file.type.startsWith("image/")) {
-        say("Scanning and securely uploading image…");
+        showComposerFeedback("Scanning image for contact information…");
         const approvedUpload = await uploadModeratedStoryImage(file);
         uploadedPath = approvedUpload.path;
       } else {
@@ -324,9 +338,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const upload = await db.storage.from(BUCKET).upload(uploadedPath,file,{contentType:file.type,cacheControl:"300",upsert:false});
         if (upload.error) throw upload.error;
       }
+      showComposerFeedback("Checks passed. Publishing your story…");
       const created = new Date();
-      const caption = (storyComposerCaption?.value || "").trim().slice(0,500);
-      if (caption && !isStoryContentAllowed(caption)) throw new Error("Story text cannot contain contact information or standalone number fragments.");
       const inserted = await db.from("stories").insert({user_id:currentUser.id,media_path:uploadedPath,media_type:file.type.startsWith("video/")?"video":"image",caption,visibility:"public",allow_comments:storyAllowComments?.checked !== false,created_at:created.toISOString(),expires_at:new Date(created.getTime()+86400000).toISOString()}).select("id").single();
       if (inserted.error) throw inserted.error;
       if (storyComposer) storyComposer.hidden = true; document.body.style.overflow = ""; pendingStoryFile = null;
@@ -337,7 +350,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (ownIndex >= 0) openViewer(ownIndex,Math.max(0,storyGroups[ownIndex].items.findIndex(item => item.id === inserted.data.id)));
     } catch (err) {
       if (uploadedPath) { try { await db.storage.from(BUCKET).remove([uploadedPath]); } catch (_) {} }
-      console.error("Amora story upload failed:",err); say(err?.message || "Your story could not be uploaded. Please try again.");
+      console.error("Amora story upload failed:",err);
+      showComposerFeedback(err?.message || "Your story could not be accepted. Please review Amora’s community guidelines and try again.", true);
       if (storyComposerPublish) storyComposerPublish.disabled = !pendingStoryFile;
     } finally { if (storyComposerChoose) storyComposerChoose.disabled = false; }
   });
