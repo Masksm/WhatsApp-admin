@@ -308,3 +308,166 @@ html[data-theme="dark"] .notifications-main .secondary-button {
     border-color: var(--surface, #19121e) !important;
   }
 }
+
+
+/* FINAL AMORA NOTIFICATION THEME: no Facebook gray/blue palette. */
+html[data-theme="dark"] body.amora-feed-page {
+  --bg: #100b14;
+  --surface: #19121e;
+  --surface2: #211727;
+  --line: rgba(255,255,255,.10);
+  --text: #fff7fc;
+  --muted: #ad9eb4;
+  --pink: #ff72b7;
+  --purple: #b58aff;
+  background: #100b14 !important;
+  color: #fff7fc !important;
+}
+html[data-theme="dark"] body.amora-feed-page .feed-shell,
+html[data-theme="dark"] body.amora-feed-page .feed-main {
+  background: #100b14 !important;
+  color: #fff7fc !important;
+}
+html[data-theme="dark"] .notifications-main .amora-notification,
+html[data-theme="dark"] .notifications-main .notification-loading,
+html[data-theme="dark"] .notifications-main .notifications-empty,
+html[data-theme="dark"] .notifications-main .notifications-search,
+html[data-theme="dark"] .notifications-main .notification-refresh-button {
+  background: #19121e !important;
+  color: #fff7fc !important;
+  border-color: rgba(255,255,255,.10) !important;
+}
+html[data-theme="dark"] .notifications-main .amora-notification.unread {
+  background: #2a1929 !important;
+  border-color: rgba(255,114,183,.42) !important;
+}
+html[data-theme="dark"] .notifications-main .notification-symbol {
+  background: rgba(255,114,183,.16) !important;
+  color: #ff72b7 !important;
+  border-color: #19121e !important;
+}
+html[data-theme="dark"] .notifications-main .notification-actor-avatar {
+  background: linear-gradient(135deg,#ff72b7,#b58aff) !important;
+}
+html[data-theme="dark"] .notifications-main .notification-filter.active,
+html[data-theme="dark"] .notifications-main .notifications-header .eyebrow,
+html[data-theme="dark"] .notifications-main .notifications-status {
+  color: #ff72b7 !important;
+  border-bottom-color: #ff72b7 !important;
+}
+html[data-theme="dark"] .notifications-main .notification-copy span,
+html[data-theme="dark"] .notifications-main .notification-copy small,
+html[data-theme="dark"] .notifications-main .notifications-header p:not(.eyebrow),
+html[data-theme="dark"] .notifications-main .notifications-search {
+  color: #ad9eb4 !important;
+}
+html[data-theme="dark"] .notifications-main .secondary-button {
+  background: #211727 !important;
+  color: #fff7fc !important;
+  border-color: rgba(255,255,255,.10) !important;
+}
+html[data-theme="light"] body.amora-feed-page {
+  --bg: #f7f0f7;
+  --surface: #ffffff;
+  --surface2: #f2e5f0;
+  --line: rgba(65,35,67,.16);
+  --text: #2b1d30;
+  --muted: #6e5a73;
+  --pink: #b52d79;
+  --purple: #7850a8;
+  background: #f7f0f7 !important;
+  color: #2b1d30 !important;
+}
+html[data-theme="light"] body.amora-feed-page .feed-shell,
+html[data-theme="light"] body.amora-feed-page .feed-main {
+  background: #f7f0f7 !important;
+  color: #2b1d30 !important;
+}
+html[data-theme="light"] .notifications-main .amora-notification,
+html[data-theme="light"] .notifications-main .notification-loading,
+html[data-theme="light"] .notifications-main .notifications-empty,
+html[data-theme="light"] .notifications-main .notifications-search,
+html[data-theme="light"] .notifications-main .notification-refresh-button {
+  background: #fff !important;
+  color: #2b1d30 !important;
+  border-color: rgba(65,35,67,.16) !important;
+}
+html[data-theme="light"] .notifications-main .amora-notification.unread {
+  background: #fff0f7 !important;
+  border-color: #efb8d5 !important;
+}
+html[data-theme="light"] .notifications-main .notification-symbol {
+  background: #fbe4f0 !important;
+  color: #a51d68 !important;
+  border-color: #fff !important;
+}
+html[data-theme="light"] .notifications-main .notification-actor-avatar {
+  background: linear-gradient(135deg,#ff72b7,#b58aff) !important;
+}
+html[data-theme="light"] .notifications-main .notification-filter.active,
+html[data-theme="light"] .notifications-main .notifications-header .eyebrow,
+html[data-theme="light"] .notifications-main .notifications-status {
+  color: #a51d68 !important;
+  border-bottom-color: #a51d68 !important;
+}
+html[data-theme="light"] .notifications-main .notification-copy span,
+html[data-theme="light"] .notifications-main .notification-copy small,
+html[data-theme="light"] .notifications-main .notifications-header p:not(.eyebrow),
+html[data-theme="light"] .notifications-main .notifications-search {
+  color: #6e5a73 !important;
+}
+html[data-theme="light"] .notifications-main .secondary-button {
+  background: #f2e5f0 !important;
+  color: #2b1d30 !important;
+  border-color: rgba(65,35,67,.16) !important;
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) body.amora-feed-page {
+    --bg:#100b14;--surface:#19121e;--surface2:#211727;--line:rgba(255,255,255,.10);
+    --text:#fff7fc;--muted:#ad9eb4;--pink:#ff72b7;--purple:#b58aff;
+    background:#100b14!important;color:#fff7fc!important;
+  }
+  html:not([data-theme]) body.amora-feed-page .feed-shell,
+  html:not([data-theme]) body.amora-feed-page .feed-main {background:#100b14!important;color:#fff7fc!important}
+  html:not([data-theme]) .notifications-main .amora-notification,
+  html:not([data-theme]) .notifications-main .notification-loading,
+  html:not([data-theme]) .notifications-main .notifications-empty,
+  html:not([data-theme]) .notifications-main .notifications-search,
+  html:not([data-theme]) .notifications-main .notification-refresh-button {
+    background:#19121e!important;color:#fff7fc!important;border-color:rgba(255,255,255,.10)!important;
+  }
+  html:not([data-theme]) .notifications-main .amora-notification.unread {background:#2a1929!important;border-color:rgba(255,114,183,.42)!important}
+  html:not([data-theme]) .notifications-main .notification-symbol {background:rgba(255,114,183,.16)!important;color:#ff72b7!important;border-color:#19121e!important}
+  html:not([data-theme]) .notifications-main .notification-filter.active,
+  html:not([data-theme]) .notifications-main .notifications-header .eyebrow,
+  html:not([data-theme]) .notifications-main .notifications-status {color:#ff72b7!important;border-bottom-color:#ff72b7!important}
+  html:not([data-theme]) .notifications-main .notification-copy span,
+  html:not([data-theme]) .notifications-main .notification-copy small,
+  html:not([data-theme]) .notifications-main .notifications-header p:not(.eyebrow),
+  html:not([data-theme]) .notifications-main .notifications-search {color:#ad9eb4!important}
+  html:not([data-theme]) .notifications-main .secondary-button {background:#211727!important;color:#fff7fc!important;border-color:rgba(255,255,255,.10)!important}
+}
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) body.amora-feed-page {
+    --bg:#f7f0f7;--surface:#fff;--surface2:#f2e5f0;--line:rgba(65,35,67,.16);
+    --text:#2b1d30;--muted:#6e5a73;--pink:#b52d79;--purple:#7850a8;
+    background:#f7f0f7!important;color:#2b1d30!important;
+  }
+  html:not([data-theme]) body.amora-feed-page .feed-shell,
+  html:not([data-theme]) body.amora-feed-page .feed-main {background:#f7f0f7!important;color:#2b1d30!important}
+  html:not([data-theme]) .notifications-main .amora-notification,
+  html:not([data-theme]) .notifications-main .notification-loading,
+  html:not([data-theme]) .notifications-main .notifications-empty,
+  html:not([data-theme]) .notifications-main .notifications-search,
+  html:not([data-theme]) .notifications-main .notification-refresh-button {background:#fff!important;color:#2b1d30!important;border-color:rgba(65,35,67,.16)!important}
+  html:not([data-theme]) .notifications-main .amora-notification.unread {background:#fff0f7!important;border-color:#efb8d5!important}
+  html:not([data-theme]) .notifications-main .notification-symbol {background:#fbe4f0!important;color:#a51d68!important;border-color:#fff!important}
+  html:not([data-theme]) .notifications-main .notification-filter.active,
+  html:not([data-theme]) .notifications-main .notifications-header .eyebrow,
+  html:not([data-theme]) .notifications-main .notifications-status {color:#a51d68!important;border-bottom-color:#a51d68!important}
+  html:not([data-theme]) .notifications-main .notification-copy span,
+  html:not([data-theme]) .notifications-main .notification-copy small,
+  html:not([data-theme]) .notifications-main .notifications-header p:not(.eyebrow),
+  html:not([data-theme]) .notifications-main .notifications-search {color:#6e5a73!important}
+  html:not([data-theme]) .notifications-main .secondary-button {background:#f2e5f0!important;color:#2b1d30!important;border-color:rgba(65,35,67,.16)!important}
+}
