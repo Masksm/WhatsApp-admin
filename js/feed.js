@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
     logClientError("window_error", event.error || event.message);
   });
 
-  async function scanImageForContactInfo(file) {
+  async function uploadModeratedImage(file, purpose) {
     const base64 = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
@@ -205,10 +205,11 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.readAsDataURL(file);
     });
     const { data, error } = await supabase.functions.invoke("moderate-image", {
-      body: { imageBase64: base64, mimeType: file.type }
+      body: { imageBase64: base64, mimeType: file.type, purpose }
     });
-    if (error) throw new Error("Image scanning is unavailable. Try again later.");
-    if (!data?.approved) throw new Error(data?.reason || data?.error || "This image was not approved.");
+    if (error) throw new Error("Image scanning or upload is unavailable. Try again later.");
+    if (!data?.approved || !data?.path) throw new Error(data?.reason || data?.error || "This image was not approved.");
+    return data;
   }
 
   function updatePublishButton() {
@@ -1446,18 +1447,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const user = await requireUser();
       let mediaUrls = [];
       if (selectedImage) {
-        setStatus("Scanning image…");
-        await scanImageForContactInfo(selectedImage);
-        const extension = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" })[selectedImage.type];
-        if (!extension) throw new Error("That image format is not supported.");
-        uploadedPath = user.id + "/" + crypto.randomUUID() + "." + extension;
-        const { error: uploadError } = await supabase.storage
-          .from("amora-post-images")
-          .upload(uploadedPath, selectedImage, { contentType: selectedImage.type, upsert: false });
-        if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabase.storage.from("amora-post-images").getPublicUrl(uploadedPath);
-        if (!publicUrlData?.publicUrl) throw new Error("Could not create the image URL.");
-        mediaUrls = [publicUrlData.publicUrl];
+        setStatus("Scanning and securely uploading image…");
+        const approvedUpload = await uploadModeratedImage(selectedImage, "post");
+        uploadedPath = approvedUpload.path;
+        if (!approvedUpload.publicUrl) throw new Error("Could not create the image URL.");
+        mediaUrls = [approvedUpload.publicUrl];
       }
 
       if (hideIdentity.checked) {
