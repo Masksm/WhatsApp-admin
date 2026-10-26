@@ -351,10 +351,13 @@ async function handleAuthSubmit(event) {
       if (!verifiedCaptchaToken) {
         throw new Error("Please complete the security check before continuing.");
       }
+      // In supabase-js, captchaToken is a top-level signInWithPassword
+      // credential, not nested inside options. The nested form is ignored,
+      // so GoTrue receives no captcha_token and rejects the request.
       result = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: { captchaToken: verifiedCaptchaToken }
+        captchaToken: verifiedCaptchaToken
       });
     }
 
