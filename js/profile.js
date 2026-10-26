@@ -551,6 +551,15 @@ document.addEventListener("DOMContentLoaded", () => {
         button.disabled = true;
         try {
           if (form.dataset.editingCommentId) { const editId=form.dataset.editingCommentId; const {error}=await supabase.from("post_comments").update({content,edited_at:new Date().toISOString()}).eq("id",editId).eq("author_id",user.id).eq("is_anonymous",false); if(error)throw error; delete form.dataset.editingCommentId; delete form.dataset.editingOriginalValue; input.value=""; input.placeholder="Write a comment…"; button.textContent="Comment"; const cancel=form.querySelector("[data-cancel-profile-edit]"); if(cancel)cancel.hidden=true; await refreshProfilePostComments(); await refreshProfilePostCounts(); return; }
+          if (form.dataset.editingCommentId) {
+            const editId = form.dataset.editingCommentId;
+            const { error } = await supabase.from("post_comments").update({ content, edited_at: new Date().toISOString() }).eq("id", editId).eq("author_id", user.id).eq("is_anonymous", false);
+            if (error) throw error;
+            delete form.dataset.editingCommentId; delete form.dataset.editingOriginalValue;
+            input.value = ""; input.placeholder = "Write a comment…"; button.textContent = "Comment";
+            const cancelEdit = form.querySelector("[data-cancel-profile-edit]"); if (cancelEdit) cancelEdit.hidden = true;
+            await refreshProfilePostComments(); await refreshProfilePostCounts(); return;
+          }
           const payload = {post_id:active.id,author_id:user.id,content,is_anonymous:Boolean(form.elements.namedItem("comment-anonymous")?.checked),parent_comment_id:profilePostReplyParentId || null};
           const {error} = await supabase.from("post_comments").insert(payload);
           if (error) throw error;
