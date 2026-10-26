@@ -274,7 +274,10 @@ function renderMessages(messages) {
 
 
 let messageActionMenu = null;
+let messageActionOutsideHandler = null;
 function closeMessageActions() {
+  if (messageActionOutsideHandler) document.removeEventListener("pointerdown", messageActionOutsideHandler, true);
+  messageActionOutsideHandler = null;
   messageActionMenu?.remove();
   messageActionMenu = null;
 }
@@ -299,16 +302,17 @@ function showMessageActions(message) {
   const heading=document.createElement("strong");heading.textContent=message.sent_by_me?"Your message":"Message";heading.style.cssText="display:block;padding:8px 10px;";first.append(heading);
   add(first,"Reply",()=>{const input=$("#chat-message-text");if(!input)return;input.dataset.replyTo=messageId;let preview=$("#chat-reply-preview");if(!preview){preview=document.createElement("div");preview.id="chat-reply-preview";preview.className="chat-reply-preview";$("#chat-message-form")?.prepend(preview);}preview.replaceChildren();const label=document.createElement("span");label.textContent="Replying to: "+(message.message_text||"").slice(0,160);const cancel=document.createElement("button");cancel.type="button";cancel.textContent="×";cancel.setAttribute("aria-label","Cancel reply");cancel.addEventListener("click",()=>{delete input.dataset.replyTo;preview.remove();});preview.append(label,cancel);input.focus();});
   add(first,"Copy",async()=>{await navigator.clipboard.writeText(message.message_text||"");setChatStatus("Message copied.");});
-  add(first,"Info",()=>alert("Sent: "+formatChatDate(message.sent_at)+"\nStatus: "+(message.read_at?"Read":"Sent")));
+  if(message.sent_by_me) add(first,"Delete for me",async()=>{if(!confirm("Hide this message from your account on all your devices? Other participants will still see it."))return;const {error}=await supabase.rpc("amora_message_action",{p_message_id:messageId,p_action:"delete_for_me",p_reason:null});if(error)throw error;setChatStatus("Message hidden from your account.");await loadChatMessages(activeConversationId);});
   add(first,"More ›",()=>{});
   const back=add(second,"‹ Back",()=>{});back.addEventListener("click",()=>{track.style.transform="translateX(0)";});
   const extra=(label,action)=>add(second,label,action);
   extra(message.is_pinned?"Unpin for everyone":"Pin for everyone",async()=>{const {error}=await supabase.rpc("amora_message_action",{p_message_id:messageId,p_action:message.is_pinned?"unpin":"pin",p_reason:null});if(error)throw error;setChatStatus(message.is_pinned?"Message unpinned for everyone.":"Message pinned for everyone.");await loadChatMessages(activeConversationId);});
-  extra("Delete for me",async()=>{if(!confirm("Hide this message from your account on all your devices? Other participants will still see it."))return;const {error}=await supabase.rpc("amora_message_action",{p_message_id:messageId,p_action:"delete_for_me",p_reason:null});if(error)throw error;setChatStatus("Message hidden from your account.");await loadChatMessages(activeConversationId);});
+  extra("Info",()=>alert("Sent: "+formatChatDate(message.sent_at)+"\nStatus: "+(message.read_at?"Read":"Sent")));
   if(!message.sent_by_me)extra("Report message",async()=>{const reason=prompt("Reason for report:","Other");if(reason===null)return;const {error}=await supabase.rpc("amora_message_action",{p_message_id:messageId,p_action:"report",p_reason:reason});if(error)throw error;setChatStatus("Report submitted.");});
   first.querySelector('button:last-child').addEventListener("click",()=>{track.style.transform="translateX(-50%)";});
   document.body.append(menu);messageActionMenu=menu;
-  setTimeout(()=>document.addEventListener("pointerdown",event=>{if(messageActionMenu&&!messageActionMenu.contains(event.target))closeMessageActions();},{once:true}),0);
+  messageActionOutsideHandler = event => { if (messageActionMenu && !messageActionMenu.contains(event.target)) closeMessageActions(); };
+  setTimeout(() => { if (messageActionMenu === menu) document.addEventListener("pointerdown", messageActionOutsideHandler, true); }, 0);
 }
 
 function stopLiveMessageUpdates() {
