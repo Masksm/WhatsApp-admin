@@ -498,16 +498,101 @@ document.addEventListener("DOMContentLoaded", () => {
   let profilePostDialog = null;
   let profilePostReplyParentId = null;
   async function openProfilePost(post, card) {
-    // Use the exact Home-feed post detail dialog instead of maintaining a second,
-    // behaviorally different copy on the profile page. The post detail page opens
-    // the same comments dialog used by the Home feed and resolves the post by ID.
-    if (!post || !post.id) {
-      showStatus("This post could not be opened.", true);
-      return;
+    if (!post || !post.id) { showStatus("This post could not be opened.", true); return; }
+    if (!profilePostDialog) {
+      profilePostDialog = document.createElement("div");
+      profilePostDialog.className = "comments-dialog profile-post-dialog";
+      profilePostDialog.hidden = true;
+      profilePostDialog.innerHTML = `
+        <div class="comments-dialog-backdrop" data-profile-post-close></div>
+        <section class="comments-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="profile-post-dialog-title">
+          <header class="comments-dialog-header">
+            <div><h2 id="profile-post-dialog-title">Post</h2><p class="comments-dialog-subtitle"></p></div>
+            <button type="button" class="comments-dialog-close" aria-label="Close post" data-profile-post-close>×</button>
+          </header>
+          <div class="comments-dialog-post"></div>
+          <div class="post-detail-actions" aria-label="Post actions">
+            <button type="button" data-detail-action="like">♡ Like</button>
+            <button type="button" data-detail-action="comment">Comment</button>
+            <button type="button" data-detail-action="repost">⟳ Repost</button>
+            <button type="button" data-detail-action="more" aria-expanded="false">••• More</button>
+          </div>
+          <p class="profile-dialog-status" role="status"></p>
+          <div class="comments-dialog-list" aria-live="polite"></div>
+          <form class="comments-dialog-form post-reply-composer">
+            <div class="comments-reply-context comment-reply-context" hidden><span class="comments-reply-label"></span><button type="button" class="comments-reply-cancel" aria-label="Cancel reply">×</button><span class="comments-reply-quote"></span></div>
+            <input name="comment-content" maxlength="3000" placeholder="Write a comment…" aria-label="Write a comment" required>
+            <label class="comment-anonymous-choice comments-dialog-anonymous"><input type="checkbox" name="comment-anonymous"> Comment anonymously</label>
+            <button type="submit">Comment</button>
+          </form>
+        </section>`;
+      document.body.append(profilePostDialog);
+      profilePostDialog.querySelectorAll("[data-profile-post-close]").forEach(el => el.addEventListener("click", closeProfilePost));
+      profilePostDialog.addEventListener("keydown", event => { if (event.key === "Escape") closeProfilePost(); });
+      profilePostDialog.querySelector(".comments-reply-cancel").addEventListener("click", () => {
+        profilePostReplyParentId = null;
+        const ctx = profilePostDialog.querySelector(".comments-reply-context");
+        ctx.hidden = true; ctx.querySelector(".comments-reply-label").textContent = ""; ctx.querySelector(".comments-reply-quote").textContent = "";
+        const input = profilePostDialog.querySelector('[name="comment-content"]');
+        input.placeholder = "Write a comment…";
+        profilePostDialog.querySelector('.comments-dialog-form button[type="submit"]').textContent = "Comment";
+      });
+      profilePostDialog.querySelector('[name="comment-content"]').addEventListener("focus", syncProfilePostViewport);
+      profilePostDialog.querySelector(".comments-dialog-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        const d = profilePostDialog, active = d?._activePost;
+        if (!active || !requireSignedIn()) return;
+        const form = event.currentTarget, input = form.elements.namedItem("comment-content"), button = form.querySelector('[type="submit"]');
+        const content = input.value.trim(); if (!content) return;
+        button.disabled = true;
+        try {
+          const payload = {post_id:active.id,author_id:user.id,content,is_anonymous:Boolean(form.elements.namedItem("comment-anonymous")?.checked),parent_comment_id:profilePostReplyParentId || null};
+          const {error} = await supabase.from("post_comments").insert(payload);
+          if (error) throw error;
+          input.value = ""; form.elements.namedItem("comment-anonymous").checked = false; profilePostReplyParentId = null;
+          const ctx = d.querySelector(".comments-reply-context"); ctx.hidden = true;
+          input.placeholder = "Write a comment…"; button.textContent = "Comment";
+          await refreshProfilePostComments(); await refreshProfilePostCounts();
+        } catch (error) { setProfilePostStatus(error.message || "Could not add your comment.", true); }
+        finally { button.disabled = false; }
+      });
+      profilePostDialog.querySelector('[data-detail-action="comment"]').addEventListener("click", () => {
+        profilePostDialog.querySelector('[name="comment-content"]').focus({preventScroll:true});
+      });
+      profilePostDialog.querySelector('[data-detail-action="like"]').addEventListener("click", async event => {
+        const b = event.currentTarget;
+        if (!requireSignedIn()) return;
+        await toggleProfilePostAction("post_likes", profilePostDialog._activePost, b, "♡ Like", "♥ Liked");
+      });
+      profilePostDialog.querySelector('[data-detail-action="repost"]').addEventListener("click", async event => {
+        const b = event.currentTarget;
+        if (!requireSignedIn()) return;
+        await toggleProfilePostAction("post_reposts", profilePostDialog._activePost, b, "⟳ Repost", "↻ Reposted");
+      });
+      profilePostDialog.querySelector('[data-detail-action="more"]').addEventListener("click", event => toggleProfilePostMoreMenu(profilePostDialog._activePost, event.currentTarget));
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", syncProfilePostViewport);
+        window.visualViewport.addEventListener("scroll", syncProfilePostViewport);
+      }
+      window.addEventListener("resize", syncProfilePostViewport);
     }
-    const target = new URL("/pages/post.html", window.location.origin);
-    target.searchParams.set("id", post.id);
-    window.location.href = target.pathname + target.search;
+    const d = profilePostDialog;
+    d._activePost = post; d._activeCard = card;
+    const author = post.is_anonymous ? "Anonymous" : (viewedProfile?.display_name || viewedProfile?.username || "Amora member");
+    d.querySelector("#profile-post-dialog-title").textContent = author;
+    d.querySelector(".comments-dialog-post").replaceChildren();
+    const preview = d.querySelector(".comments-dialog-post");
+    preview.classList.toggle("has-post-media", Array.isArray(post.media_urls) && post.media_urls.length > 0);
+    if (post.content) { const text = document.createElement("p"); text.className = "comments-dialog-post-text"; text.textContent = post.content; preview.append(text); }
+    (post.media_urls || []).slice(0,4).forEach(url => { if (typeof url !== "string" || !url.startsWith("https://")) return; const img = document.createElement("img"); img.className = "comments-dialog-post-image"; img.src = url; img.alt = "Image attached to post"; img.loading = "lazy"; preview.append(img); });
+    d.querySelector(".comments-dialog-anonymous").hidden = Boolean(post.is_anonymous || post.force_anonymous_comments);
+    d.querySelector('[name="comment-content"]').placeholder = post.is_anonymous || post.force_anonymous_comments ? "Reply anonymously…" : "Write a comment…";
+    d.querySelector('[data-detail-action="like"]').textContent = "♡ Like";
+    d.querySelector('[data-detail-action="repost"]').textContent = "⟳ Repost";
+    d.querySelector(".profile-dialog-status").textContent = "";
+    d.hidden = false; document.body.classList.add("comments-dialog-open"); syncProfilePostViewport();
+    requestAnimationFrame(() => d.classList.add("is-open"));
+    await refreshProfilePostCounts(); await refreshProfilePostComments();
   }
 
   function syncProfilePostViewport(){if(!profilePostDialog)return;const v=window.visualViewport;profilePostDialog.style.setProperty("--comments-viewport-height",Math.max(280,v?v.height:window.innerHeight)+"px");profilePostDialog.style.setProperty("--comments-viewport-top",Math.max(0,v?v.offsetTop:0)+"px");}
