@@ -500,8 +500,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!rows.length) { renderEmptyPosts(); return; }
     for (const post of rows) {
       const article = node("article", "profile-post profile-post-card");
-      const meta = node("div", "profile-post-meta");
-      meta.append(node("span", "", relativeTime(post.created_at)));
+      article.id = "profile-post-" + post.id;
+      article.dataset.postId = post.id;
+      const meta = node("div", "profile-post-meta post-header");
+      const identity = node("div", "post-author-info");
+      const avatar = node("span", "post-avatar", (viewedProfile?.display_name || viewedProfile?.username || "A").slice(0,1).toUpperCase());
+      const authorCopy = node("div", "post-author-copy");
+      authorCopy.append(node("strong", "", viewedProfile?.display_name || viewedProfile?.username || "Amora member"),
+        node("small", "", "@" + (viewedProfile?.username || "member") + " · " + relativeTime(post.created_at)));
+      identity.append(avatar, authorCopy);
+      meta.append(identity);
       const metaRight = node("div", "profile-post-meta-actions");
       if (post.is_repost) metaRight.append(node("span", "profile-repost-label", "↻ Reposted"));
       metaRight.append(node("span", "profile-post-visibility", post.visibility === "followers" ? "Followers only" : "Public"));
@@ -512,7 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
         metaRight.append(deleteButton);
       }
       meta.append(metaRight);
-      const content = node("p", "profile-post-content", post.content || "");
+      const content = node("p", "profile-post-content post-content", post.content || "");
       article.append(meta, content);
       (post.media_urls || []).slice(0, 4).forEach((url) => {
         if (typeof url !== "string" || !/^https:\/\//i.test(url)) return;
@@ -523,10 +531,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const { data: postCounts, error: countsError } = await supabase.rpc("get_post_interaction_counts", { p_post_ids: [post.id] });
       const postCount = !countsError && Array.isArray(postCounts) ? postCounts.find((row) => row.post_id === post.id) : null;
       const likeCount = Number(postCount?.likes_count || 0);
-      const stats = node("div", "profile-post-stats");
+      const stats = node("div", "profile-post-stats post-stats");
       const likesText = node("span", "", (likeCount || 0) + ((likeCount || 0) === 1 ? " like" : " likes"));
       stats.append(likesText);
-      const actions = node("div", "profile-post-actions");
+      const actions = node("div", "profile-post-actions post-actions");
       let liked = false;
       if (user) {
         const { data: ownLike } = await supabase.from("post_likes").select("post_id")
@@ -631,6 +639,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     combinedPosts.sort((a, b) => new Date(b.reposted_at || b.created_at) - new Date(a.reposted_at || a.created_at));
     await renderPosts(combinedPosts.slice(0, 50));
+    const requestedHash = window.location.hash;
+    if (requestedHash === "#profile-posts") {
+      requestAnimationFrame(() => postsContainer?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    } else if (requestedHash.startsWith("#post-") || requestedHash.startsWith("#profile-post-")) {
+      const postId = requestedHash.replace(/^#(?:post-|profile-post-)/, "");
+      requestAnimationFrame(() => {
+        const target = byId("profile-post-" + postId);
+        (target || postsContainer)?.scrollIntoView({ behavior: "smooth", block: target ? "center" : "start" });
+        if (target) {
+          target.classList.add("post-highlight");
+          window.setTimeout(() => target.classList.remove("post-highlight"), 2600);
+        }
+      });
+    }
   }
 
   byId("profile-more-button")?.addEventListener("click", () => {
