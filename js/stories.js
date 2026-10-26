@@ -368,7 +368,9 @@ document.addEventListener("DOMContentLoaded", () => {
       prefetchNextStoryMedia(story.id);
       if (story.media_type === "video") {
         const video = document.createElement("video");
-        video.src = url; video.autoplay = true; video.playsInline = true; video.controls = true; video.preload = "auto"; video.setAttribute("playsinline", ""); video.setAttribute("webkit-playsinline", "");
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const dataSaver = Boolean(connection?.saveData) || /^(slow-2g|2g|3g)$/.test(connection?.effectiveType || "");
+        video.src = url; video.autoplay = true; video.playsInline = true; video.controls = true; video.preload = dataSaver ? "metadata" : "auto"; video.setAttribute("playsinline", ""); video.setAttribute("webkit-playsinline", "");
         viewerMedia.appendChild(video); currentVideo = video;
         video.onended = () => { if (!storyPaused && commentsPanel?.hidden !== false && moreMenu?.hidden !== false) nextStory(); };
         video.onloadedmetadata = () => {
