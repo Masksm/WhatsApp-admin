@@ -82,28 +82,18 @@ document.addEventListener("DOMContentLoaded", () => {
     followListDialog.hidden = false;
     followListItems.replaceChildren(node("p", "follow-list-empty", "Loading accounts…"));
     try {
-      const key = isFollowingList ? "follower_id" : "followed_id";
-      const value = isFollowingList ? viewedProfile.id : viewedProfile.id;
-      const { data: rows, error } = await supabase.from("user_follows")
-        .select("follower_id,followed_id,created_at").eq(key, value)
-        .order("created_at", { ascending: false }).limit(500);
+      const { data: ordered, error } = await supabase.rpc("get_public_follow_list", {
+        p_profile_id: viewedProfile.id,
+        p_mode: mode
+      });
       if (error) throw error;
-      const ids = [...new Set((rows || []).map(row => isFollowingList ? row.followed_id : row.follower_id).filter(Boolean))];
-      if (!ids.length) {
+      const accounts = (ordered || []).filter(profile => profile && profile.username);
+      if (!accounts.length) {
         followListItems.replaceChildren(node("p", "follow-list-empty", isFollowingList ? "This account is not following anyone yet." : "This account has no followers yet."));
         return;
       }
-      const { data: profiles, error: profilesError } = await supabase.from("profiles")
-        .select("id,username,display_name,is_official").in("id", ids);
-      if (profilesError) throw profilesError;
-      const byId = new Map((profiles || []).map(profile => [profile.id, profile]));
-      const ordered = ids.map(id => byId.get(id)).filter(profile => profile && profile.username);
       followListItems.replaceChildren();
-      if (!ordered.length) {
-        followListItems.append(node("p", "follow-list-empty", "No public accounts to show."));
-        return;
-      }
-      for (const profile of ordered) {
+      for (const profile of accounts) {
         const item = node("div", "follow-list-item");
         const identity = node("a", "follow-list-identity");
         identity.href = "/pages/profile.html?username=" + encodeURIComponent(profile.username);
