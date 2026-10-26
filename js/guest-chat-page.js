@@ -13,17 +13,20 @@ function initGuestTheme(){
 initGuestTheme();
 
 function openTokenPopup(){
- const panel=$("#guest-token-panel");
- panel.hidden=false;panel.classList.add("guest-token-modal");document.body.classList.add("guest-token-modal-open");
- $("#guest-token-modal-close")?.focus();
+ const panel=$("#guest-identity-section");panel.hidden=false;panel.classList.add("guest-token-modal");document.body.classList.add("guest-token-modal-open");
+ $("#guest-identity-popup-close")?.focus();
 }
 function closeTokenPopup(){
- const panel=$("#guest-token-panel");panel.classList.remove("guest-token-modal");panel.hidden=true;document.body.classList.remove("guest-token-modal-open");
+ const panel=$("#guest-identity-section");panel.classList.remove("guest-token-modal");document.body.classList.remove("guest-token-modal-open");
 }
+function openConversationPopup(){const panel=$("#guest-conversation-popup");panel.hidden=false;panel.classList.add("guest-token-modal");document.body.classList.add("guest-conversation-popup-open");}
+function closeConversationPopup(){const panel=$("#guest-conversation-popup");panel.classList.remove("guest-token-modal");panel.hidden=true;document.body.classList.remove("guest-conversation-popup-open");}
 $("#guest-recovery-token-action")?.addEventListener("click",openTokenPopup);
+$("#guest-identity-popup-close")?.addEventListener("click",closeTokenPopup);
 $("#guest-token-modal-close")?.addEventListener("click",closeTokenPopup);
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.body.classList.contains("guest-token-modal-open"))closeTokenPopup();});
-document.addEventListener("click",e=>{if(e.target===document.body&&document.body.classList.contains("guest-token-modal-open"))closeTokenPopup();});
+$("#guest-conversation-popup-close")?.addEventListener("click",closeConversationPopup);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(document.body.classList.contains("guest-token-modal-open"))closeTokenPopup();if(document.body.classList.contains("guest-conversation-popup-open"))closeConversationPopup();}});
+document.addEventListener("click",e=>{if(e.target===document.body){if(document.body.classList.contains("guest-token-modal-open"))closeTokenPopup();if(document.body.classList.contains("guest-conversation-popup-open"))closeConversationPopup();}});
 
 
 const params = new URLSearchParams(location.search);
@@ -38,12 +41,12 @@ function status(message, error=false) {
 function saveToken(value) {
   token=value;
   try { sessionStorage.setItem(TOKEN_KEY,value); } catch {}
-  $("#guest-token-panel").hidden=true;
+  $("#guest-token-panel").hidden=false;
   $("#guest-token-panel").classList.remove("guest-token-modal");
   $("#guest-recovery-token-action").hidden=false;
   $("#guest-token-value").textContent=value;
   $("#guest-identity-controls").hidden=true;
-  $("#guest-compose-card").hidden=!slug || activeConversationId!==null;
+  $("#guest-compose-card").hidden=true;
   $("#guest-chat-card").hidden=false;
   $("#guest-recovery-token-action").hidden=false;
 }
@@ -74,6 +77,7 @@ async function refreshConversations() {
 async function openConversation(id) {
   activeConversationId=id;
   $("#guest-compose-card").hidden=true;
+  openConversationPopup();
   const {data,error}=await supabase.rpc("guest_get_messages",{p_token:token,p_conversation_id:id});
   if(error){status(error.message,true);return;}
   const list=$("#guest-message-list"); list.replaceChildren();
@@ -135,5 +139,6 @@ $("#guest-reply-form")?.addEventListener("submit",async e=>{
   catch{sessionStorage.removeItem(TOKEN_KEY);}
   if(!slug) { $("#guest-compose-card").hidden=true; }
   else if(!token) { $("#guest-compose-card").hidden=false; status("Create or recover a guest identity to start a private conversation."); }
-  if(token) { $("#guest-chat-card").hidden=false; $("#guest-recovery-token-action").hidden=false; }
+  if(token) { $("#guest-chat-card").hidden=false; $("#guest-recovery-token-action").hidden=false; $("#guest-identity-section").hidden=true; }
+  else { $("#guest-identity-section").hidden=false; openTokenPopup(); }
 })();
