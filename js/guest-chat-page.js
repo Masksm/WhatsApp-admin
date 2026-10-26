@@ -17,7 +17,7 @@ function openTokenPopup(){
  $("#guest-identity-popup-close")?.focus();
 }
 function closeTokenPopup(){
- const panel=$("#guest-identity-section");panel.classList.remove("guest-token-modal");document.body.classList.remove("guest-token-modal-open");
+ const panel=$("#guest-identity-section");panel.classList.remove("guest-token-modal");panel.hidden=true;document.body.classList.remove("guest-token-modal-open");
 }
 function openConversationPopup(){const panel=$("#guest-conversation-popup");panel.hidden=false;panel.classList.add("guest-token-modal");document.body.classList.add("guest-conversation-popup-open");}
 function closeConversationPopup(){const panel=$("#guest-conversation-popup");panel.classList.remove("guest-token-modal");panel.hidden=true;document.body.classList.remove("guest-conversation-popup-open");}
@@ -55,6 +55,7 @@ async function recover(value) {
   const {data,error}=await supabase.rpc("guest_get_conversations",{p_token:value});
   if(error) throw error;
   saveToken(value);
+  $("#guest-compose-card").hidden=!slug || (data||[]).length>0;
   renderConversations(data||[]);
   status("Guest identity recovered.");
 }
