@@ -197,6 +197,20 @@ document.addEventListener("DOMContentLoaded", () => {
     logClientError("window_error", event.error || event.message);
   });
 
+  async function scanImageForContactInfo(file) {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
+      reader.onerror = () => reject(new Error("Could not read image."));
+      reader.readAsDataURL(file);
+    });
+    const { data, error } = await supabase.functions.invoke("moderate-image", {
+      body: { imageBase64: base64, mimeType: file.type }
+    });
+    if (error) throw new Error("Image scanning is unavailable. Try again later.");
+    if (!data?.approved) throw new Error(data?.reason || data?.error || "This image was not approved.");
+  }
+
   function updatePublishButton() {
     publishButton.disabled = loading || (!textInput.value.trim() && !selectedImage);
   }
@@ -1432,6 +1446,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const user = await requireUser();
       let mediaUrls = [];
       if (selectedImage) {
+        setStatus("Scanning image…");
+        await scanImageForContactInfo(selectedImage);
         const extension = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" })[selectedImage.type];
         if (!extension) throw new Error("That image format is not supported.");
         uploadedPath = user.id + "/" + crypto.randomUUID() + "." + extension;
