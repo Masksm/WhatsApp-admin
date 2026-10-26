@@ -357,7 +357,7 @@ async function handleAuthSubmit(event) {
       result = await supabase.auth.signInWithPassword({
         email,
         password,
-        captchaToken: verifiedCaptchaToken
+        options: { captchaToken: verifiedCaptchaToken }
       });
     }
 
