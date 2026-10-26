@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
       probe.src = url;
     });
   }
-  async function scanStoryImageForContactInfo(file) {
+  async function uploadModeratedStoryImage(file) {
     const base64 = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
@@ -262,10 +262,11 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.readAsDataURL(file);
     });
     const { data, error } = await db.functions.invoke("moderate-image", {
-      body: { imageBase64: base64, mimeType: file.type }
+      body: { imageBase64: base64, mimeType: file.type, purpose: "story" }
     });
-    if (error) throw new Error("Image scanning is unavailable. Try again later.");
-    if (!data?.approved) throw new Error(data?.reason || data?.error || "This image was not approved.");
+    if (error) throw new Error("Image scanning or upload is unavailable. Try again later.");
+    if (!data?.approved || !data?.path) throw new Error(data?.reason || data?.error || "This image was not approved.");
+    return data;
   }
   const beginCreateStory = () => {
     if (!currentUser) { say("Please sign in before sharing a story."); return; }
@@ -313,14 +314,16 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       await validateVideo(file);
       if (file.type.startsWith("image/")) {
-        say("Scanning image…");
-        await scanStoryImageForContactInfo(file);
+        say("Scanning and securely uploading image…");
+        const approvedUpload = await uploadModeratedStoryImage(file);
+        uploadedPath = approvedUpload.path;
+      } else {
+        const extension = (file.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g,"") || "mp4";
+        const unique = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+        uploadedPath = currentUser.id + "/" + unique + "." + extension;
+        const upload = await db.storage.from(BUCKET).upload(uploadedPath,file,{contentType:file.type,cacheControl:"300",upsert:false});
+        if (upload.error) throw upload.error;
       }
-      const extension = (file.name.split(".").pop() || (file.type.startsWith("video/") ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g,"") || "bin";
-      const unique = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
-      uploadedPath = currentUser.id + "/" + unique + "." + extension;
-      const upload = await db.storage.from(BUCKET).upload(uploadedPath,file,{contentType:file.type,cacheControl:"300",upsert:false});
-      if (upload.error) throw upload.error;
       const created = new Date();
       const caption = (storyComposerCaption?.value || "").trim().slice(0,500);
       if (caption && !isStoryContentAllowed(caption)) throw new Error("Story text cannot contain contact information or standalone number fragments.");
