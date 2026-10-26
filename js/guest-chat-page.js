@@ -15,11 +15,12 @@ initGuestTheme();
 function openTokenPopup(){
  const panel=$("#guest-identity-section");if(!panel)return;
  panel.hidden=false;panel.classList.add("guest-token-modal");document.body.classList.add("guest-token-modal-open");
- $("#guest-identity-popup-close")?.focus();
+ $("#guest-recovery-token")?.focus();
 }
 function closeTokenPopup(){
  const panel=$("#guest-identity-section");if(!panel)return;
  panel.classList.remove("guest-token-modal");panel.hidden=true;document.body.classList.remove("guest-token-modal-open");
+ $("#guest-recovery-token-action")?.focus();
 }
 function openConversationPopup(){
  const panel=$("#guest-conversation-popup");if(!panel)return;
@@ -32,7 +33,7 @@ function closeConversationPopup(){
 }
 $("#guest-recovery-token-action")?.addEventListener("click",openTokenPopup);
 $("#guest-identity-popup-close")?.addEventListener("click",closeTokenPopup);
-$("#guest-token-modal-close")?.addEventListener("click",()=>{$("#guest-token-panel").hidden=true;});
+$("#guest-token-modal-close")?.addEventListener("click",()=>{$("#guest-token-panel").classList.remove("guest-token-modal");$("#guest-token-panel").hidden=true;$("#guest-create-identity")?.focus();});
 $("#guest-conversation-popup-close")?.addEventListener("click",closeConversationPopup);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(document.body.classList.contains("guest-token-modal-open"))closeTokenPopup();if(document.body.classList.contains("guest-conversation-popup-open"))closeConversationPopup();}});
 document.addEventListener("click",e=>{if(e.target===document.body){if(document.body.classList.contains("guest-token-modal-open"))closeTokenPopup();if(document.body.classList.contains("guest-conversation-popup-open"))closeConversationPopup();}});
@@ -49,7 +50,7 @@ function status(message, error=false) {
 function saveToken(value) {
  token=value;
  try { sessionStorage.setItem(TOKEN_KEY,value); } catch {}
- $("#guest-token-panel").hidden=true;
+ $("#guest-token-panel").classList.remove("guest-token-modal");$("#guest-token-panel").hidden=true;
  $("#guest-token-value").textContent=value;
  $("#guest-identity-controls").hidden=false;
  $("#guest-compose-card").hidden=true;
@@ -130,14 +131,14 @@ $("#guest-create-identity")?.addEventListener("click",async()=>{
   $("#guest-create-identity").disabled=true;status("Creating your guest identity…");
   const {data,error}=await supabase.rpc("guest_create_identity");if(error)throw error;
   const row=Array.isArray(data)?data[0]:data;if(!row?.recovery_token)throw new Error("The server did not return a recovery token.");
-  saveToken(row.recovery_token);$("#guest-token-panel").hidden=false;status("Guest identity created. Copy your recovery token and keep it safe.");
+  saveToken(row.recovery_token);$("#guest-token-panel").hidden=false;$("#guest-token-panel").classList.add("guest-token-modal");status("Guest identity created. Copy your recovery token and keep it safe.");
   await refreshConversations();
  }catch(e){status(e.message||"Could not create guest identity.",true);}
  finally{$("#guest-create-identity").disabled=false;}
 });
 $("#guest-recover-identity")?.addEventListener("click",async()=>{
  try{status("Recovering guest chats…");await recover($("#guest-recovery-token").value.trim());}
- catch(e){status(e.message||"Could not recover guest chats.",true);}
+ catch(e){status(e.message||"Could not recover guest chats.",true);$("#guest-recovery-token")?.focus();}
 });
 $("#guest-copy-token")?.addEventListener("click",async()=>{
  try{await navigator.clipboard.writeText(token);status("Recovery token copied. Store it somewhere private.");}
