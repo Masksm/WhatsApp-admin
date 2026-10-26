@@ -987,9 +987,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (typeof url !== "string" || !url.startsWith("https://")) return;
       const image = document.createElement("img");
       image.className = "post-image";
-      image.src = url;
       image.alt = "Image attached to post";
-      image.loading = "lazy";
+      image.decoding = "async";
+      image.loading = article.parentElement?.querySelectorAll(".post-card").length < 2 ? "eager" : "lazy";
+      image.fetchPriority = image.loading === "eager" ? "high" : "auto";
+      image.style.aspectRatio = "4 / 3";
+      image.addEventListener("error", () => {
+        image.classList.add("post-image-unavailable");
+        image.alt = "This image could not be loaded";
+      }, { once: true });
+      image.src = url;
       article.append(image);
     });
 
@@ -1203,7 +1210,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return article;
   }
 
+  const INITIAL_POST_BATCH = 8;
+  const POST_BATCH_INCREMENT = 8;
+  let renderedPostLimit = INITIAL_POST_BATCH;
+  let feedRenderVersion = 0;
+
   async function renderFeed() {
+    const renderVersion = ++feedRenderVersion;
     feedList.replaceChildren();
     if (loading) {
       const message = document.createElement("div");
@@ -1262,7 +1275,30 @@ document.addEventListener("DOMContentLoaded", () => {
       feedList.append(empty);
       return;
     }
-    for (const post of visible) feedList.append(await renderPost(post));
+    const batch = visible.slice(0, renderedPostLimit);
+    for (const post of batch) {
+      if (renderVersion !== feedRenderVersion) return;
+      feedList.append(await renderPost(post));
+    }
+    if (renderVersion !== feedRenderVersion) return;
+    if (visible.length > batch.length) {
+      const moreWrap = document.createElement("div");
+      moreWrap.className = "feed-load-more-wrap";
+      const moreButton = document.createElement("button");
+      moreButton.type = "button";
+      moreButton.className = "feed-load-more";
+      moreButton.textContent = "Load more posts";
+      moreButton.addEventListener("click", async () => {
+        moreButton.disabled = true;
+        moreButton.textContent = "Loading...";
+        renderedPostLimit = Math.min(visible.length, renderedPostLimit + POST_BATCH_INCREMENT);
+        await renderFeed();
+        const firstNewPost = feedList.querySelectorAll(".post-card")[batch.length];
+        firstNewPost?.scrollIntoView({block:"nearest",behavior:"smooth"});
+      });
+      moreWrap.append(moreButton);
+      feedList.append(moreWrap);
+    }
   }
 
   async function loadFeed() {
@@ -1307,6 +1343,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      renderedPostLimit = INITIAL_POST_BATCH;
       const useCachedPosts = !postOnlyMode && restoredFeedCache &&
         restoredFeedCache.activeFeed === activeFeed &&
         Date.now() - restoredFeedCache.savedAt < homeFeedCacheMaxAge;
@@ -1370,6 +1407,7 @@ document.addEventListener("DOMContentLoaded", () => {
   feedTabs.forEach((tab) => {
     tab.addEventListener("click", async () => {
       activeFeed = tab.dataset.feed;
+      renderedPostLimit = INITIAL_POST_BATCH;
       feedTabs.forEach((item) => {
         const selected = item === tab;
         item.classList.toggle("active", selected);
