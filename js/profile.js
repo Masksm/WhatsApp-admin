@@ -505,7 +505,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!post || !post.id) { showStatus("This post could not be opened.", true); return; }
     if (!profilePostDialog) {
       profilePostDialog = document.createElement("div");
-      profilePostDialog.className = "comments-dialog profile-post-dialog";
+      profilePostDialog.className = "comments-dialog";
       profilePostDialog.hidden = true;
       profilePostDialog.innerHTML = `
         <div class="comments-dialog-backdrop" data-profile-post-close></div>
