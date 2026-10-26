@@ -63,6 +63,18 @@
     </main>
     <aside class="feed-rightbar"><section class="welcome-card"><span class="welcome-sparkle">✦</span><p class="eyebrow">YOUR LITTLE CORNER</p><h2>Some things<br><span>are better shared.</span></h2><p>Make room for honest conversations, unexpected connections and small moments that matter.</p></section><section class="right-card"><h3>A gentle reminder ♡</h3><p>Respect boundaries and never share private information you do not want others to know.</p></section></aside>
   </div>
+  <section id="story-create-dialog" class="story-create-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="story-create-title">
+    <div class="story-create-card">
+      <header class="story-create-header"><h2 id="story-create-title">Add a story</h2><button id="story-create-close" type="button" aria-label="Close story creator">×</button></header>
+      <div id="story-create-preview" class="story-create-preview"><p>Choose a photo or video to start your story.</p></div>
+      <button id="story-create-choose" class="story-create-choose" type="button">＋ Add photo or video</button>
+      <label class="story-create-caption-label" for="story-create-caption">Add text to your story</label>
+      <textarea id="story-create-caption" maxlength="500" rows="3" placeholder="Write something to show at the bottom of your story…"></textarea>
+      <label class="story-option-toggle"><input id="story-allow-comments" type="checkbox" checked><span>Allow comments on this story</span></label>
+      <p class="story-create-hint">Your story disappears after 24 hours. You can view it, but you cannot comment on your own story.</p>
+      <button id="story-create-publish" class="primary-button" type="button" disabled>Share story</button>
+    </div>
+  </section>
   <div id="story-viewer" class="story-viewer" hidden role="dialog" aria-modal="true" aria-label="Story viewer">
     <div id="story-viewer-progress" class="story-viewer-progress"></div>
     <button id="story-viewer-close" class="story-viewer-close" type="button" aria-label="Close stories">×</button>
