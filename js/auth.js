@@ -12,6 +12,34 @@ const CLAIM_STORAGE_KEY = "amora_pending_claim_tokens";
 
 let authMode = "signup";
 let initialized = false;
+let captchaWidgetId = null;
+let captchaToken = "";
+
+const HCAPTCHA_SITE_KEY = "2a2a8cb8-9936-46ba-80b8-b9f2f74648ae";
+
+function resetCaptcha() {
+  captchaToken = "";
+  if (captchaWidgetId !== null && window.hcaptcha) window.hcaptcha.reset(captchaWidgetId);
+}
+
+function initCaptcha() {
+  const container = byId("amora-hcaptcha");
+  if (!container || !window.hcaptcha) {
+    setStatus(byId("auth-status"), "Security check could not load. Refresh the page and try again.", true);
+    return false;
+  }
+  if (captchaWidgetId !== null) return true;
+  captchaWidgetId = window.hcaptcha.render(container, {
+    sitekey: HCAPTCHA_SITE_KEY,
+    callback: (token) => { captchaToken = token; },
+    "expired-callback": () => { captchaToken = ""; },
+    "error-callback": () => {
+      captchaToken = "";
+      setStatus(byId("auth-status"), "The security check could not load. Check your connection and try again.", true);
+    }
+  });
+  return true;
+}
 
 function getPendingClaimTokens() {
   try {
@@ -51,6 +79,7 @@ function savePendingClaimTokens(tokens) {
 
 function setAuthMode(mode) {
   authMode = mode === "login" ? "login" : "signup";
+  resetCaptcha();
 
   const nameInput = byId("auth-name");
   const emailInput = byId("auth-email");
@@ -264,6 +293,10 @@ async function handleAuthSubmit(event) {
     setStatus(status, "Enter your email and password.", true);
     return;
   }
+  if (!captchaToken) {
+    setStatus(status, "Please complete the security check before continuing.", true);
+    return;
+  }
 
   if (authMode === "signup" && !/^[A-Za-z0-9_]{3,30}$/.test(name)) {
     setStatus(
@@ -288,7 +321,7 @@ async function handleAuthSubmit(event) {
     if (authMode === "signup") {
       const { data: signupData, error: signupError } = await supabase.functions.invoke(
         "auth-email-request",
-        { body: { action: "signup", email, password, name } }
+        { body: { action: "signup", email, password, name, captchaToken } }
       );
       if (signupError) {
         let message = signupError.message || "Could not create your account.";
@@ -301,10 +334,10 @@ async function handleAuthSubmit(event) {
       if (signupData?.error) throw new Error(signupData.error);
       result = { data: { session: null, user: null }, error: null };
     } else {
-      result = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      result = await supabase.auth.signInWithPassword(
+        { email, password },
+        { captchaToken }
+      );
     }
 
     if (result.error) throw result.error;
@@ -332,6 +365,7 @@ async function handleAuthSubmit(event) {
       true
     );
   } finally {
+    resetCaptcha();
     if (submitButton) submitButton.disabled = false;
   }
 }
@@ -374,6 +408,7 @@ function initAuth() {
     });
   }
 
+  initCaptcha();
   byId("auth-form")?.addEventListener(
     "submit",
     handleAuthSubmit
