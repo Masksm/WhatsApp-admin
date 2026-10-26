@@ -580,14 +580,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const response = await fetch(sourceUrl);
         if (!response.ok) throw new Error("The story media could not be fetched.");
         const blob = await response.blob();
-        const extension = (storyBeingManaged.media_path.split(".").pop() || (storyBeingManaged.media_type === "video" ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-        uploadedPath = currentUser.id + "/" + (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)) + "." + extension;
-        const upload = await db.storage.from("amora-post-images").upload(uploadedPath, blob, {contentType:blob.type || (storyBeingManaged.media_type === "video" ? "video/mp4" : "image/jpeg"), cacheControl:"300", upsert:false});
-        if (upload.error) throw upload.error;
-        const publicData = db.storage.from("amora-post-images").getPublicUrl(uploadedPath);
+        if (!blob.type.startsWith("image/")) throw new Error("Video stories cannot be shared as image posts yet.");
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
+          reader.onerror = () => reject(new Error("Could not read story image."));
+          reader.readAsDataURL(blob);
+        });
+        const moderated = await db.functions.invoke("moderate-image", { body: { imageBase64: base64, mimeType: blob.type, purpose: "post" } });
+        if (moderated.error) throw new Error("Image scanning or upload is unavailable. Try again later.");
+        if (!moderated.data?.approved || !moderated.data?.publicUrl || !moderated.data?.path) throw new Error(moderated.data?.reason || moderated.data?.error || "This image was not approved.");
+        uploadedPath = moderated.data.path;
         const caption = (storyBeingManaged.caption || "").trim();
-        const inserted = await db.from("posts").insert({author_id:currentUser.id,content:caption || "Shared a story 💗",media_urls:[publicData.data.publicUrl],visibility:"public",is_anonymous:false,force_anonymous_comments:false});
-        if (inserted.error) throw inserted.error;
+        const inserted = await db.from("posts").insert({author_id:currentUser.id,content:caption || "Shared a story 💗",media_urls:[moderated.data.publicUrl],visibility:"public",is_anonymous:false,force_anonymous_comments:false});        if (inserted.error) throw inserted.error;
         say("Story shared as a post."); closeViewer(); window.location.href = "/pages/social-home.html";
       } catch (err) {
         if (uploadedPath) { try { await db.storage.from("amora-post-images").remove([uploadedPath]); } catch (_) {} }
