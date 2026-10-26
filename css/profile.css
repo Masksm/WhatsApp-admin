@@ -281,3 +281,17 @@ html[data-theme="light"] .profile-page .profile-hero,html[data-theme="light"] .p
 html[data-theme="light"] .profile-post-card .profile-post-content{color:#302536}
 html[data-theme="light"] .profile-post-card{background:#fff;border-color:#e7dce8;box-shadow:0 8px 26px #4b24400d}
 @media(max-width:520px){.profile-post-card .post-header{padding:14px 13px 10px}.profile-post-card .profile-post-content{padding:8px 14px 14px}.profile-post-card .profile-post-actions{padding:6px}.profile-post-card .post-action{font-size:.73rem;padding:10px 3px}.profile-post-card .profile-post-visibility{font-size:.61rem;padding:4px 7px}}
+
+.profile-post-card{cursor:pointer}
+.profile-post-dialog .comments-dialog-panel{max-height:calc(var(--comments-viewport-height,100dvh) - 24px);overflow-y:auto}
+.profile-post-dialog .post-detail-actions{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line,#39313f);border-bottom:1px solid var(--line,#39313f)}
+.profile-post-dialog .post-detail-actions button{flex:1;border:0;border-radius:12px;padding:11px 5px;background:var(--surface2,#302536);color:var(--text,#fff);font-weight:700}
+.profile-dialog-comments{display:grid;gap:12px}
+.profile-dialog-comment{padding:10px 12px;border-radius:13px;background:var(--surface2,#302536)}
+.profile-dialog-comment strong{font-size:.82rem}
+.profile-dialog-comment p{margin:5px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
+.profile-dialog-empty{color:var(--muted,#a79aaa);font-size:.88rem}
+.profile-post-dialog .profile-dialog-status{padding:0 18px;color:var(--muted,#a79aaa)}
+.profile-post-dialog .profile-dialog-status.is-error{color:#ef6478}
+.profile-post-dialog .comments-dialog-form{position:sticky;bottom:0;background:var(--surface,#211a27);padding:12px 16px;display:flex;gap:8px;align-items:center}
+.profile-post-dialog .comments-dialog-form input{min-width:0;flex:1}
