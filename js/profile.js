@@ -498,50 +498,18 @@ document.addEventListener("DOMContentLoaded", () => {
   let profilePostDialog = null;
   let profilePostReplyParentId = null;
   async function openProfilePost(post, card) {
-    if (!profilePostDialog) {
-      profilePostDialog = document.createElement("div");
-      profilePostDialog.className = "comments-dialog profile-post-dialog";
-      profilePostDialog.hidden = true;
-      profilePostDialog.innerHTML = `
-        <div class="comments-dialog-backdrop" data-comments-close></div>
-        <section class="comments-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="profile-post-dialog-title">
-          <header class="comments-dialog-header"><div><h2 id="profile-post-dialog-title">Post</h2><p class="comments-dialog-subtitle"></p></div><button type="button" class="comments-dialog-close" aria-label="Close post" data-comments-close>×</button></header>
-          <div class="comments-dialog-post"></div>
-          <div class="post-detail-actions" aria-label="Post actions"><button type="button" data-detail-action="like">♡ Like</button><button type="button" data-detail-action="comment">Comment</button><button type="button" data-detail-action="repost">⟳ Repost</button><button type="button" data-detail-action="more">••• More</button></div>
-          <div class="comments-dialog-list" aria-live="polite"></div>
-          <form class="comments-dialog-form post-reply-composer"><div class="comments-reply-context comment-reply-context" hidden><span class="comments-reply-label"></span><button type="button" class="comments-reply-cancel" aria-label="Cancel reply" title="Cancel reply">×</button><span class="comments-reply-quote"></span></div><input name="comment-content" maxlength="3000" placeholder="Write a comment…" aria-label="Write a comment" required><label class="comment-anonymous-choice comments-dialog-anonymous"><input type="checkbox" name="comment-anonymous"> Comment anonymously</label><button type="submit">Comment</button></form>
-          <p class="profile-dialog-status" role="status"></p>
-        </section>`;
-      document.body.append(profilePostDialog);
-      profilePostDialog.querySelectorAll("[data-comments-close]").forEach(el=>el.addEventListener("click",closeProfilePost));
-      profilePostDialog.querySelector(".comments-reply-cancel").addEventListener("click",()=>{profilePostReplyParentId=null;const ctx=profilePostDialog.querySelector(".comments-reply-context");ctx.hidden=true;ctx.querySelector(".comments-reply-label").textContent="";ctx.querySelector(".comments-reply-quote").textContent="";profilePostDialog.querySelector('[name="comment-content"]').placeholder="Write a comment…";profilePostDialog.querySelector('.comments-dialog-form button[type="submit"]').textContent="Comment";});
-      profilePostDialog.addEventListener("keydown",e=>{if(e.key==="Escape")closeProfilePost();});
-      profilePostDialog.querySelector('[name="comment-content"]').addEventListener("focus",()=>{syncProfilePostViewport();requestAnimationFrame(()=>profilePostDialog.querySelector('[name="comment-content"]').scrollIntoView({block:"nearest",behavior:"smooth"}));});
-      window.addEventListener("resize",syncProfilePostViewport);
-      if(window.visualViewport){window.visualViewport.addEventListener("resize",syncProfilePostViewport);window.visualViewport.addEventListener("scroll",syncProfilePostViewport);}
-      profilePostDialog.querySelector(".comments-dialog-form").addEventListener("submit",async e=>{
-        e.preventDefault();const form=e.currentTarget,input=form.elements.namedItem("comment-content"),send=form.querySelector('button[type="submit"]');if(!requireSignedIn()||!input.value.trim())return;send.disabled=true;
-        try{const {error}=await supabase.from("post_comments").insert({post_id:profilePostDialog.dataset.postId,parent_comment_id:profilePostReplyParentId,author_id:user.id,is_anonymous:form.elements.namedItem("comment-anonymous").checked,content:input.value.trim()});if(error)throw error;input.value="";form.elements.namedItem("comment-anonymous").checked=false;profilePostReplyParentId=null;form.querySelector('.comments-reply-context').hidden=true;form.querySelector('button[type="submit"]').textContent="Comment";await refreshProfilePostComments();await refreshProfilePostCounts();}
-        catch(err){setProfilePostStatus(err.message||"Could not add your comment.",true);}finally{send.disabled=false;}
-      });
+    // Use the exact Home-feed post detail dialog instead of maintaining a second,
+    // behaviorally different copy on the profile page. The post detail page opens
+    // the same comments dialog used by the Home feed and resolves the post by ID.
+    if (!post || !post.id) {
+      showStatus("This post could not be opened.", true);
+      return;
     }
-    const dialog=profilePostDialog;dialog.dataset.postId=post.id;dialog._activePost=post;dialog._activeCard=card;profilePostReplyParentId=null;
-    setProfilePostStatus("");
-    const profileName=viewedProfile?.display_name||viewedProfile?.username||"Amora member";
-    dialog.querySelector("#profile-post-dialog-title").textContent=post.is_anonymous?"Anonymous":(viewedProfile?.username?"@"+viewedProfile.username:profileName);
-    const preview=dialog.querySelector(".comments-dialog-post");preview.replaceChildren();preview.classList.toggle("has-post-media",Array.isArray(post.media_urls)&&post.media_urls.some(url=>typeof url==="string"&&url.startsWith("https://")));
-    if(post.content){const t=document.createElement("p");t.className="comments-dialog-post-text";t.textContent=post.content;preview.append(t);}
-    (post.media_urls||[]).slice(0,4).forEach(url=>{if(typeof url!=="string"||!url.startsWith("https://"))return;const img=document.createElement("img");img.className="comments-dialog-post-image";img.src=url;img.alt="Image attached to post";img.loading="lazy";preview.append(img);});
-    const like=dialog.querySelector('[data-detail-action="like"]'),comment=dialog.querySelector('[data-detail-action="comment"]'),repost=dialog.querySelector('[data-detail-action="repost"]'),more=dialog.querySelector('[data-detail-action="more"]');
-    const ownLike=user?await supabase.from("post_likes").select("post_id").eq("post_id",post.id).eq("user_id",user.id).maybeSingle():{data:null};
-    const ownRepost=user?await supabase.from("post_reposts").select("post_id").eq("post_id",post.id).eq("user_id",user.id).maybeSingle():{data:null};
-    like.textContent=ownLike.data?"♥ Liked":"♡ Like";repost.textContent=ownRepost.data?"↻ Reposted":"⟳ Repost";
-    like.onclick=()=>toggleProfilePostAction("post_likes",post,like,"♡ Like","♥ Liked");repost.onclick=()=>toggleProfilePostAction("post_reposts",post,repost,"⟳ Repost","↻ Reposted");
-    comment.onclick=()=>{dialog.querySelector(".comments-dialog-list").scrollIntoView({behavior:"smooth",block:"start"});dialog.querySelector('[name="comment-content"]').focus({preventScroll:true});};
-    more.onclick=()=>toggleProfilePostMoreMenu(post,more);
-    dialog.hidden=false;document.body.classList.add("comments-dialog-open");syncProfilePostViewport();requestAnimationFrame(()=>dialog.classList.add("is-open"));
-    await refreshProfilePostComments();await refreshProfilePostCounts();
+    const target = new URL("/pages/post.html", window.location.origin);
+    target.searchParams.set("id", post.id);
+    window.location.href = target.pathname + target.search;
   }
+
   function syncProfilePostViewport(){if(!profilePostDialog)return;const v=window.visualViewport;profilePostDialog.style.setProperty("--comments-viewport-height",Math.max(280,v?v.height:window.innerHeight)+"px");profilePostDialog.style.setProperty("--comments-viewport-top",Math.max(0,v?v.offsetTop:0)+"px");}
   function setProfilePostStatus(message,bad=false){if(!profilePostDialog)return;const el=profilePostDialog.querySelector(".profile-dialog-status");if(el){el.textContent=message||"";el.classList.toggle("is-error",bad);}}
   async function toggleProfilePostAction(table,post,button,offText,onText){if(!requireSignedIn())return;button.disabled=true;try{const {data,error}=await supabase.from(table).select("post_id").eq("post_id",post.id).eq("user_id",user.id).maybeSingle();if(error)throw error;if(data){const r=await supabase.from(table).delete().eq("post_id",post.id).eq("user_id",user.id);if(r.error)throw r.error;button.textContent=offText;}else{const r=await supabase.from(table).insert({post_id:post.id,user_id:user.id});if(r.error)throw r.error;button.textContent=onText;}await refreshProfilePostCounts();}catch(e){setProfilePostStatus(e.message||"Could not update this post.",true);}finally{button.disabled=false;}}
