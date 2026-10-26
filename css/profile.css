@@ -231,3 +231,29 @@ html[data-theme="light"] .profile-page .profile-hero,html[data-theme="light"] .p
 .profile-page .moderator-account-badge{display:inline-grid;place-items:center;width:22px;height:24px;margin-left:7px;vertical-align:middle;color:#fff;background:#7546c8;clip-path:polygon(50% 0,91% 18%,86% 65%,50% 100%,14% 65%,9% 18%);font-size:13px;font-weight:900;line-height:1}
 .profile-page .moderator-account-badge[hidden]{display:none}
 .profile-page .official-account-badge{display:inline-grid;place-items:center;width:22px;height:22px;margin-left:7px;vertical-align:middle;border-radius:50%;background:#2478e8;color:#fff;font-size:14px;font-weight:900}
+
+
+/* Scrollable followers/following pop-up */
+.profile-page .profile-stat-clickable{width:100%;font:inherit;color:var(--text);cursor:pointer}
+.profile-page .profile-stat-clickable:hover strong,.profile-page .profile-stat-clickable:focus-visible strong{text-decoration:underline;text-underline-offset:4px}
+.profile-page .profile-stat-clickable:focus-visible{outline:2px solid #3987ff;outline-offset:2px}
+.follow-list-dialog[hidden]{display:none!important}
+.follow-list-dialog{position:fixed;inset:0;z-index:10040;display:grid;place-items:center;padding:16px;background:rgba(7,5,13,.72);backdrop-filter:blur(6px)}
+.follow-list-card{display:flex;flex-direction:column;width:min(480px,100%);max-height:min(78dvh,720px);overflow:hidden;border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--text);box-shadow:0 22px 70px #0005}
+.follow-list-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.follow-list-header h2{margin:0;font-size:18px}
+.follow-list-header button{width:36px;height:36px;border:0;border-radius:50%;background:var(--surface-raised,#8882);color:var(--text);font-size:25px;cursor:pointer}
+.follow-list-items{overflow-y:auto;overscroll-behavior:contain;padding:8px 12px}
+.follow-list-empty{padding:18px 8px;color:var(--muted);font-size:13px;text-align:center}
+.follow-list-item{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.follow-list-item:last-child{border-bottom:0}
+.follow-list-identity{display:flex;align-items:center;gap:10px;flex:1;min-width:0;color:var(--text);text-decoration:none}
+.follow-list-avatar{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#ff70b5,#ba83ff);color:#fff;font-weight:800;font-size:16px}
+.follow-list-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.follow-list-copy strong,.follow-list-copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.follow-list-copy strong{font-size:13px}
+.follow-list-copy small{color:var(--muted);font-size:12px}
+.follow-list-action{flex:0 0 auto;min-width:94px;padding:9px 12px;border:1px solid transparent;border-radius:20px;background:linear-gradient(105deg,#ff70b5,#ba83ff);color:#fff;font-size:12px;font-weight:800;cursor:pointer}
+.follow-list-action.is-following{border-color:var(--line);background:var(--surface-raised,#8882);color:var(--text)}
+.follow-list-action:disabled{opacity:.65;cursor:wait}
+@media(max-width:420px){.follow-list-dialog{padding:10px}.follow-list-card{max-height:82dvh;border-radius:16px}.follow-list-header{padding:13px 14px}.follow-list-items{padding:6px 10px}.follow-list-action{min-width:82px;padding:8px 10px}}
