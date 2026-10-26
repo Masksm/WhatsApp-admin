@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (verifyError || !verified?.user) { await supabase.auth.signOut({scope:"local"}); window.location.replace("/?auth=login"); return; }
     user = verified.user;
     const { data: profile, error: profileError } = await supabase.from("profiles")
-      .select("username,display_name,last_username_change_at").eq("id", user.id).maybeSingle();
+      .select("username,display_name,last_username_change_at,followers_private,following_private").eq("id", user.id).maybeSingle();
     if (profileError) throw profileError;
     originalUsername = profile?.username || "";
     originalDisplayName = profile?.display_name || "";
@@ -204,6 +204,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     finally{traitSave.disabled=false;}
   });
   if(user)await loadTraitEditor();
+
+  const visibilityDialog=byId("settings-visibility-dialog");
+  const visibilityStatus=byId("settings-visibility-status");
+  const closeVisibility=()=>{if(visibilityDialog)visibilityDialog.hidden=true;document.body.classList.remove("traits-dialog-open");byId("settings-open-visibility")?.focus();};
+  const openVisibility=async()=>{if(!user||!visibilityDialog)return;visibilityDialog.hidden=false;document.body.classList.add("traits-dialog-open");visibilityStatus.textContent="Loading privacy settings…";byId("settings-save-visibility").disabled=true;try{const {data,error}=await supabase.from("profiles").select("followers_private,following_private").eq("id",user.id).single();if(error)throw error;byId("settings-followers-private").checked=Boolean(data.followers_private);byId("settings-following-private").checked=Boolean(data.following_private);visibilityStatus.textContent="";}catch(e){visibilityStatus.textContent=e.message||"Could not load privacy settings.";visibilityStatus.classList.add("is-error");}finally{byId("settings-save-visibility").disabled=false;}byId("settings-close-visibility")?.focus();};
+  byId("settings-open-visibility")?.addEventListener("click",openVisibility);
+  byId("settings-close-visibility")?.addEventListener("click",closeVisibility);
+  visibilityDialog?.addEventListener("click",e=>{if(e.target===visibilityDialog)closeVisibility();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&visibilityDialog&&!visibilityDialog.hidden)closeVisibility();});
+  byId("settings-save-visibility")?.addEventListener("click",async()=>{if(!user)return;const button=byId("settings-save-visibility");button.disabled=true;visibilityStatus.classList.remove("is-error");visibilityStatus.textContent="Saving privacy settings…";try{const {error}=await supabase.from("profiles").update({followers_private:byId("settings-followers-private").checked,following_private:byId("settings-following-private").checked}).eq("id",user.id);if(error)throw error;visibilityStatus.textContent="Your privacy settings are saved.";setTimeout(()=>{if(!visibilityDialog.hidden)closeVisibility();},650);}catch(e){visibilityStatus.textContent=e.message||"Could not save privacy settings.";visibilityStatus.classList.add("is-error");}finally{button.disabled=false;}});
+
   byId("settings-logout").addEventListener("click", async () => {
     const button = byId("settings-logout"); button.disabled = true; button.textContent = "Logging out…";
     const { error } = await supabase.auth.signOut();
