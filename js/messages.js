@@ -10,6 +10,7 @@ let inboxRefreshTimer = null;
 let activeMessageRefreshTimer = null;
 let lastMessageIds = new Set();
 let anonymousInboxRequest = null;
+let conversationPreferences = new Map();
 
 function setChatStatus(message) {
   const status = $("#chat-status");
@@ -46,6 +47,7 @@ function renderConversationList(conversations) {
     const unread = Number(conversation.unread_count) > 0;
     return (name + " " + preview).toLowerCase().includes(query) && (conversationFilter !== "unread" || unread);
   });
+  visibleConversations.sort((a,b) => Number(Boolean(conversationPreferences.get(b.conversation_id)?.is_pinned)) - Number(Boolean(conversationPreferences.get(a.conversation_id)?.is_pinned)) || new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0));
   list.replaceChildren();
 
   if (!visibleConversations.length) {
@@ -56,6 +58,8 @@ function renderConversationList(conversations) {
   }
 
   visibleConversations.forEach((conversation) => {
+    const row = document.createElement("div");
+    row.className = "conversation-item-row";
     const button = document.createElement("button");
     button.type = "button";
     button.className = "conversation-item";
@@ -66,6 +70,9 @@ function renderConversationList(conversations) {
       button.classList.add("active");
     }
 
+    const preference = conversationPreferences.get(conversation.conversation_id) || {};
+    if (preference.is_ignored) button.classList.add("is-ignored");
+    if (preference.is_pinned) button.classList.add("is-pinned");
     const name = conversation.other_anonymous_name || "Anonymous";
     const unreadTotal = Number(conversation.unread_count) || 0;
     if (unreadTotal > 0) button.classList.add("has-unread");
@@ -102,8 +109,29 @@ function renderConversationList(conversations) {
       );
     });
 
-    list.appendChild(button);
+    row.appendChild(button);
+    const more = document.createElement("button");
+    more.type = "button"; more.className = "conversation-more-button";
+    more.textContent = "···"; more.setAttribute("aria-label", "Conversation actions for " + name);
+    more.setAttribute("aria-haspopup", "menu");
+    more.addEventListener("click", event => { event.stopPropagation(); showConversationActions(conversation, preference); });
+    row.appendChild(more); list.appendChild(row);
   });
+}
+
+
+let conversationActionMenu = null;
+function closeConversationActionsOutside(event){if(conversationActionMenu&&!conversationActionMenu.contains(event.target)){conversationActionMenu.remove();conversationActionMenu=null;document.removeEventListener("pointerdown",closeConversationActionsOutside,true);}}
+function closeConversationActions(){conversationActionMenu?.remove();conversationActionMenu=null;document.removeEventListener("pointerdown",closeConversationActionsOutside,true);}
+function showConversationActions(conversation, preference={}) {
+  closeConversationActions();
+  const menu=document.createElement("div");menu.className="conversation-action-menu";menu.setAttribute("role","menu");
+  const title=document.createElement("strong");title.textContent=conversation.other_anonymous_name||"Anonymous";menu.append(title);
+  const options=[[preference.is_pinned?"Unpin conversation":"Pin conversation","pinned",!preference.is_pinned],[preference.is_ignored?"Stop ignoring chat":"Ignore chat","ignored",!preference.is_ignored],[preference.is_blocked?"Unblock chat":"Block chat","blocked",!preference.is_blocked]];
+  options.forEach(([label,kind,enabled])=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.setAttribute("role","menuitem");b.addEventListener("click",async()=>{closeConversationActions();try{const {error}=await supabase.rpc("set_conversation_preference",{p_conversation_id:conversation.conversation_id,p_conversation_type:"direct",p_preference:kind,p_enabled:enabled});if(error)throw error;await loadChatConversations(false);setChatStatus(label+" updated.");}catch(e){setChatStatus(getErrorMessage(e,"Could not update conversation."));}});menu.append(b);});
+  const report=document.createElement("button");report.type="button";report.textContent="Report conversation";report.setAttribute("role","menuitem");report.addEventListener("click",async()=>{const reason=prompt("Why are you reporting this conversation?");if(reason===null)return;closeConversationActions();try{const {error}=await supabase.rpc("report_conversation",{p_conversation_id:conversation.conversation_id,p_conversation_type:"direct",p_reason:reason.trim()||"Other"});if(error)throw error;setChatStatus("Conversation report submitted.");}catch(e){setChatStatus(getErrorMessage(e,"Could not report conversation."));}});menu.append(report);
+  const cancel=document.createElement("button");cancel.type="button";cancel.textContent="Cancel";cancel.addEventListener("click",closeConversationActions);menu.append(cancel);
+  document.body.append(menu);conversationActionMenu=menu;setTimeout(()=>document.addEventListener("pointerdown",closeConversationActionsOutside,true),0);
 }
 
 async function loadAnonymousMessages() {
@@ -194,6 +222,9 @@ async function loadChatConversations(showLoading = true) {
   }
 
   currentConversations = data || [];
+  const { data: prefs, error: prefsError } = await supabase.from("conversation_user_preferences")
+    .select("conversation_id,is_blocked,is_ignored,is_pinned").eq("conversation_type", "direct");
+  if (!prefsError) conversationPreferences = new Map((prefs || []).map(p => [p.conversation_id, p]));
   renderConversationList(currentConversations);
   window.dispatchEvent(new CustomEvent("amora:conversations-loaded", { detail: currentConversations }));
 }
