@@ -495,6 +495,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  let profilePostDialog = null;
+  async function openProfilePost(post, card) {
+    if (!profilePostDialog) {
+      profilePostDialog = document.createElement("div");
+      profilePostDialog.className = "comments-dialog profile-post-dialog";
+      profilePostDialog.hidden = true;
+      profilePostDialog.innerHTML = '<div class="comments-dialog-backdrop" data-profile-post-close></div><section class="comments-dialog-panel" role="dialog" aria-modal="true" aria-label="Post details"><header class="comments-dialog-header"><div><h2 class="profile-dialog-title">Post</h2><p class="comments-dialog-subtitle"></p></div><button type="button" class="comments-dialog-close" aria-label="Close post" data-profile-post-close>×</button></header><div class="comments-dialog-post"></div><div class="post-detail-actions"><button type="button" data-detail-action="like">♡ Like</button><button type="button" data-detail-action="comment">▢ Comment</button><button type="button" data-detail-action="repost">⟳ Repost</button></div><div class="comments-dialog-list"><h3>Comments</h3><div class="profile-dialog-comments"></div></div><form class="comments-dialog-form"><input name="comment-content" maxlength="3000" placeholder="Write a comment…" aria-label="Write a comment"><button type="submit">Comment</button></form><p class="profile-dialog-status" role="status"></p></section>';
+      document.body.append(profilePostDialog);
+      profilePostDialog.querySelectorAll("[data-profile-post-close]").forEach(el => el.addEventListener("click", closeProfilePost));
+      profilePostDialog.addEventListener("keydown", e => { if(e.key === "Escape") closeProfilePost(); });
+    }
+    const dialog = profilePostDialog;
+    const status = (message, bad=false) => { const el=dialog.querySelector(".profile-dialog-status");el.textContent=message||"";el.classList.toggle("is-error",bad); };
+    dialog.querySelector(".profile-dialog-title").textContent = viewedProfile?.display_name || viewedProfile?.username || "Amora member";
+    const preview=dialog.querySelector(".comments-dialog-post");preview.replaceChildren();
+    if(post.content){const t=document.createElement("p");t.className="comments-dialog-post-text";t.textContent=post.content;preview.append(t);}
+    (post.media_urls||[]).slice(0,4).forEach(url=>{if(typeof url!=="string"||!url.startsWith("https://"))return;const img=document.createElement("img");img.className="comments-dialog-post-image";img.src=url;img.alt="Image attached to post";img.loading="lazy";preview.append(img);});
+    const like=dialog.querySelector('[data-detail-action="like"]'), comment=dialog.querySelector('[data-detail-action="comment"]'), repost=dialog.querySelector('[data-detail-action="repost"]');
+    const ownLike=user?await supabase.from("post_likes").select("post_id").eq("post_id",post.id).eq("user_id",user.id).maybeSingle():{data:null};
+    const ownRepost=user?await supabase.from("post_reposts").select("post_id").eq("post_id",post.id).eq("user_id",user.id).maybeSingle():{data:null};
+    like.textContent=ownLike.data?"♥ Liked":"♡ Like";repost.textContent=ownRepost.data?"↻ Reposted":"⟳ Repost";
+    const refreshCounts=async()=>{const {data}=await supabase.rpc("get_post_interaction_counts",{p_post_ids:[post.id]});const x=Array.isArray(data)?data[0]:null;const likes=Number(x?.likes_count||0),comments=Number(x?.comments_count||0),reposts=Number(x?.reposts_count||0);dialog.querySelector(".comments-dialog-subtitle").textContent=likes+" likes · "+comments+" comments · "+reposts+" reposts";const n=card.querySelector(".profile-post-stats span");if(n)n.textContent=likes+(likes===1?" like":" likes");};
+    await refreshCounts();
+    for(const button of [like,repost])button.onclick=async()=>{if(!requireSignedIn())return;button.disabled=true;try{const table=button===like?"post_likes":"post_reposts";const {data,error}=await supabase.from(table).select("post_id").eq("post_id",post.id).eq("user_id",user.id).maybeSingle();if(error)throw error;if(data){const r=await supabase.from(table).delete().eq("post_id",post.id).eq("user_id",user.id);if(r.error)throw r.error;}else{const r=await supabase.from(table).insert({post_id:post.id,user_id:user.id});if(r.error)throw r.error;}button.textContent=button===like?(data?"♡ Like":"♥ Liked"):(data?"⟳ Repost":"↻ Reposted");await refreshCounts();}catch(e){status(e.message||"Could not update this post.",true);}finally{button.disabled=false;}};
+    comment.onclick=()=>dialog.querySelector('[name="comment-content"]').focus();
+    const list=dialog.querySelector(".profile-dialog-comments");list.replaceChildren();
+    const {data:rows,error:ce}=await supabase.from("post_comments").select("id,author_id,content,is_anonymous,created_at").eq("post_id",post.id).is("parent_comment_id",null).order("created_at",{ascending:true}).limit(100);
+    if(ce)status("Comments could not be loaded.",true);
+    else if(!rows?.length){const empty=document.createElement("p");empty.className="profile-dialog-empty";empty.textContent="No comments yet. Start the conversation.";list.append(empty);}
+    else {const ids=[...new Set(rows.filter(x=>x.author_id&&!x.is_anonymous).map(x=>x.author_id))];let map=new Map();if(ids.length){const {data}=await supabase.from("profiles").select("id,username,display_name").in("id",ids);map=new Map((data||[]).map(x=>[x.id,x]));}rows.forEach(row=>{const item=document.createElement("article");item.className="profile-dialog-comment";const name=document.createElement("strong"),body=document.createElement("p"),profile=map.get(row.author_id);name.textContent=row.is_anonymous?"Anonymous":(profile?.display_name||profile?.username||"Amora member");body.textContent=row.content;item.append(name,body);list.append(item);});}
+    const form=dialog.querySelector(".comments-dialog-form");form.onsubmit=async e=>{e.preventDefault();if(!requireSignedIn())return;const input=form.elements.namedItem("comment-content"),send=form.querySelector("button[type=submit]");if(!input.value.trim())return;send.disabled=true;try{const {error}=await supabase.from("post_comments").insert({post_id:post.id,parent_comment_id:null,author_id:user.id,is_anonymous:false,content:input.value.trim()});if(error)throw error;input.value="";status("Comment added.");await openProfilePost(post,card);}catch(err){status(err.message||"Could not add comment.",true);}finally{send.disabled=false;}};
+    dialog.hidden=false;document.body.classList.add("comments-dialog-open");requestAnimationFrame(()=>dialog.classList.add("is-open"));
+  }
+  function closeProfilePost(){if(!profilePostDialog)return;profilePostDialog.classList.remove("is-open");document.body.classList.remove("comments-dialog-open");window.setTimeout(()=>{if(profilePostDialog)profilePostDialog.hidden=true;},200);}
+
   async function renderPosts(rows) {
     postsContainer.replaceChildren();
     if (!rows.length) { renderEmptyPosts(); return; }
@@ -502,6 +537,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const article = node("article", "profile-post profile-post-card");
       article.id = "profile-post-" + post.id;
       article.dataset.postId = post.id;
+      article.tabIndex = 0;
+      article.setAttribute("role", "button");
+      article.setAttribute("aria-label", "Open post details");
       const meta = node("div", "profile-post-meta post-header");
       const identity = node("div", "post-author-info");
       const avatar = node("span", "post-avatar", (viewedProfile?.display_name || viewedProfile?.username || "A").slice(0,1).toUpperCase());
@@ -568,6 +606,8 @@ document.addEventListener("DOMContentLoaded", () => {
       actions.append(likeButton, replyButton, repostButton);
       article.append(stats, actions);
       postsContainer.append(article);
+      article.addEventListener("click", event => { if (!event.target.closest("button,input,form,a")) openProfilePost(post, article); });
+      article.addEventListener("keydown", event => { if ((event.key === "Enter" || event.key === " ") && !event.target.closest("button,input,form,a")) { event.preventDefault(); openProfilePost(post, article); } });
     }
   }
 
