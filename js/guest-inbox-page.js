@@ -10,12 +10,14 @@ function setActiveTab(which){
 }
 async function listConversations(){
  const {data,error}=await supabase.rpc("owner_get_guest_conversations");if(error)throw error;
- const {data:prefs,error:prefsError}=await supabase.from("conversation_user_preferences").select("conversation_id,is_blocked,is_ignored,is_pinned").eq("conversation_type","guest");
+ const {data:prefs,error:prefsError}=await supabase.from("conversation_user_preferences").select("conversation_id,is_blocked,is_ignored,is_pinned,is_deleted").eq("conversation_type","guest");
  if(!prefsError)guestPreferences=new Map((prefs||[]).map(p=>[p.conversation_id,p]));
  const list=$("#owner-guest-list");list.replaceChildren();
  if(!data?.length){const p=document.createElement("p");p.textContent="No guest conversations yet.";list.append(p);return;}
- data.sort((a,b)=>Number(Boolean(guestPreferences.get(b.conversation_id)?.is_pinned))-Number(Boolean(guestPreferences.get(a.conversation_id)?.is_pinned))||new Date(b.last_message_at||0)-new Date(a.last_message_at||0));
- data.forEach(c=>{const row=document.createElement("div");row.className="conversation-item-row";const pref=guestPreferences.get(c.conversation_id)||{};const b=document.createElement("button");b.type="button";b.className="conversation-item"+(active===c.conversation_id?" active":"")+(pref.is_ignored?" is-ignored":"")+(pref.is_pinned?" is-pinned":"");
+ const visible=data.filter(c=>!guestPreferences.get(c.conversation_id)?.is_deleted);
+ if(!visible.length){const p=document.createElement("p");p.textContent="No guest conversations yet.";list.append(p);return;}
+ visible.sort((a,b)=>Number(Boolean(guestPreferences.get(b.conversation_id)?.is_pinned))-Number(Boolean(guestPreferences.get(a.conversation_id)?.is_pinned))||new Date(b.last_message_at||0)-new Date(a.last_message_at||0));
+ visible.forEach(c=>{const row=document.createElement("div");row.className="conversation-item-row";const pref=guestPreferences.get(c.conversation_id)||{};const b=document.createElement("button");b.type="button";b.className="conversation-item"+(active===c.conversation_id?" active":"")+(pref.is_ignored?" is-ignored":"")+(pref.is_pinned?" is-pinned":"");
  const avatar=document.createElement("span");avatar.className="conversation-avatar";avatar.textContent=(c.guest_anonymous_name||"G").slice(0,1).toUpperCase();
  const copy=document.createElement("span");copy.className="conversation-copy";
  const title=document.createElement("strong");title.textContent=c.guest_anonymous_name||"Guest";
@@ -28,10 +30,10 @@ function closeGuestActions(){guestActionMenu?.remove();guestActionMenu=null;docu
 function outsideGuestActions(e){if(guestActionMenu&&!guestActionMenu.contains(e.target))closeGuestActions();}
 function showGuestConversationActions(c,pref={}){
  closeGuestActions();const menu=document.createElement("div");menu.className="conversation-action-menu";menu.setAttribute("role","menu");const title=document.createElement("strong");title.textContent=c.guest_anonymous_name||"Guest conversation";menu.append(title);
- const opts=[[pref.is_pinned?"Unpin conversation":"Pin conversation","pinned",!pref.is_pinned],[pref.is_ignored?"Stop ignoring chat":"Ignore chat","ignored",!pref.is_ignored],[pref.is_blocked?"Unblock chat":"Block chat","blocked",!pref.is_blocked]];
- opts.forEach(([label,key,enabled])=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.setAttribute("role","menuitem");b.addEventListener("click",async()=>{closeGuestActions();try{const {error}=await supabase.rpc("set_conversation_preference",{p_conversation_id:c.conversation_id,p_conversation_type:"guest",p_preference:key,p_enabled:enabled});if(error)throw error;say(label+" updated.");await listConversations();}catch(e){say(e.message||"Could not update conversation.",true);}});menu.append(b);});
+ const opts=[[pref.is_pinned?"Unpin conversation":"Pin conversation","pinned",!pref.is_pinned],[pref.is_ignored?"Stop ignoring chat":"Ignore chat","ignored",!pref.is_ignored],[pref.is_blocked?"Unblock chat":"Block chat","blocked",!pref.is_blocked],["Delete conversation","deleted",true]];
+ opts.forEach(([label,key,enabled])=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.setAttribute("role","menuitem");b.addEventListener("click",async()=>{closeGuestActions();try{const {error}=await supabase.rpc("set_conversation_preference",{p_conversation_id:c.conversation_id,p_conversation_type:"guest",p_preference:key,p_enabled:enabled});if(error)throw error;say(key==="deleted"?"Conversation deleted from your inbox.":label+" updated.");await listConversations();}catch(e){say(e.message||"Could not update conversation.",true);}});menu.append(b);});
  const report=document.createElement("button");report.type="button";report.textContent="Report conversation";report.setAttribute("role","menuitem");report.addEventListener("click",async()=>{const reason=prompt("Why are you reporting this conversation?");if(reason===null)return;closeGuestActions();try{const {error}=await supabase.rpc("report_conversation",{p_conversation_id:c.conversation_id,p_conversation_type:"guest",p_reason:reason.trim()||"Other"});if(error)throw error;say("Conversation report submitted.");}catch(e){say(e.message||"Could not report conversation.",true);}});menu.append(report);
- const cancel=document.createElement("button");cancel.type="button";cancel.textContent="Cancel";cancel.addEventListener("click",closeGuestActions);menu.append(cancel);document.body.append(menu);guestActionMenu=menu;setTimeout(()=>document.addEventListener("pointerdown",outsideGuestActions,true),0);
+ const cancel=document.createElement("button");cancel.type="button";cancel.textContent="Close";cancel.addEventListener("click",closeGuestActions);menu.append(cancel);document.body.append(menu);guestActionMenu=menu;setTimeout(()=>document.addEventListener("pointerdown",outsideGuestActions,true),0);
 }
 
 async function listAnonymousLinkMessages(){
