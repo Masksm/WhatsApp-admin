@@ -7,10 +7,10 @@
   <title>Settings · Amora</title>
   <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
   <link rel="stylesheet" href="/css/feed.css">
-  <link rel="stylesheet" href="/css/settings.css?v=profile-privacy-1">
+  <link rel="stylesheet" href="/css/settings.css?v=profile-privacy-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
-  <script src="/js/settings.js?v=profile-privacy-1" defer></script>
+  <script src="/js/settings.js?v=profile-privacy-2" defer></script>
   <script type="module" src="/js/guest-account-link.js?v=guest-recovery-settings-1"></script>
 <style>
 .settings-open-visibility{width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit}.visibility-setting-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 0;border-bottom:1px solid var(--line,#ddd)}.visibility-setting-row span{display:grid;gap:5px}.visibility-setting-row small{font-size:13px;opacity:.75;line-height:1.4}.visibility-setting-row input{width:22px;height:22px;accent-color:#b72c79;flex:0 0 auto}.settings-dialog-backdrop[hidden]{display:none!important}.settings-dialog-backdrop{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:18px;background:#100815b8}.settings-dialog-card{position:relative;width:min(480px,100%);max-height:calc(100dvh - 36px);overflow:auto;box-sizing:border-box;border:1px solid var(--line,#ddd);border-radius:22px;padding:26px 20px 20px;background:var(--surface,#fff);color:var(--text,#241b2b);box-shadow:0 24px 90px #0008}.settings-dialog-card h3{margin:6px 36px 8px 0}.settings-dialog-card .settings-traits-close{position:absolute;right:14px;top:14px}.settings-dialog-card .settings-traits-actions{margin-top:18px}.settings-dialog-card .settings-status{overflow-wrap:anywhere}
@@ -140,7 +140,7 @@
           </section>
           <section class="settings-group" id="activity">
             <p class="eyebrow">YOUR CONTENT</p><h2>Your activity</h2>
-            <a class="settings-item card settings-link" href="/pages/profile.html"><span class="settings-icon">▣</span><div><h3>Your posts</h3><p>Open your profile to review your identified posts and remove ones you no longer want.</p></div><span>↗</span></a>
+            <a class="settings-item card settings-link" href="/pages/profile.html#profile-posts"><span class="settings-icon">▣</span><div><h3>Your posts</h3><p>Jump directly to your posts on your profile to review, interact with, or delete them.</p></div><span>↗</span></a>
           </section>
           <section class="settings-group" id="permissions">
             <p class="eyebrow">CONNECTED SERVICES</p><h2>Apps and permissions</h2>
