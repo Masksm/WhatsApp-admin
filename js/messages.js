@@ -217,9 +217,26 @@ function renderMessages(messages) {
     item.className = message.sent_by_me
       ? "chat-message sent"
       : "chat-message received";
+    item.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      showMessageActions(message);
+    });
+    let holdTimer;
+    item.addEventListener("touchstart", () => {
+      holdTimer = setTimeout(() => showMessageActions(message), 550);
+    }, { passive: true });
+    ["touchend", "touchmove", "touchcancel"].forEach(type =>
+      item.addEventListener(type, () => clearTimeout(holdTimer), { passive: true })
+    );
 
     const content = document.createElement("p");
     content.textContent = message.message_text || "";
+    if (message.is_pinned) {
+      const pinned = document.createElement("span");
+      pinned.className = "amora-message-pinned";
+      pinned.textContent = "📌 Pinned";
+      item.appendChild(pinned);
+    }
 
     const meta = document.createElement("small");
     const sender =
@@ -245,6 +262,118 @@ function renderMessages(messages) {
   list.scrollTop = list.scrollHeight;
 }
 
+
+let messageActionMenu = null;
+function closeMessageActions() {
+  messageActionMenu?.remove();
+  messageActionMenu = null;
+}
+function showMessageActions(message) {
+  closeMessageActions();
+  const messageId = message.message_id || message.id;
+  if (!messageId) return;
+  const menu = document.createElement("div");
+  menu.className = "amora-message-actions";
+  menu.setAttribute("role", "menu");
+  Object.assign(menu.style, {
+    position: "fixed", zIndex: "10050", left: "50%", top: "50%",
+    transform: "translate(-50%, -50%)", width: "min(290px, calc(100vw - 32px))",
+    maxHeight: "min(75vh, 520px)", overflowY: "auto", padding: "8px",
+    borderRadius: "16px", background: "var(--card-bg, #fff)",
+    color: "var(--text-color, #222)", boxShadow: "0 12px 40px #0004",
+    border: "1px solid var(--border-color, #ddd)"
+  });
+  const heading = document.createElement("strong");
+  heading.textContent = message.sent_by_me ? "Your message" : "Message";
+  heading.style.cssText = "display:block;padding:8px 10px;";
+  menu.appendChild(heading);
+  const add = (label, action) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.style.cssText = "display:block;width:100%;text-align:left;padding:11px 10px;border:0;border-radius:9px;background:transparent;color:inherit;font:inherit;";
+    button.addEventListener("click", async () => {
+      closeMessageActions();
+      try { await action(); }
+      catch (error) { setChatStatus(getErrorMessage(error, "Message action failed.")); }
+    });
+    menu.appendChild(button);
+  };
+  add("Reply", () => {
+    const input = $("#chat-message-text");
+    if (!input) return;
+    input.dataset.replyTo = messageId;
+    let preview = $("#chat-reply-preview");
+    if (!preview) {
+      preview = document.createElement("div");
+      preview.id = "chat-reply-preview";
+      preview.className = "chat-reply-preview";
+      $("#chat-message-form")?.prepend(preview);
+    }
+    preview.replaceChildren();
+    const label = document.createElement("span");
+    label.textContent = "Replying to: " + (message.message_text || "").slice(0, 160);
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = "×";
+    cancel.setAttribute("aria-label", "Cancel reply");
+    cancel.addEventListener("click", () => {
+      delete input.dataset.replyTo;
+      preview.remove();
+    });
+    preview.append(label, cancel);
+    input.focus();
+  });
+  add("Forward", async () => {
+    const text = message.message_text || "";
+    if (navigator.share) {
+      await navigator.share({ title: "Amora message", text });
+      return;
+    }
+    await navigator.clipboard.writeText(text);
+    setChatStatus("Sharing is unavailable here. Message copied so you can share it.");
+  });
+  add("Copy", async () => {
+    await navigator.clipboard.writeText(message.message_text || "");
+    setChatStatus("Message copied.");
+  });
+  add("Info", () => alert("Sent: " + formatChatDate(message.sent_at) + "\\nStatus: " + (message.read_at ? "Read" : "Sent")));
+  add(message.is_pinned ? "Unpin for everyone" : "Pin for everyone", async () => {
+    const { error } = await supabase.rpc("amora_message_action", {
+      p_message_id: messageId, p_action: message.is_pinned ? "unpin" : "pin", p_reason: null
+    });
+    if (error) throw error;
+    setChatStatus(message.is_pinned ? "Message unpinned for everyone." : "Message pinned for everyone.");
+    await loadChatMessages(activeConversationId);
+  });
+  add("Delete for me", async () => {
+    if (!confirm("Hide this message from your account on all your devices? Other participants will still see it.")) return;
+    const { error } = await supabase.rpc("amora_message_action", {
+      p_message_id: messageId, p_action: "delete_for_me", p_reason: null
+    });
+    if (error) throw error;
+    setChatStatus("Message hidden from your account.");
+    await loadChatMessages(activeConversationId);
+  });
+  if (!message.sent_by_me) {
+    add("More · Report message", async () => {
+      const reason = prompt("Reason for report:", "Other");
+      if (reason === null) return;
+      const { error } = await supabase.rpc("amora_message_action", {
+        p_message_id: messageId, p_action: "report", p_reason: reason
+      });
+      if (error) throw error;
+      setChatStatus("Report submitted.");
+    });
+  }
+  add("Close", closeMessageActions);
+  document.body.appendChild(menu);
+  messageActionMenu = menu;
+  setTimeout(() => document.addEventListener("pointerdown", event => {
+    if (messageActionMenu && !messageActionMenu.contains(event.target)) closeMessageActions();
+  }, { once: true }), 0);
+}
+
 function stopLiveMessageUpdates() {
   if (activeMessageRefreshTimer) clearInterval(activeMessageRefreshTimer);
   activeMessageRefreshTimer = null;
@@ -255,7 +384,7 @@ function startLiveMessageUpdates(conversationId) {
   // Use the secured RPC because direct SELECT on chat_messages is intentionally restricted.
   activeMessageRefreshTimer = setInterval(async () => {
     if (document.hidden || activeConversationId !== conversationId || chatRequestInProgress) return;
-    const result = await supabase.rpc("get_conversation_messages_with_receipts", { p_conversation_id: conversationId });
+    const result = await supabase.rpc("get_conversation_messages_for_viewer", { p_conversation_id: conversationId });
     if (result.error || activeConversationId !== conversationId) return;
     const incoming = result.data || [];
     const ids = new Set(incoming.map(m => m.message_id || m.id).filter(Boolean));
@@ -292,7 +421,7 @@ async function loadChatMessages(conversationId) {
 
   try {
     const { data, error } = await supabase.rpc(
-      "get_conversation_messages_with_receipts",
+      "get_conversation_messages_for_viewer",
       { p_conversation_id: conversationId }
     );
 
