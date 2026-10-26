@@ -509,12 +509,20 @@ async function handleSendMessage(event) {
 
   try {
     const conversationId = activeConversationId;
+    const replyInput = $("#chat-message-text");
+    const replyTo = replyInput?.dataset.replyTo;
+    const replyPreview = $("#chat-reply-preview");
+    let outgoingMessage = message;
+    if (replyTo && replyPreview) {
+      const quoted = replyPreview.querySelector("span")?.textContent || "Replying to a message";
+      outgoingMessage = "↪ " + quoted + "\\n" + message;
+    }
 
     const { data, error } = await supabase.rpc(
       "send_chat_message",
       {
         p_conversation_id: conversationId,
-        p_message: message
+        p_message: outgoingMessage
       }
     );
 
@@ -537,7 +545,11 @@ async function handleSendMessage(event) {
       return;
     }
 
-    if (input) input.value = "";
+    if (input) {
+      input.value = "";
+      delete input.dataset.replyTo;
+    }
+    replyPreview?.remove();
 
     setChatStatus("Message sent.");
 
