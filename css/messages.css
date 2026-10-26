@@ -243,3 +243,25 @@ html.amora-chat-popup-mode .chat-status{flex:0 0 auto}
 .chat-reply-quote span,.guest-reply-quote span{opacity:.85;overflow-wrap:anywhere}
 .amora-message-pinned{display:block;margin-bottom:5px;font-size:10px;opacity:.8}
 .amora-message-actions button:hover,.amora-message-actions button:focus-visible{background:rgba(232,62,140,.12)!important;outline:0}
+
+
+/* Conversation-level actions shared by Messages and Guest inbox. */
+.conversation-item-row{display:flex;align-items:stretch;gap:4px;position:relative;min-width:0;border-radius:14px}
+.conversation-item-row>.conversation-item{flex:1;min-width:0;width:auto;padding-right:10px}
+.conversation-more-button{flex:0 0 38px;align-self:center;display:grid;place-items:center;width:38px;height:38px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
+.conversation-more-button:hover,.conversation-more-button:focus-visible{background:var(--surface2);border-color:var(--line);color:var(--text);outline:0}
+.conversation-item.is-ignored{background:#85858524!important;color:#858585!important;filter:grayscale(1);opacity:.82}
+.conversation-item.is-ignored .conversation-avatar{background:#858585!important;color:#fff!important}
+.conversation-item.is-pinned:before{content:"📌";position:absolute;right:44px;top:8px;font-size:11px;opacity:.9}
+.conversation-action-menu{position:fixed;z-index:10060;left:50%;top:50%;transform:translate(-50%,-50%);width:min(320px,calc(100vw - 30px));max-height:min(75dvh,520px);overflow:auto;padding:10px;border:1px solid var(--line);border-radius:18px;background:var(--surface);color:var(--text);box-shadow:0 20px 70px #0008}
+.conversation-action-menu strong{display:block;padding:10px 12px 12px;border-bottom:1px solid var(--line);margin-bottom:6px;overflow-wrap:anywhere}
+.conversation-action-menu button{display:block;width:100%;padding:12px;border:0;border-radius:10px;background:transparent;color:inherit;text-align:left;font:600 14px 'DM Sans',sans-serif;cursor:pointer}
+.conversation-action-menu button:hover,.conversation-action-menu button:focus-visible{background:var(--surface2);outline:0}
+.conversation-action-menu button:nth-last-child(2){color:#df5276}
+.guest-inbox-entry{position:relative}
+.guest-inbox-unread-badge{display:inline-grid;min-width:23px;height:23px;padding:0 6px;place-items:center;border-radius:999px;background:#e83e8c;color:#fff;font-size:11px;font-weight:800}
+.guest-inbox-unread-badge[hidden]{display:none!important}
+html[data-theme="light"] .conversation-action-menu{background:#fff;color:#29202f;border-color:#ded3e3;box-shadow:0 20px 70px #24152c35}
+html[data-theme="light"] .conversation-action-menu button:hover,html[data-theme="light"] .conversation-action-menu button:focus-visible{background:#f4edf7}
+html[data-theme="light"] .conversation-item.is-ignored{background:#e7e7e7!important;color:#777!important}
+@media(max-width:700px){.conversation-more-button{flex-basis:42px;width:42px;height:42px}.conversation-action-menu{border-radius:16px}}
