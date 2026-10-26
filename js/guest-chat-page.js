@@ -107,8 +107,8 @@ async function openConversation(id){
  if(!refreshed.error)renderConversations(refreshed.data||[]);
 }
 
-let guestActionMenu=null;
-function closeGuestMessageActions(){guestActionMenu?.remove();guestActionMenu=null;}
+let guestActionMenu=null, guestActionOutsideHandler=null;
+function closeGuestMessageActions(){if(guestActionOutsideHandler)document.removeEventListener("pointerdown",guestActionOutsideHandler,true);guestActionOutsideHandler=null;guestActionMenu?.remove();guestActionMenu=null;}
 function showGuestMessageActions(m){
  closeGuestMessageActions();const menu=document.createElement("div");menu.className="amora-message-actions";menu.setAttribute("role","menu");
  Object.assign(menu.style,{position:"fixed",zIndex:"10050",left:"50%",top:"50%",transform:"translate(-50%,-50%)",width:"min(290px,calc(100vw - 32px))",maxHeight:"min(75vh,520px)",overflow:"hidden",padding:"0",borderRadius:"16px",background:"var(--card-bg,#fff)",color:"var(--text-color,#222)",boxShadow:"0 12px 40px #0004",border:"1px solid var(--border-color,#ddd)"});
@@ -116,11 +116,12 @@ function showGuestMessageActions(m){
  const add=(target,label,fn)=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.style.cssText="display:block;width:100%;text-align:left;padding:11px 10px;border:0;border-radius:9px;background:transparent;color:inherit;font:inherit;";b.addEventListener("click",async()=>{if(label==="More ›"||label==="‹ Back")return;closeGuestMessageActions();try{await fn();}catch(e){status(e.message||"Message action failed.",true);}});target.append(b);return b;};
  const heading=document.createElement("strong");heading.textContent=m.sent_by_me?"Your message":"Message";heading.style.cssText="display:block;padding:8px 10px;";first.append(heading);
  add(first,"Reply",()=>{const input=$("#guest-reply-text");input.dataset.replyTo=m.message_id;let preview=$("#guest-reply-preview");if(!preview){preview=document.createElement("div");preview.id="guest-reply-preview";preview.className="guest-reply-preview";$("#guest-reply-form")?.prepend(preview);}preview.replaceChildren();const label=document.createElement("span");label.textContent="Replying to: "+(m.message_text||"").slice(0,140);const cancel=document.createElement("button");cancel.type="button";cancel.textContent="×";cancel.setAttribute("aria-label","Cancel reply");cancel.addEventListener("click",()=>{delete input.dataset.replyTo;preview.remove();});preview.append(label,cancel);input.focus();});
- add(first,"Copy",async()=>{await navigator.clipboard.writeText(m.message_text||"");status("Message copied.");});add(first,"Info",()=>alert("Sent: "+new Date(m.sent_at).toLocaleString()));
+ add(first,"Copy",async()=>{await navigator.clipboard.writeText(m.message_text||"");status("Message copied.");});
+ if(m.sent_by_me)add(first,"Delete",async()=>{if(!confirm("Delete this message for everyone?"))return;const {error}=await supabase.rpc("guest_delete_message",{p_token:token,p_message_id:m.message_id});if(error)throw error;status("Message deleted.");await openConversation(activeConversationId);});
  const more=add(first,"More ›",()=>{});more.addEventListener("click",()=>{track.style.transform="translateX(-50%)";});
  const back=add(second,"‹ Back",()=>{});back.addEventListener("click",()=>{track.style.transform="translateX(0)";});
- if(m.sent_by_me)add(second,"Delete",async()=>{if(!confirm("Delete this message for everyone?"))return;const {error}=await supabase.rpc("guest_delete_message",{p_token:token,p_message_id:m.message_id});if(error)throw error;status("Message deleted.");await openConversation(activeConversationId);});
- document.body.append(menu);guestActionMenu=menu;setTimeout(()=>document.addEventListener("pointerdown",e=>{if(guestActionMenu&&!guestActionMenu.contains(e.target))closeGuestMessageActions();},{once:true}),0);
+ add(second,"Info",()=>alert("Sent: "+new Date(m.sent_at).toLocaleString()));
+ document.body.append(menu);guestActionMenu=menu;guestActionOutsideHandler=e=>{if(guestActionMenu&&!guestActionMenu.contains(e.target))closeGuestMessageActions();};setTimeout(()=>{if(guestActionMenu===menu)document.addEventListener("pointerdown",guestActionOutsideHandler,true);},0);
 }
 
 $("#guest-create-identity")?.addEventListener("click",async()=>{
