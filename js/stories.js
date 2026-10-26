@@ -119,6 +119,26 @@ document.addEventListener("DOMContentLoaded", () => {
     signedUrlCache.set(story.id, {url:objectUrl,expiresAt:Date.now()+1700000});
     return objectUrl;
   }
+  function getNextStoryForPrefetch() {
+    const group = storyGroups[activeGroup];
+    if (group && activeIndex + 1 < group.items.length) return group.items[activeIndex + 1];
+    if (activeGroup + 1 < storyGroups.length) return storyGroups[activeGroup + 1]?.items[0] || null;
+    return null;
+  }
+  async function prefetchNextStoryMedia(currentStoryId) {
+    const next = getNextStoryForPrefetch();
+    if (!next || next.id === currentStoryId) return;
+    try {
+      const url = await getSignedUrl(next);
+      if (next.media_type !== "video") {
+        const image = new Image();
+        image.decoding = "async";
+        image.src = url;
+      }
+    } catch (error) {
+      console.debug("Next story prefetch skipped:", error?.message || error);
+    }
+  }
   async function loadStories() {
     row.innerHTML = '<p class="stories-loading">Loading stories…</p>';
     const auth = await db.auth.getUser();
@@ -344,9 +364,11 @@ document.addEventListener("DOMContentLoaded", () => {
         else console.warn("Story view count could not load:", count.error);
       }
       refreshStoryLikeState();
+      // Prepare only the next story, never a queue of full-size media.
+      prefetchNextStoryMedia(story.id);
       if (story.media_type === "video") {
         const video = document.createElement("video");
-        video.src = url; video.autoplay = true; video.playsInline = true; video.controls = true; video.preload = "metadata";
+        video.src = url; video.autoplay = true; video.playsInline = true; video.controls = true; video.preload = "auto"; video.setAttribute("playsinline", ""); video.setAttribute("webkit-playsinline", "");
         viewerMedia.appendChild(video); currentVideo = video;
         video.onended = () => { if (!storyPaused && commentsPanel?.hidden !== false && moreMenu?.hidden !== false) nextStory(); };
         video.onloadedmetadata = () => {
