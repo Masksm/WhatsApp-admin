@@ -312,3 +312,14 @@ html[data-theme="light"] .profile-post-card{background:#fff;border-color:#e7dce8
 .profile-post-dialog .profile-dialog-status{padding:0 18px;color:var(--muted,#a79aaa)}
 .profile-post-dialog .profile-dialog-status.is-error{color:#ef6478}
 @media(max-width:520px){.profile-post-dialog .post-detail-actions{gap:4px;padding:10px}.profile-post-dialog .post-detail-actions button{font-size:.74rem;padding:10px 2px}.profile-post-dialog .comments-dialog-form{padding:10px}.profile-post-dialog .comments-dialog-anonymous{width:100%}}
+
+.profile-post-dialog .comments-dialog-panel{position:relative}
+.profile-post-dialog .profile-post-more-menu{position:sticky;bottom:12px;z-index:5;max-height:45%;overflow:auto;margin:0 14px 12px;border:1px solid var(--line,#39313f);border-radius:18px;background:var(--surface,#211a27);box-shadow:0 14px 40px #0008;padding:12px}
+.profile-post-dialog .profile-post-more-menu[hidden]{display:none}
+.profile-post-dialog .profile-post-more-menu .post-more-menu-header{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 10px;border-bottom:1px solid var(--line,#39313f);margin-bottom:7px}
+.profile-post-dialog .profile-post-more-menu .post-more-menu-close{border:0;background:transparent;color:var(--text,#fff);font-size:1.4rem;padding:4px 9px}
+.profile-post-dialog .profile-post-more-menu .post-more-menu-item{display:block;width:100%;text-align:left;border:0;border-radius:10px;padding:12px;background:transparent;color:var(--text,#fff);font:inherit;font-size:.9rem}
+.profile-post-dialog .profile-post-more-menu .post-more-menu-item:hover{background:var(--surface2,#302536)}
+.profile-post-dialog .profile-post-more-menu .post-more-delete{color:#ef6478}
+html[data-theme="light"] .profile-post-dialog .profile-post-more-menu{background:#fff;border-color:#e7dce8}
+html[data-theme="light"] .profile-post-dialog .profile-post-more-menu .post-more-menu-item{color:#302536}
