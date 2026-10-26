@@ -67,6 +67,110 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     postsContainer.append(empty);
   }
+
+  const followListDialog = byId("follow-list-dialog");
+  const followListItems = byId("follow-list-items");
+  let followListMode = "followers";
+  function closeFollowList() {
+    if (followListDialog) followListDialog.hidden = true;
+  }
+  async function loadFollowList(mode) {
+    if (!viewedProfile || !followListItems || !followListDialog) return;
+    followListMode = mode;
+    const isFollowingList = mode === "following";
+    setText("follow-list-title", isFollowingList ? "Following" : "Followers");
+    followListDialog.hidden = false;
+    followListItems.replaceChildren(node("p", "follow-list-empty", "Loading accounts…"));
+    try {
+      const key = isFollowingList ? "follower_id" : "followed_id";
+      const value = isFollowingList ? viewedProfile.id : viewedProfile.id;
+      const { data: rows, error } = await supabase.from("user_follows")
+        .select("follower_id,followed_id,created_at").eq(key, value)
+        .order("created_at", { ascending: false }).limit(500);
+      if (error) throw error;
+      const ids = [...new Set((rows || []).map(row => isFollowingList ? row.followed_id : row.follower_id).filter(Boolean))];
+      if (!ids.length) {
+        followListItems.replaceChildren(node("p", "follow-list-empty", isFollowingList ? "This account is not following anyone yet." : "This account has no followers yet."));
+        return;
+      }
+      const { data: profiles, error: profilesError } = await supabase.from("profiles")
+        .select("id,username,display_name,is_official").in("id", ids);
+      if (profilesError) throw profilesError;
+      const byId = new Map((profiles || []).map(profile => [profile.id, profile]));
+      const ordered = ids.map(id => byId.get(id)).filter(profile => profile && profile.username);
+      followListItems.replaceChildren();
+      if (!ordered.length) {
+        followListItems.append(node("p", "follow-list-empty", "No public accounts to show."));
+        return;
+      }
+      for (const profile of ordered) {
+        const item = node("div", "follow-list-item");
+        const identity = node("a", "follow-list-identity");
+        identity.href = "/pages/profile.html?username=" + encodeURIComponent(profile.username);
+        const avatar = node("span", "follow-list-avatar", (profile.display_name || profile.username).trim().slice(0,1).toUpperCase() || "?");
+        const copy = node("span", "follow-list-copy");
+        copy.append(node("strong", "", profile.display_name || profile.username), node("small", "", "@" + profile.username));
+        identity.append(avatar, copy);
+        item.append(identity);
+        const isSelf = profile.id === currentUserId;
+        let isAdmin = Boolean(profile.is_official);
+        try {
+          const { data: tier, error: tierError } = await supabase.rpc("is_amora_moderator_profile", { p_username: profile.username });
+          if (!tierError && Number(tier || 0) >= 2) isAdmin = true;
+        } catch (_) {}
+        if (user && !isSelf && !isAdmin) {
+          const follow = node("button", "follow-list-action", "Follow");
+          follow.type = "button";
+          follow.disabled = true;
+          try {
+            const { data: existing, error } = await supabase.from("user_follows").select("followed_id")
+              .eq("follower_id", user.id).eq("followed_id", profile.id).maybeSingle();
+            if (error) throw error;
+            const following = Boolean(existing);
+            follow.textContent = following ? "Following" : "Follow";
+            follow.classList.toggle("is-following", following);
+            follow.setAttribute("aria-pressed", String(following));
+            follow.disabled = false;
+            follow.addEventListener("click", async () => {
+              follow.disabled = true;
+              try {
+                if (follow.getAttribute("aria-pressed") === "true") {
+                  const { error: deleteError } = await supabase.from("user_follows").delete().eq("follower_id", user.id).eq("followed_id", profile.id);
+                  if (deleteError) throw deleteError;
+                  follow.textContent = "Follow";
+                  follow.classList.remove("is-following");
+                  follow.setAttribute("aria-pressed", "false");
+                } else {
+                  const { error: insertError } = await supabase.from("user_follows").insert({ follower_id: user.id, followed_id: profile.id });
+                  if (insertError) throw insertError;
+                  follow.textContent = "Following";
+                  follow.classList.add("is-following");
+                  follow.setAttribute("aria-pressed", "true");
+                }
+                if (viewedProfile) setStats(await loadPublicSummary(viewedProfile.username));
+              } catch (error) {
+                console.error("[Amora follow list]", error?.message || error);
+                follow.textContent = "Try again";
+              } finally { follow.disabled = false; }
+            });
+          } catch (_) {
+            follow.textContent = "Unavailable";
+          }
+          item.append(follow);
+        }
+        followListItems.append(item);
+      }
+    } catch (error) {
+      console.error("[Amora follow list load]", error?.message || error);
+      followListItems.replaceChildren(node("p", "follow-list-empty", "Could not load this list right now. Please refresh and try again."));
+    }
+  }
+  byId("following-stat")?.addEventListener("click", () => loadFollowList("following"));
+  byId("follower-stat")?.addEventListener("click", () => loadFollowList("followers"));
+  byId("follow-list-close")?.addEventListener("click", closeFollowList);
+  followListDialog?.addEventListener("click", event => { if (event.target === followListDialog) closeFollowList(); });
+  document.addEventListener("keydown", event => { if (event.key === "Escape") closeFollowList(); });
+
   function setStats(summary) {
     setText("post-count", Number(summary.identified_posts || 0).toLocaleString());
     setText("follower-count", Number(summary.followers || 0).toLocaleString());
