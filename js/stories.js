@@ -194,45 +194,49 @@ document.addEventListener("DOMContentLoaded", () => {
       console.warn("Story preview could not load:", err?.message || err);
     }
   }
+  function isStoryContentAllowed(value) {
+    const text = String(value || "").trim();
+    const digits = text.replace(/\D/g, "");
+    if (digits.length >= 10) return false;
+    if (/^[\s\d\p{P}]+$/u.test(text) && digits.length >= 3) return false;
+    if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text)) return false;
+    if (/(https?:\/\/|www\.|\b[a-z0-9-]+\.(com|net|org|ng|co|me|app|io)\b)/i.test(text)) return false;
+    if (/(whatsapp|telegram|snapchat|instagram|facebook|tiktok|phone number|call me|text me|dm me|message me on|my number|contact me)/i.test(text)) return false;
+    return true;
+  }
   function renderRow() {
     row.innerHTML = "";
     const own = storyGroups.find(g => g.userId === currentUser?.id);
-    const create = document.createElement("button");
-    create.type = "button"; create.className = "story-person is-own";
-    create.setAttribute("aria-label", own ? "View your story or add another" : "Add your story");
-    create.innerHTML = '<span class="story-ring' + (own ? ' has-story' : '') + '"><span class="story-avatar">' + (own ? escapeHtml(initials(nameFor(own.profile))) : "＋") + '</span></span><span class="story-person-name">Your story</span>';
-    if (own) loadStoryPreview(create.querySelector(".story-avatar"), own.items[0]);
-    create.addEventListener("click", () => {
-      if (own) {
-        openViewer(storyGroups.indexOf(own), 0);
-        return;
-      }
-      const composer = document.getElementById("composer-dialog");
-      const quickComposer = document.querySelector(".feed-quick-composer");
-      if (composer) {
-        composer.hidden = false;
-        requestAnimationFrame(() => composer.classList.add("is-expanded"));
-        quickComposer?.setAttribute("aria-expanded", "true");
-      }
-      window.setTimeout(() => fileInput.click(), composer ? 180 : 0);
+    const addStory = document.createElement("button");
+    addStory.type = "button";
+    addStory.className = "story-person story-add-person";
+    addStory.setAttribute("aria-label", "Add a story");
+    addStory.innerHTML = '<span class="story-ring story-add-ring"><span class="story-avatar">＋</span></span><span class="story-person-name">Add a story</span>';
+    addStory.addEventListener("click", () => {
+      if (!currentUser) { say("Sign in to add a story."); return; }
+      beginCreateStory();
     });
-    row.appendChild(create);
+    row.appendChild(addStory);
+    if (own) {
+      const yourStory = document.createElement("button");
+      yourStory.type = "button";
+      yourStory.className = "story-person is-own";
+      yourStory.setAttribute("aria-label", "View your story");
+      yourStory.innerHTML = '<span class="story-ring has-story"><span class="story-avatar">' + escapeHtml(initials(nameFor(own.profile))) + '</span></span><span class="story-person-name">Your story</span>';
+      loadStoryPreview(yourStory.querySelector(".story-avatar"), own.items[own.items.length - 1]);
+      yourStory.addEventListener("click", () => openViewer(storyGroups.indexOf(own), 0));
+      row.appendChild(yourStory);
+    }
     storyGroups.filter(g => g.userId !== currentUser?.id).forEach(group => {
       const button = document.createElement("button");
       button.type = "button"; button.className = "story-person";
       const label = nameFor(group.profile);
       button.setAttribute("aria-label", "View story by " + label);
       button.innerHTML = '<span class="story-ring has-story"><span class="story-avatar">' + escapeHtml(initials(label)) + '</span></span><span class="story-person-name">' + escapeHtml(label) + '</span>';
-      loadStoryPreview(button.querySelector(".story-avatar"), group.items[0]);
+      loadStoryPreview(button.querySelector(".story-avatar"), group.items[group.items.length - 1]);
       button.addEventListener("click", () => openViewer(storyGroups.indexOf(group), 0));
       row.appendChild(button);
     });
-    if (!storyGroups.length) {
-      const empty = document.createElement("span");
-      empty.className = "stories-empty";
-      empty.textContent = "Be the first to share a moment.";
-      row.appendChild(empty);
-    }
   }
   async function validateVideo(file) {
     if (!file.type.startsWith("video/")) return true;
@@ -302,6 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (upload.error) throw upload.error;
       const created = new Date();
       const caption = (storyComposerCaption?.value || "").trim().slice(0,500);
+      if (caption && !isStoryContentAllowed(caption)) throw new Error("Story text cannot contain contact information or standalone number fragments.");
       const inserted = await db.from("stories").insert({user_id:currentUser.id,media_path:uploadedPath,media_type:file.type.startsWith("video/")?"video":"image",caption,visibility:"public",allow_comments:storyAllowComments?.checked !== false,created_at:created.toISOString(),expires_at:new Date(created.getTime()+86400000).toISOString()}).select("id").single();
       if (inserted.error) throw inserted.error;
       if (storyComposer) storyComposer.hidden = true; document.body.style.overflow = ""; pendingStoryFile = null;
@@ -479,6 +484,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!activeStory || !currentUser || activeStory.user_id === currentUser.id || activeStory.allow_comments === false) return;
     const content = commentInput.value.trim();
     if (!content) return;
+    if (!isStoryContentAllowed(content)) { say("Story comments cannot contain contact information or standalone number fragments."); return; }
     const submit = commentForm.querySelector("button[type=submit]");
     submit.disabled = true;
     try {
