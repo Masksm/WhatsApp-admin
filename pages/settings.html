@@ -7,11 +7,14 @@
   <title>Settings · Amora</title>
   <script>(function(){try{var m=localStorage.getItem("amora_appearance");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}})();</script>
   <link rel="stylesheet" href="/css/feed.css">
-  <link rel="stylesheet" href="/css/settings.css">
+  <link rel="stylesheet" href="/css/settings.css?v=profile-privacy-1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-client.js" defer></script>
-  <script src="/js/settings.js" defer></script>
+  <script src="/js/settings.js?v=profile-privacy-1" defer></script>
   <script type="module" src="/js/guest-account-link.js?v=guest-recovery-settings-1"></script>
+<style>
+.settings-open-visibility{width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit}.visibility-setting-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 0;border-bottom:1px solid var(--line,#ddd)}.visibility-setting-row span{display:grid;gap:5px}.visibility-setting-row small{font-size:13px;opacity:.75;line-height:1.4}.visibility-setting-row input{width:22px;height:22px;accent-color:#b72c79;flex:0 0 auto}.settings-dialog-backdrop[hidden]{display:none!important}.settings-dialog-backdrop{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:18px;background:#100815b8}.settings-dialog-card{position:relative;width:min(480px,100%);max-height:calc(100dvh - 36px);overflow:auto;box-sizing:border-box;border:1px solid var(--line,#ddd);border-radius:22px;padding:26px 20px 20px;background:var(--surface,#fff);color:var(--text,#241b2b);box-shadow:0 24px 90px #0008}.settings-dialog-card h3{margin:6px 36px 8px 0}.settings-dialog-card .settings-traits-close{position:absolute;right:14px;top:14px}.settings-dialog-card .settings-traits-actions{margin-top:18px}.settings-dialog-card .settings-status{overflow-wrap:anywhere}
+</style>
 </head>
 <body class="amora-feed-page settings-page">
   <div class="feed-shell">
@@ -119,7 +122,19 @@
           </section>
           <section class="settings-group" id="audience">
             <p class="eyebrow">WHO CAN SEE WHAT</p><h2>Audience and visibility</h2>
-            <article class="settings-item card"><span class="settings-icon">◎</span><div><h3>Public profile</h3><p>Your username, profile counts, shared traits, and public identified posts can be viewed by other people. Private account details are not shown.</p></div></article>
+            <button class="settings-item card settings-link settings-open-visibility" id="settings-open-visibility" type="button"><span class="settings-icon">◎</span><div><h3>Public profile</h3><p>Manage whether other accounts can see your followers and the accounts you follow.</p></div><span aria-hidden="true">›</span></button>
+            <div class="settings-dialog-backdrop" id="settings-visibility-dialog" hidden>
+              <section class="settings-dialog-card" role="dialog" aria-modal="true" aria-labelledby="settings-visibility-title">
+                <button class="settings-traits-close" id="settings-close-visibility" type="button" aria-label="Close public profile privacy">×</button>
+                <p class="eyebrow">AUDIENCE AND VISIBILITY</p>
+                <h3 id="settings-visibility-title">Public profile privacy</h3>
+                <p class="settings-traits-privacy">Choose what other accounts can see. Your own account can still view its complete lists.</p>
+                <label class="visibility-setting-row"><span><strong>Keep followers private</strong><small>Other accounts cannot open your followers list.</small></span><input type="checkbox" id="settings-followers-private"></label>
+                <label class="visibility-setting-row"><span><strong>Keep following private</strong><small>Other accounts cannot see who you follow.</small></span><input type="checkbox" id="settings-following-private"></label>
+                <div class="settings-traits-actions"><button class="primary-button" id="settings-save-visibility" type="button">Save privacy</button></div>
+                <p class="settings-status" id="settings-visibility-status" role="status" aria-live="polite"></p>
+              </section>
+            </div>
             <article class="settings-item card"><span class="settings-icon">▤</span><div><h3>Post audience</h3><p>Choose the audience for each post when you publish it. Public posts can appear on other people's feeds and your profile.</p></div></article>
             <article class="settings-item card"><span class="settings-icon">⊘</span><div><h3>Blocking and profile locking</h3><p>Advanced blocking and profile-lock controls are not available yet.</p></div></article>
           </section>
