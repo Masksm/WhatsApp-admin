@@ -152,7 +152,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (error) {
       console.error("[Amora follow list load]", error?.message || error);
-      followListItems.replaceChildren(node("p", "follow-list-empty", "Could not load this list right now. Please refresh and try again."));
+      const message=String(error?.message||"");
+      const privateMessage=message.includes("followers private")?"This account's followers are private.":message.includes("following list private")?"This account's following list is private.":"Could not load this list right now. Please refresh and try again.";
+      followListItems.replaceChildren(node("p", "follow-list-empty", privateMessage));
     }
   }
   byId("following-stat")?.addEventListener("click", () => loadFollowList("following"));
