@@ -51,7 +51,8 @@ function showOwnerGuestActions(m,conversationId){
  add("Close",closeOwnerGuestActions);document.body.append(menu);ownerGuestActionMenu=menu;
  setTimeout(()=>document.addEventListener("pointerdown",e=>{if(ownerGuestActionMenu&&!ownerGuestActionMenu.contains(e.target))closeOwnerGuestActions();},{once:true}),0);
 }
-\n$("#guest-chat-popup-close")?.addEventListener("click",closeChatPopup);
+
+$("#guest-chat-popup-close")?.addEventListener("click",closeChatPopup);
 $("#guest-inbox-mobile-back")?.addEventListener("click",closeChatPopup);
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeChatPopup();});
 async function openChat(id){
