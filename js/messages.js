@@ -229,6 +229,16 @@ function renderMessages(messages) {
       item.addEventListener(type, () => clearTimeout(holdTimer), { passive: true })
     );
 
+    if (message.reply_to_message_id) {
+      const quoted = document.createElement("blockquote");
+      quoted.className = "chat-reply-quote";
+      const who = document.createElement("strong");
+      who.textContent = "↪ " + (message.reply_to_sender_name || "Message");
+      const excerpt = document.createElement("span");
+      excerpt.textContent = message.reply_to_text || "Original message unavailable";
+      quoted.append(who, excerpt);
+      item.appendChild(quoted);
+    }
     const content = document.createElement("p");
     content.textContent = message.message_text || "";
     if (message.is_pinned) {
@@ -384,7 +394,7 @@ function startLiveMessageUpdates(conversationId) {
   // Use the secured RPC because direct SELECT on chat_messages is intentionally restricted.
   activeMessageRefreshTimer = setInterval(async () => {
     if (document.hidden || activeConversationId !== conversationId || chatRequestInProgress) return;
-    const result = await supabase.rpc("get_conversation_messages_for_viewer", { p_conversation_id: conversationId });
+    const result = await supabase.rpc("get_conversation_messages_for_viewer_v2", { p_conversation_id: conversationId });
     if (result.error || activeConversationId !== conversationId) return;
     const incoming = result.data || [];
     const ids = new Set(incoming.map(m => m.message_id || m.id).filter(Boolean));
@@ -421,7 +431,7 @@ async function loadChatMessages(conversationId) {
 
   try {
     const { data, error } = await supabase.rpc(
-      "get_conversation_messages_for_viewer",
+      "get_conversation_messages_for_viewer_v2",
       { p_conversation_id: conversationId }
     );
 
@@ -512,19 +522,16 @@ async function handleSendMessage(event) {
     const replyInput = $("#chat-message-text");
     const replyTo = replyInput?.dataset.replyTo;
     const replyPreview = $("#chat-reply-preview");
-    let outgoingMessage = message;
-    if (replyTo && replyPreview) {
-      const quoted = replyPreview.querySelector("span")?.textContent || "Replying to a message";
-      outgoingMessage = "↪ " + quoted + "\\n" + message;
-    }
-
-    const { data, error } = await supabase.rpc(
-      "send_chat_message",
-      {
-        p_conversation_id: conversationId,
-        p_message: outgoingMessage
-      }
-    );
+    const { data, error } = replyTo
+      ? await supabase.rpc("send_chat_message_reply", {
+          p_conversation_id: conversationId,
+          p_message: message,
+          p_reply_to_message_id: replyTo
+        })
+      : await supabase.rpc("send_chat_message", {
+          p_conversation_id: conversationId,
+          p_message: message
+        });
 
     if (error) throw error;
 
