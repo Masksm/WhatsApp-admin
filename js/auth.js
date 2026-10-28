@@ -331,6 +331,39 @@ async function handleAuthSubmit(event) {
   }
 }
 
+async function handleGoogleAuth() {
+  if (!supabase) {
+    setStatus(byId("auth-status"), "Authentication is currently unavailable.", true);
+    return;
+  }
+
+  const button = byId("google-auth-button");
+  const status = byId("auth-status");
+  if (button) button.disabled = true;
+  setStatus(status, "Connecting to Google...");
+
+  try {
+    const redirectUrl = new URL("/pages/home.html", window.location.origin);
+    redirectUrl.searchParams.set("auth", authMode);
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: redirectUrl.toString()
+      }
+    });
+
+    if (error) throw error;
+  } catch (error) {
+    setStatus(
+      status,
+      getErrorMessage(error, "Google sign-in could not be started."),
+      true
+    );
+    if (button) button.disabled = false;
+  }
+}
+
 async function handleLogout() {
   if (!supabase) return;
 
@@ -376,6 +409,11 @@ function initAuth() {
   byId("login-button")?.addEventListener("click", () => {
     setAuthMode(authMode === "signup" ? "login" : "signup");
   });
+
+  byId("google-auth-button")?.addEventListener(
+    "click",
+    handleGoogleAuth
+  );
 
   byId("logout-button")?.addEventListener(
     "click",
