@@ -664,3 +664,65 @@ body:has(#auth-panel) #new-password-section > p {
 .reset-login-link{display:inline-block;margin-top:8px;color:var(--auth-pink-bright);font-size:.88rem;font-weight:750;text-decoration:none}
 .reset-login-link:hover{text-decoration:underline}
 .reset-login-link[hidden]{display:none}
+
+
+/* Google OAuth button */
+body:has(#auth-panel) .google-auth-btn {
+  width: 100%;
+  min-height: 51px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 13px;
+  color: var(--auth-text);
+  background: rgba(255, 255, 255, 0.055);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+body:has(#auth-panel) .google-auth-btn:hover {
+  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.095);
+  transform: translateY(-1px);
+}
+
+body:has(#auth-panel) .google-auth-btn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+body:has(#auth-panel) .google-g {
+  width: 23px;
+  height: 23px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #4285f4;
+  background: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+body:has(#auth-panel) .auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 3px 0;
+  color: var(--auth-muted);
+  font-size: 0.72rem;
+}
+
+body:has(#auth-panel) .auth-divider::before,
+body:has(#auth-panel) .auth-divider::after {
+  height: 1px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.11);
+  content: "";
+}
