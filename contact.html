@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#160d1c">
+  <meta name="description" content="Contact information and support options for Amora.">
+  <title>Contact · Amora</title>
+  <link rel="stylesheet" href="/css/feed.css">
+  <style>
+    .contact-page{width:min(760px,100%);margin:0 auto;padding:32px 20px 64px}
+    .contact-card{margin-top:22px;padding:clamp(20px,5vw,34px);border:1px solid var(--line);border-radius:20px;background:var(--surface)}
+    .contact-page p{line-height:1.8;color:var(--muted)}
+    .contact-nav{display:flex;gap:16px;flex-wrap:wrap;margin:20px 0}
+    .contact-nav a{color:var(--pink);font-weight:700}
+    .contact-note{padding:14px 16px;border-left:3px solid var(--pink);border-radius:0 12px 12px 0;background:var(--surface2);line-height:1.7}
+  </style>
+</head>
+<body>
+  <main class="contact-page">
+    <p>AMORA · HELP AND INFORMATION</p>
+    <h1>Contact Amora</h1>
+    <p>This page explains the support options currently available on Amora.</p>
+    <nav class="contact-nav" aria-label="Information navigation">
+      <a href="/">Home</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+    </nav>
+    <section class="contact-card">
+      <h2>Account help</h2>
+      <p>If you cannot sign in, open the Amora login page and use the “Forgot password?” option to request a password-reset email.</p>
+      <p><a href="/pages/home.html?auth=login">Go to Amora login ↗</a></p>
+    </section>
+    <section class="contact-card">
+      <h2>Privacy, safety and reports</h2>
+      <p>A dedicated support email address and contact form are not configured on this page yet. We will not invent a contact address that may belong to someone else.</p>
+      <div class="contact-note">Never send your password, authentication codes, private messages, or account recovery tokens through a public post or to an unverified contact.</div>
+    </section>
+    <p>© <span id="current-year">2026</span> Amora</p>
+  </main>
+  <script>document.getElementById("current-year").textContent = new Date().getFullYear();</script>
+</body>
+</html>
